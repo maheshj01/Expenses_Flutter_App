@@ -14,37 +14,37 @@ class _ExpensePageState extends State<ExpensePage> {
         isScrollControlled: true,
         context: context,
         builder: (BuildContext builder) {
-          return Container(
-            height: MediaQuery.of(context).size.height / 1.8,
-            padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom),
-            decoration: BoxDecoration(
-                color: bottomsheet_background_color,
-                borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20))),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: <Widget>[
-                Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      _bottomSheetIcons(Icons.clear),
-                      _expenseAmountField(),
-                      _bottomSheetIcons(Icons.done)
-                    ],
-                  ),
-                ),
-                Expanded(
-                    child: Container(
-                        margin: EdgeInsets.all(10),
-                        child: _expenseDescriptionField())),
-                // Padding(
-                //     padding: EdgeInsets.only(
-                //         bottom: MediaQuery.of(context).viewInsets.bottom)),
-              ],
-            ),
+          return SingleChildScrollView(
+            child: Container(
+                padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom),
+                decoration: BoxDecoration(
+                    color: bottomsheet_background_color,
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(20),
+                        topRight: Radius.circular(20))),
+                child: Column(
+                  children: <Widget>[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        _bottomSheetIcons(Icons.clear),
+                        _expenseAmountField(),
+                        _bottomSheetIcons(Icons.done)
+                      ],
+                    ),
+                    Container(
+                      height: 40,
+                    ),
+                    Container(
+                      margin: EdgeInsets.symmetric(horizontal: 10),
+                      child: _expenseDescriptionField(),
+                    ),
+                    Container(
+                      height: 20,
+                    ),
+                  ],
+                )),
           );
         });
   }
@@ -153,7 +153,14 @@ class _ExpensePageState extends State<ExpensePage> {
                         flex: 1,
                         child: Container(
                           alignment: Alignment.center,
-                          child: Text(DateTime.now().day.toString() + '/' + DateTime.now().month.toString() + '/' + DateTime.now().year.toString(),style: TextStyle(color: Colors.white),),
+                          child: Text(
+                            DateTime.now().day.toString() +
+                                '/' +
+                                DateTime.now().month.toString() +
+                                '/' +
+                                DateTime.now().year.toString(),
+                            style: TextStyle(color: Colors.white),
+                          ),
                         ),
                       ),
                       Expanded(
@@ -161,7 +168,7 @@ class _ExpensePageState extends State<ExpensePage> {
                         child: Row(
                           children: <Widget>[
                             Container(
-                              margin: EdgeInsets.only(right: 10,left: 10),
+                              margin: EdgeInsets.only(right: 10, left: 10),
                               child: Text(
                                 '₹',
                                 style: TextStyle(color: Colors.white),
