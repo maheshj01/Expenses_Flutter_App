@@ -1,9 +1,12 @@
 class ExpenseModal {
-  double _amount;
-  String _description;
+  double amount;
+  String description;
 
-  double get getAmount => _amount;
-  String get getDescription => _description;
-  set setAmount(double amount) => _amount = amount;
-  set description(String desc) => _description = desc;
+  ExpenseModal(this.amount,this.description);
+  
+  // double get getAmount => amount;
+  // String get getDescription => description;
+
+  set setAmount(double amount) => amount = amount;
+  set expenseDescription(String desc) => description = desc;
 }

@@ -5,7 +5,8 @@ import 'package:rxdart/rxdart.dart';
 class ExpenseBloc {
   final totalExpenseController = BehaviorSubject<double>();
   final expenseListController = BehaviorSubject<List<ExpenseModal>>();
-
+  List<ExpenseModal> expenseList = [];
+  double totalExpense;
   Stream<List<ExpenseModal>> get expenseListStream =>
       expenseListController.stream;
   StreamSink<List<ExpenseModal>> get expenseListStreamSink =>
@@ -14,13 +15,19 @@ class ExpenseBloc {
   StreamSink<double> get totalExpenseStreamSink => totalExpenseController.sink;
 
   ExpenseBloc() {
-    totalExpenseController.stream.listen(_updateTotalExpense);
-    expenseListController.stream.listen(_addToExpense);
+    print("called bloc");
+    totalExpenseStreamSink.add(0.00);
   }
 
-  void _updateTotalExpense(double total) {
-    totalExpenseStreamSink.add(total);
+  void updateTotalExpense(ExpenseModal modal) {
+    totalExpense = totalExpenseController.value + modal.amount;
+    totalExpenseStreamSink.add(totalExpense);
   }
 
-  void _addToExpense(List<ExpenseModal> event) {}
+  // void _addToExpense(List<ExpenseModal> event) {}
+
+  void dispose() {
+    totalExpenseController.close();
+    expenseListController.close();
+  }
 }

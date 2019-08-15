@@ -1,4 +1,6 @@
+import 'package:expense_manager/blocs/expense_bloc.dart';
 import 'package:expense_manager/const/page_str_const.dart';
+import 'package:expense_manager/model/expense_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../const/color_const.dart';
@@ -7,6 +9,10 @@ class ExpensePage extends StatefulWidget {
   @override
   _ExpensePageState createState() => _ExpensePageState();
 }
+
+final bloc = ExpenseBloc();
+final TextEditingController amountController = new TextEditingController();
+final TextEditingController descriptionController = TextEditingController();
 
 class _ExpensePageState extends State<ExpensePage> {
   Future _getExpenseDetails() {
@@ -51,12 +57,13 @@ class _ExpensePageState extends State<ExpensePage> {
 
   Widget _expenseDescriptionField() {
     return TextField(
+      controller: descriptionController,
       textAlign: TextAlign.center,
       cursorColor: Colors.white,
       keyboardType: TextInputType.number,
       style: inputTextStyle,
       maxLines: 3,
-      maxLength: 50,
+      maxLength: 100,
       autofocus: false,
       decoration: InputDecoration(
         counterText: "",
@@ -78,6 +85,7 @@ class _ExpensePageState extends State<ExpensePage> {
       padding: EdgeInsets.all(10),
       width: MediaQuery.of(context).size.width / 2,
       child: TextField(
+        controller: amountController,
         textAlign: TextAlign.center,
         cursorColor: Colors.white,
         keyboardType: TextInputType.number,
@@ -111,6 +119,17 @@ class _ExpensePageState extends State<ExpensePage> {
         iconSize: 40,
         color: Colors.white,
         onPressed: () {
+          ExpenseModal expenseModal;
+          icon == Icons.done
+              ? {
+                  expenseModal = ExpenseModal(
+                      double.parse(amountController.text),
+                      descriptionController.text),
+                  bloc.expenseList.insert(0, expenseModal),
+                  bloc.expenseListStreamSink.add(bloc.expenseList),
+                  bloc.updateTotalExpense(expenseModal),
+                }
+              : {};
           print("hide Bottom Sheet");
           Navigator.pop(context);
         },
@@ -118,9 +137,9 @@ class _ExpensePageState extends State<ExpensePage> {
     );
   }
 
-  Widget _listView() {
+  Widget _listView(context, snapshot) {
     return ListView.builder(
-      itemCount: 10,
+      itemCount: snapshot.data.length,
       itemBuilder: (BuildContext context, int item) {
         return Container(
           decoration: BoxDecoration(
@@ -135,7 +154,7 @@ class _ExpensePageState extends State<ExpensePage> {
                 child: Container(
                   padding: EdgeInsets.only(left: 10, right: 5),
                   child: Text(
-                    "hello world this is my first payment Iam goona make it to the moon  is my first payment Iam goona make it to the moon",
+                    snapshot.data[item].description,
                     textAlign: TextAlign.justify,
                     style: TextStyle(
                       color: Colors.white,
@@ -178,7 +197,7 @@ class _ExpensePageState extends State<ExpensePage> {
                               flex: 4,
                               child: Container(
                                 child: Text(
-                                  "500",
+                                  snapshot.data[item].amount.toString(),
                                   style: TextStyle(
                                       fontSize: 25, color: Colors.white),
                                 ),
@@ -246,30 +265,41 @@ class _ExpensePageState extends State<ExpensePage> {
           ),
         ),
         appBar: AppBar(
+          centerTitle: true,
+          title: Text("Expenses Manager"),
           backgroundColor: scaffold_background_color,
-          actions: <Widget>[
-            Theme(
-              data: ThemeData(canvasColor: Colors.blueAccent),
-              child: DropdownButton<String>(
-                items: list,
-                value: selectedValue,
-                onChanged: (String value) {
-                  setState(() {
-                    selectedValue = value;
-                    print(DateTime.now().month);
-                  });
-                  print('selected $value');
-                },
-              ),
-            )
-          ],
+          // actions: <Widget>[
+          //   Theme(
+          //     data: ThemeData(canvasColor: Colors.blueAccent),
+          //     child: DropdownButton<String>(
+          //       items: list,
+          //       value: selectedValue,
+          //       onChanged: (String value) {
+          //         setState(() {
+          //           selectedValue = value;
+          //           print(DateTime.now().month);
+          //         });
+          //         print('selected $value');
+          //       },
+          //     ),
+          //   )
+          // ],
         ),
         body: Column(
           children: <Widget>[
             Expanded(
               flex: 6,
               child: Container(
-                  padding: EdgeInsets.only(bottom: 10), child: _listView()),
+                  padding: EdgeInsets.only(bottom: 10),
+                  child: StreamBuilder(
+                    stream: bloc.expenseListStream,
+                    builder: (BuildContext context,
+                        AsyncSnapshot<List<ExpenseModal>> snapshot) {
+                      return snapshot.data == null
+                          ? Center(child: CircularProgressIndicator())
+                          : _listView(context, snapshot);
+                    },
+                  )),
             ),
             Container(
               height: 5,
@@ -295,10 +325,20 @@ class _ExpensePageState extends State<ExpensePage> {
                           style: TextStyle(fontSize: 20, color: Colors.white)),
                     ),
                     Expanded(
-                      flex: 1,
-                      child: Text("45575",
-                          style: TextStyle(fontSize: 25, color: Colors.white)),
-                    ),
+                        flex: 1,
+                        child: StreamBuilder(
+                          stream: bloc.totalExpenseController,
+                          builder: (BuildContext context,
+                              AsyncSnapshot<double> snapshot) {
+                            return snapshot.data == null
+                                ? Text(
+                                    "0.00",
+                                    style: inputTextStyle,
+                                  )
+                                : Text(snapshot.data.toString(),
+                                    style: inputTextStyle);
+                          },
+                        )),
                   ],
                 ),
               ),
