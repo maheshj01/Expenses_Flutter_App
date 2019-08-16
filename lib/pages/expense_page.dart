@@ -1,8 +1,11 @@
+import 'dart:math';
+
+import 'package:flutter/material.dart';
+import 'package:pdf/pdf.dart';
 import 'package:expense_manager/blocs/expense_bloc.dart';
 import 'package:expense_manager/const/page_str_const.dart';
 import 'package:expense_manager/model/expense_modal.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:pdf/widgets.dart' as document;
 import '../const/color_const.dart';
 
 class ExpensePage extends StatefulWidget {
@@ -13,6 +16,7 @@ class ExpensePage extends StatefulWidget {
 final bloc = ExpenseBloc();
 final TextEditingController amountController = new TextEditingController();
 final TextEditingController descriptionController = TextEditingController();
+final pdf = document.Document();
 
 class _ExpensePageState extends State<ExpensePage> {
   Future _getExpenseDetails() {
@@ -60,7 +64,7 @@ class _ExpensePageState extends State<ExpensePage> {
       controller: descriptionController,
       textAlign: TextAlign.center,
       cursorColor: Colors.white,
-      keyboardType: TextInputType.number,
+      keyboardType: TextInputType.text,
       style: inputTextStyle,
       maxLines: 3,
       maxLength: 100,
@@ -217,6 +221,81 @@ class _ExpensePageState extends State<ExpensePage> {
     );
   }
 
+  Widget drawer() {
+    return Theme(
+        data: ThemeData.dark(),
+        child: Drawer(
+            elevation: 1.5,
+            child: Column(
+              children: <Widget>[
+                DrawerHeader(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Container(
+                        child: CircleAvatar(
+                          child: Container(
+                            child: Image.network(
+                                "https://icon-library.net/images/male-user-icon/male-user-icon-13.jpg"),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        child: Text(
+                          "Name",
+                          style: TextStyle(color: Colors.white, fontSize: 18),
+                        ),
+                        padding: EdgeInsets.only(bottom: 10),
+                        alignment: Alignment.bottomCenter,
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: ListView(
+                    // Important: Remove any padding from the ListView.
+                    padding: EdgeInsets.zero,
+                    children: <Widget>[
+                      ListTile(
+                        title: Text('Export File',
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 18)),
+                        leading: Icon(Icons.shopping_cart),
+                        onTap: () {
+                          // Update the state of the app
+                          // ...
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ExpensePage()));
+                        },
+                      ),
+                      ListTile(
+                        title: Text('Create Alert',
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 18)),
+                        leading: Icon(Icons.add_shopping_cart),
+                        onTap: () {},
+                      ),
+                      ListTile(
+                        title: Text("Profile",
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 18)),
+                        leading: Icon(Icons.person_pin),
+                        onTap: () {},
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  color: Colors.black,
+                  width: double.infinity,
+                  height: 0.1,
+                ),
+              ],
+            )));
+  }
+
   List<DropdownMenuItem<String>> list = [
     DropdownMenuItem<String>(
       value: 'August',
@@ -264,6 +343,7 @@ class _ExpensePageState extends State<ExpensePage> {
             color: floating_icon_color,
           ),
         ),
+        drawer: Drawer(child: drawer()),
         appBar: AppBar(
           centerTitle: true,
           title: Text("Expenses Manager"),
@@ -283,7 +363,7 @@ class _ExpensePageState extends State<ExpensePage> {
           //       },
           //     ),
           //   )
-          // ],
+          //],
         ),
         body: Column(
           children: <Widget>[
@@ -296,7 +376,12 @@ class _ExpensePageState extends State<ExpensePage> {
                     builder: (BuildContext context,
                         AsyncSnapshot<List<ExpenseModal>> snapshot) {
                       return snapshot.data == null
-                          ? Center(child: CircularProgressIndicator())
+                          ? Center(
+                              child: Text(
+                                  emptyList[Random().nextInt(emptyList.length)],
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 16)))
                           : _listView(context, snapshot);
                     },
                   )),

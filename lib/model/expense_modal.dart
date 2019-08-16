@@ -9,4 +9,9 @@ class ExpenseModal {
 
   set setAmount(double amount) => amount = amount;
   set expenseDescription(String desc) => description = desc;
+
+  // ExpenseModal.fromMap(Map<double,String> map){
+  //   amount = map['amount'];
+  //   description = map['description'];
+  // }
 }
