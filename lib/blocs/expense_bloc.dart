@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'package:expense_manager/db/db_config.dart';
 import 'package:expense_manager/model/expense_modal.dart';
 import 'package:rxdart/rxdart.dart';
 
 class ExpenseBloc {
   final totalExpenseController = BehaviorSubject<double>();
   final expenseListController = BehaviorSubject<List<ExpenseModal>>();
+  final dbObject = DatabaseConfig.instance;
+  
   List<ExpenseModal> expenseList = [];
   double totalExpense;
   Stream<List<ExpenseModal>> get expenseListStream =>

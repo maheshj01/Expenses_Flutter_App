@@ -1,4 +1,5 @@
 class ExpenseModal {
+  int id;
   double amount;
   String description;
 
