@@ -1,18 +1,18 @@
+import 'package:flutter/material.dart';
+
 class ExpenseModal {
   int id;
   double amount;
   String description;
+  double total;
 
-  ExpenseModal(this.amount,this.description);
-  
-  // double get getAmount => amount;
-  // String get getDescription => description;
+  ExpenseModal(this.amount, this.description);
 
   set setAmount(double amount) => amount = amount;
   set expenseDescription(String desc) => description = desc;
 
-  // ExpenseModal.fromMap(Map<double,String> map){
-  //   amount = map['amount'];
-  //   description = map['description'];
-  // }
+  ExpenseModal.fromMap({@required Map<String, dynamic> map})
+      : amount = map['amount'],
+        description = map['description'],
+        total = map['total'];
 }

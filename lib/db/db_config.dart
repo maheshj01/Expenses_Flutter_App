@@ -14,7 +14,7 @@ class DatabaseConfig {
   static final columnId = 'id';
   static final columnAmount = 'amount';
   static final columnDescription = 'description';
-
+  static final columnTotal = 'total';
   // make this a singleton class
   DatabaseConfig._privateConstructor();
   static final DatabaseConfig instance = DatabaseConfig._privateConstructor();
@@ -41,9 +41,10 @@ class DatabaseConfig {
   Future _onCreate(Database db, int version) async {
     await db.execute('''
           CREATE TABLE $table (
-            $columnId INTEGER PRIMARY KEY,
-            $columnAmount TEXT NOT NULL,
-            $columnDescription INTEGER NOT NULL
+            $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
+            $columnAmount REAL NOT NULL,
+            $columnDescription TEXT NOT NULL,
+            $columnTotal REAL DEFAULT 1.00
           )
           ''');
   }

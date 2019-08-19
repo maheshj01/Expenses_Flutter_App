@@ -7,6 +7,8 @@ import 'package:expense_manager/blocs/expense_bloc.dart';
 import 'package:expense_manager/const/page_str_const.dart';
 import 'package:expense_manager/model/expense_modal.dart';
 import 'package:pdf/widgets.dart' as document;
+import 'package:sqflite/sqflite.dart';
+import 'package:sqflite/sqlite_api.dart';
 import '../const/color_const.dart';
 
 class ExpensePage extends StatefulWidget {
@@ -130,8 +132,8 @@ class _ExpensePageState extends State<ExpensePage> {
                   expenseModal = ExpenseModal(
                       double.parse(amountController.text),
                       descriptionController.text),
-                  bloc.expenseList.insert(0, expenseModal),
-                  bloc.expenseListStreamSink.add(bloc.expenseList),
+                  // bloc.expenseList.insert(0, expenseModal),
+                  // bloc.expenseListStreamSink.add(bloc.expenseList),
                   bloc.updateTotalExpense(expenseModal),
                 }
               : {};
@@ -327,6 +329,7 @@ class _ExpensePageState extends State<ExpensePage> {
     )
   ];
   String selectedValue = "August";
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -349,22 +352,6 @@ class _ExpensePageState extends State<ExpensePage> {
           centerTitle: true,
           title: Text("Expenses Manager"),
           backgroundColor: scaffold_background_color,
-          // actions: <Widget>[
-          //   Theme(
-          //     data: ThemeData(canvasColor: Colors.blueAccent),
-          //     child: DropdownButton<String>(
-          //       items: list,
-          //       value: selectedValue,
-          //       onChanged: (String value) {
-          //         setState(() {
-          //           selectedValue = value;
-          //           print(DateTime.now().month);
-          //         });
-          //         print('selected $value');
-          //       },
-          //     ),
-          //   )
-          //],
         ),
         body: Column(
           children: <Widget>[
