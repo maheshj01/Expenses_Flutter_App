@@ -11,8 +11,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-          canvasColor: Colors.transparent),
+      theme: ThemeData(canvasColor: Colors.transparent),
       initialRoute: pages[0],
       routes: {
         pages[0]: (context) => LoginCheck(),

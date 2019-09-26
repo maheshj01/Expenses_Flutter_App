@@ -1,14 +1,10 @@
 import 'dart:math';
 
-import 'package:expense_manager/db/db_config.dart';
 import 'package:flutter/material.dart';
-import 'package:pdf/pdf.dart';
 import 'package:expense_manager/blocs/expense_bloc.dart';
 import 'package:expense_manager/const/page_str_const.dart';
 import 'package:expense_manager/model/expense_modal.dart';
 import 'package:pdf/widgets.dart' as document;
-import 'package:sqflite/sqflite.dart';
-import 'package:sqflite/sqlite_api.dart';
 import '../const/color_const.dart';
 
 class ExpensePage extends StatefulWidget {
@@ -32,7 +28,7 @@ class _ExpensePageState extends State<ExpensePage> {
                 padding: EdgeInsets.only(
                     bottom: MediaQuery.of(context).viewInsets.bottom),
                 decoration: BoxDecoration(
-                    color: bottomsheet_background_color,
+                    color: bottomSheetBackgroundColor,
                     borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(20),
                         topRight: Radius.circular(20))),
@@ -334,9 +330,9 @@ class _ExpensePageState extends State<ExpensePage> {
   Widget build(BuildContext context) {
     return Scaffold(
         resizeToAvoidBottomInset: true,
-        backgroundColor: scaffold_background_color,
+        backgroundColor: scaffoldBackgroundColor,
         floatingActionButton: FloatingActionButton(
-          backgroundColor: floating_background_color,
+          backgroundColor: floatingBackgroundColor,
           onPressed: () {
             print("show sheet");
             _getExpenseDetails();
@@ -344,14 +340,14 @@ class _ExpensePageState extends State<ExpensePage> {
           tooltip: 'Increment',
           child: Icon(
             Icons.add,
-            color: floating_icon_color,
+            color: floatingIconColor,
           ),
         ),
         drawer: Drawer(child: drawer()),
         appBar: AppBar(
           centerTitle: true,
           title: Text("Expenses Manager"),
-          backgroundColor: scaffold_background_color,
+          backgroundColor: scaffoldBackgroundColor,
         ),
         body: Column(
           children: <Widget>[

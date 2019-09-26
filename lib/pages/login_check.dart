@@ -17,7 +17,7 @@ class _LoginCheckState extends State<LoginCheck> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: scaffold_background_color,
+        backgroundColor: scaffoldBackgroundColor,
         body: Column(children: <Widget>[
           Expanded(
             child: Container(
