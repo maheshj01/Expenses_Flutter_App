@@ -1,10 +1,11 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:expense_manager/blocs/expense_bloc.dart';
+import 'package:expense_manager/blocs/sqform_bloc.dart';
 import 'package:expense_manager/const/page_str_const.dart';
-import 'package:expense_manager/model/expense_modal.dart';
-import 'package:pdf/widgets.dart' as document;
+// import 'package:expense_manager/model/expense_modal.dart';
+import 'package:expense_manager/model/model.dart';
+// import 'package:pdf/widgets.dart' as document;/
 import '../const/color_const.dart';
 
 class ExpensePage extends StatefulWidget {
@@ -12,10 +13,11 @@ class ExpensePage extends StatefulWidget {
   _ExpensePageState createState() => _ExpensePageState();
 }
 
-final bloc = ExpenseBloc();
+// final bloc = ExpenseBloc();
+final bloc = SqfOrmBloc();
 final TextEditingController amountController = new TextEditingController();
 final TextEditingController descriptionController = TextEditingController();
-final pdf = document.Document();
+// final pdf = document.Document();
 
 class _ExpensePageState extends State<ExpensePage> {
   Future _getExpenseDetails() {
@@ -122,18 +124,17 @@ class _ExpensePageState extends State<ExpensePage> {
         iconSize: 40,
         color: Colors.white,
         onPressed: () {
-          ExpenseModal expenseModal;
+          // ExpenseModal expenseModal;
+          var amount = double.parse(amountController.text);
+          var description = descriptionController.text;
           icon == Icons.done
               ? {
-                  expenseModal = ExpenseModal(
-                      double.parse(amountController.text),
-                      descriptionController.text),
-                  // bloc.expenseList.insert(0, expenseModal),
-                  // bloc.expenseListStreamSink.add(bloc.expenseList),
-                  bloc.updateTotalExpense(expenseModal),
+                  bloc.updateTotalExpense(
+                      Expense.withFields(amount, description, 0.0, false)),
                 }
-              : {};
-          print("hide Bottom Sheet");
+              : print("hide Bottom Sheet");
+          amountController.clear();
+          descriptionController.clear();
           Navigator.pop(context);
         },
       ),
@@ -355,14 +356,15 @@ class _ExpensePageState extends State<ExpensePage> {
               flex: 6,
               child: Container(
                   padding: EdgeInsets.only(bottom: 10),
-                  child: StreamBuilder(
+                  child: StreamBuilder<List<Expense>>(
                     stream: bloc.expenseListStream,
                     builder: (BuildContext context,
-                        AsyncSnapshot<List<ExpenseModal>> snapshot) {
+                        AsyncSnapshot<List<Expense>> snapshot) {
                       return snapshot.data == null
                           ? Center(
                               child: Text(
-                                  emptyList[Random().nextInt(emptyList.length)],
+                                  emptyListMessage[Random()
+                                      .nextInt(emptyListMessage.length)],
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       color: Colors.white, fontSize: 16)))

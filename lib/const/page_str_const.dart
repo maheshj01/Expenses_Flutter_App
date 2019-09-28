@@ -7,7 +7,7 @@ OutlineInputBorder inputBorder = OutlineInputBorder(
     borderSide: BorderSide(color: Colors.black38));
 TextStyle inputTextStyle = TextStyle(fontSize: 25, color: Colors.white);
 
-const emptyList = [
+const emptyListMessage = [
   'Nothing here yet😋\nAre you shopping ?',
   'Nothing here yet😋\nYou are having a great Day',
   "Nothing here yet😋\nIt seems You are Good at Managing your Wallet",

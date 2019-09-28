@@ -10,7 +10,6 @@ class LoginCheck extends StatefulWidget {
 class _LoginCheckState extends State<LoginCheck> {
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
   }
 
@@ -25,7 +24,7 @@ class _LoginCheckState extends State<LoginCheck> {
               child: Text(
                 "Login to Keep Data Synced with the Cloud",
                 style: inputTextStyle,
-                textAlign: TextAlign.center,
+                textAlign: TextAlign.end,
               ),
             ),
             flex: 1,
