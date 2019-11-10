@@ -24,7 +24,7 @@ class _LoginCheckState extends State<LoginCheck> {
               child: Text(
                 "Login to Keep Data Synced with the Cloud",
                 style: inputTextStyle,
-                textAlign: TextAlign.end,
+                textAlign: TextAlign.center,
               ),
             ),
             flex: 1,

@@ -67,7 +67,7 @@ class SequenceIdentitySequence extends SqfEntitySequenceBase {
 // BEGIN DATABASE MODEL
 class ExpenseModal extends SqfEntityModelProvider {
   ExpenseModal() {
-    databaseName = 'expenseORM.db';
+    databaseName = expenseModel.databaseName;
     databaseTables = [
       TableExpense.getInstance,
     ];
@@ -76,8 +76,13 @@ class ExpenseModal extends SqfEntityModelProvider {
       SequenceIdentitySequence.getInstance,
     ];
 
-    bundledDatabasePath =
-        null; //'assets/sample.db'; // This value is optional. When bundledDatabasePath is empty then EntityBase creats a new database when initializing the database
+    bundledDatabasePath = expenseModel
+        .bundledDatabasePath; //'assets/sample.db'; // This value is optional. When bundledDatabasePath is empty then EntityBase creats a new database when initializing the database
+  }
+  Map<String, dynamic> getControllers() {
+    final controllers = Map<String, dynamic>();
+
+    return controllers;
   }
 }
 // END DATABASE MODEL
@@ -106,6 +111,7 @@ class Expense {
     total = o['total'] as double;
 
     isDeleted = o['isDeleted'] != null ? o['isDeleted'] == 1 : null;
+    isSaved = true;
   }
   // FIELDS
   int id;
@@ -113,6 +119,8 @@ class Expense {
   String description;
   double total;
   bool isDeleted;
+  bool isSaved;
+  BoolResult saveResult;
   // end FIELDS
 
   static const bool _softDeleteActivated = true;
@@ -123,7 +131,7 @@ class Expense {
   }
 
   // methods
-  Map<String, dynamic> toMap({bool forQuery = false}) {
+  Map<String, dynamic> toMap({bool forQuery = false, bool forJson = false}) {
     final map = Map<String, dynamic>();
     if (id != null) {
       map['id'] = id;
@@ -148,7 +156,8 @@ class Expense {
   }
 
   // methods
-  Future<Map<String, dynamic>> toMapWithChilds([bool forQuery = false]) async {
+  Future<Map<String, dynamic>> toMapWithChilds(
+      [bool forQuery = false, bool forJson = false]) async {
     final map = Map<String, dynamic>();
     if (id != null) {
       map['id'] = id;
@@ -174,7 +183,7 @@ class Expense {
 
   /// This method always returns Json String
   String toJson() {
-    return json.encode(toMap());
+    return json.encode(toMap(forJson: true));
   }
 
   /// This method always returns Json String
@@ -245,8 +254,9 @@ class Expense {
 
   /// <returns>Returns id
   Future<int> save() async {
-    if (id == null || id == 0) {
+    if (id == null || id == 0 || !isSaved) {
       id = await _mnExpense.insert(this);
+      isSaved = true;
     } else {
       id = await _upsert();
     }
@@ -257,6 +267,7 @@ class Expense {
 
   /// <returns>Returns a new Primary Key value of Expense
   Future<int> saveAs() async {
+    isSaved = false;
     id = null;
     return save();
   }
@@ -274,9 +285,19 @@ class Expense {
 
   /// <returns>Returns id
   Future<int> _upsert() async {
-    return id = await _mnExpense.rawInsert(
-        'INSERT OR REPLACE INTO expense (id,  amount, description, total,isDeleted)  VALUES (?,?,?,?,?)',
-        [id, amount, description, total, isDeleted]);
+    try {
+      id = await _mnExpense.rawInsert(
+          'INSERT OR REPLACE INTO expense (id,  amount, description, total,isDeleted)  VALUES (?,?,?,?,?)',
+          [id, amount, description, total, isDeleted]);
+      saveResult = BoolResult(
+          success: true, successMessage: 'Expense id=$id updated successfuly');
+      return id;
+    } catch (e) {
+      saveResult = BoolResult(
+          success: false,
+          errorMessage: 'Expense Save failed. Error: ${e.toString()}');
+      return 0;
+    }
   }
 
   /// inserts or replaces the sent List<Todo> as a batch in one transaction.
@@ -333,6 +354,7 @@ class Expense {
   }
 
   void setDefaultValues() {
+    isSaved = false;
     isDeleted = isDeleted ?? false;
   }
   //end methods
@@ -706,13 +728,24 @@ class ExpenseFilterBuilder extends SearchCriteria {
         }
         switch (param.dbType) {
           case DbType.bool:
-            if (param.value != null) param.value = param.value == true ? 1 : 0;
+            param.value =
+                param.value == null ? null : param.value == true ? 1 : 0;
+            break;
+          case DbType.date:
+          case DbType.datetime:
+            param.value = param.value == null
+                ? null
+                : (param.value as DateTime).millisecondsSinceEpoch;
             break;
           default:
         }
 
-        if (param.value != null) whereArguments.add(param.value);
-        if (param.value2 != null) whereArguments.add(param.value2);
+        if (param.value != null) {
+          whereArguments.add(param.value);
+        }
+        if (param.value2 != null) {
+          whereArguments.add(param.value2);
+        }
       } else {
         whereString += param.whereString;
       }
@@ -996,7 +1029,7 @@ class IdentitySequence {
   /// Assigns a new value when it is triggered and returns the new value
   /// returns Future<int>
   Future<int> nextVal([VoidCallback nextval(int o)]) async {
-    final val = await SequenceManager()
+    final val = await ExpenseModalSequenceManager()
         .sequence(SequenceIdentitySequence.getInstance, true);
     if (nextval != null) {
       nextval(val);
@@ -1007,7 +1040,7 @@ class IdentitySequence {
   /// Get the current value
   /// returns Future<int>
   Future<int> currentVal([VoidCallback currentval(int o)]) async {
-    final val = await SequenceManager()
+    final val = await ExpenseModalSequenceManager()
         .sequence(SequenceIdentitySequence.getInstance, false);
     if (currentval != null) {
       currentval(val);
@@ -1018,7 +1051,7 @@ class IdentitySequence {
   /// Reset sequence to start value
   /// returns start value
   Future<int> reset([VoidCallback currentval(int o)]) async {
-    final val = await SequenceManager()
+    final val = await ExpenseModalSequenceManager()
         .sequence(SequenceIdentitySequence.getInstance, false, reset: true);
     if (currentval != null) {
       currentval(val);
@@ -1029,7 +1062,7 @@ class IdentitySequence {
 
 /// End Region SEQUENCE IdentitySequence
 
-class SequenceManager extends SqfEntityProvider {
-  SequenceManager() : super(ExpenseModal());
+class ExpenseModalSequenceManager extends SqfEntityProvider {
+  ExpenseModalSequenceManager() : super(ExpenseModal());
 }
 // END OF ENTITIES

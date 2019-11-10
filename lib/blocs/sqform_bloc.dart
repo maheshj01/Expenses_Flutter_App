@@ -51,13 +51,23 @@ class SqfOrmBloc {
 
   void insertDb(Expense model, double total) async {
     // TODO: query to insert a new Expense into Database
-    await Expense.withFields(model.amount, model.description, total, false)
-        .save()
-        .then((id) {
-      print("doc with id " + id.toString() + " saved");
-    }).catchError((error) {
-      print("error inserting into database:" + error.toString());
-    });
+    final expense = Expense(
+        amount: model.amount,
+        description: model.description,
+        total: total,
+        isDeleted: false);
+        await expense.save();
+    if (expense.saveResult.success)
+      print(expense.saveResult.toString());
+    else
+      print("failed to save to database ${expense.saveResult.errorMessage}");
+    // await Expense.withFields(model.amount, model.description, total, false)
+    //     .save()
+    //     .then((id) {
+    //   print("doc with id " + id.toString() + " saved");
+    // }).catchError((error) {
+    //   print("error inserting into database:" + error.toString());
+    // });
     await Expense().select().toList().then((expenseList) {
       print("length = " + expenseList.length.toString());
       print("total = " + expenseList[expenseList.length - 1].total.toString());

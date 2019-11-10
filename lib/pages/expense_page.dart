@@ -120,25 +120,29 @@ class _ExpensePageState extends State<ExpensePage> {
     return Padding(
       padding: EdgeInsets.all(10),
       child: IconButton(
-        icon: Icon(icon),
-        iconSize: 40,
-        color: Colors.white,
-        onPressed: () {
-          // ExpenseModal expenseModal;
-          var amount = double.parse(amountController.text);
-          var description = descriptionController.text;
-          icon == Icons.done
-              ? {
-                  bloc.updateTotalExpense(
-                      Expense.withFields(amount, description, 0.0, false)),
-                }
-              : print("hide Bottom Sheet");
-          amountController.clear();
-          descriptionController.clear();
-          Navigator.pop(context);
-        },
-      ),
+          icon: Icon(icon),
+          iconSize: 40,
+          color: Colors.white,
+          onPressed: () => handleBottomSheet(context, icon)),
     );
+  }
+
+  void handleBottomSheet(BuildContext context, IconData icon) {
+    if (amountController.text.isEmpty || descriptionController.text.isEmpty) {
+      Navigator.pop(context);
+      return;
+    }
+    var amount = double.parse(amountController.text);
+    var description = descriptionController.text;
+    icon == Icons.done
+        ? {
+            bloc.updateTotalExpense(
+                Expense.withFields(amount, description, 0.0, false)),
+          }
+        : print("hide Bottom Sheet");
+    amountController.clear();
+    descriptionController.clear();
+    Navigator.pop(context);
   }
 
   Widget _listView(context, snapshot) {
