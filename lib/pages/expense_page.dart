@@ -20,6 +20,8 @@ final TextEditingController descriptionController = TextEditingController();
 // final pdf = document.Document();
 
 class _ExpensePageState extends State<ExpensePage> {
+  Color dismissColor = dismissedRight;
+
   Future _getExpenseDetails() {
     return showModalBottomSheet(
         isScrollControlled: true,
@@ -136,8 +138,10 @@ class _ExpensePageState extends State<ExpensePage> {
     var description = descriptionController.text;
     icon == Icons.done
         ? {
-            bloc.updateTotalExpense(
-                Expense.withFields(amount, description, 0.0, false)),
+            bloc.expenseModalController
+                .add(Expense.withFields(amount, description, 0.0, false))
+            // bloc.updateTotalExpense(
+            //     Expense.withFields(amount, description, 0.0, false)),
           }
         : print("hide Bottom Sheet");
     amountController.clear();
@@ -149,78 +153,104 @@ class _ExpensePageState extends State<ExpensePage> {
     return ListView.builder(
       itemCount: snapshot.data.length,
       itemBuilder: (BuildContext context, int item) {
-        return Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            color: Colors.black,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: <Widget>[
-              Expanded(
-                flex: 6,
-                child: Container(
-                  padding: EdgeInsets.only(left: 10, right: 5),
-                  child: Text(
-                    snapshot.data[item].description,
-                    textAlign: TextAlign.justify,
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 5,
-                  ),
-                ),
+        return Dismissible(
+            direction: DismissDirection.startToEnd,
+            dismissThresholds: {
+              DismissDirection.startToEnd: 0.4,
+              DismissDirection.endToStart: 0.4
+            },
+            background: Container(
+              color: dismissColor,
+            ),
+            onDismissed: (direction) {
+              print("item dismissed");
+              // bloc.removeExpenseItem(snapshot.data[item].id);
+              if (direction == DismissDirection.startToEnd) {
+                print("right ${snapshot.data[item].id}");
+                setState(() {
+                  dismissColor = dismissedRight;
+                  bloc.removeExpenseItem(snapshot.data[item]);
+                });
+                bloc.removeExpenseItem(snapshot.data[item]);
+              } else {
+                setState(() {
+                  dismissColor = dismissedLeft;
+                });
+              }
+            },
+            key: Key("expenseItemKey"),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: Colors.black,
               ),
-              Expanded(
-                  flex: 3,
-                  child: Column(
-                    children: <Widget>[
-                      Expanded(
-                        flex: 1,
-                        child: Container(
-                          alignment: Alignment.center,
-                          child: Text(
-                            DateTime.now().day.toString() +
-                                '/' +
-                                DateTime.now().month.toString() +
-                                '/' +
-                                DateTime.now().year.toString(),
-                            style: TextStyle(color: Colors.white),
-                          ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: <Widget>[
+                  Expanded(
+                    flex: 6,
+                    child: Container(
+                      padding: EdgeInsets.only(left: 10, right: 5),
+                      child: Text(
+                        snapshot.data[item].description,
+                        textAlign: TextAlign.justify,
+                        style: TextStyle(
+                          color: Colors.white,
                         ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 5,
                       ),
-                      Expanded(
-                        flex: 2,
-                        child: Row(
-                          children: <Widget>[
-                            Container(
-                              margin: EdgeInsets.only(right: 10, left: 10),
+                    ),
+                  ),
+                  Expanded(
+                      flex: 3,
+                      child: Column(
+                        children: <Widget>[
+                          Expanded(
+                            flex: 1,
+                            child: Container(
+                              alignment: Alignment.center,
                               child: Text(
-                                '₹',
+                                DateTime.now().day.toString() +
+                                    '/' +
+                                    DateTime.now().month.toString() +
+                                    '/' +
+                                    DateTime.now().year.toString(),
                                 style: TextStyle(color: Colors.white),
                               ),
                             ),
-                            Expanded(
-                              flex: 4,
-                              child: Container(
-                                child: Text(
-                                  snapshot.data[item].amount.toString(),
-                                  style: TextStyle(
-                                      fontSize: 25, color: Colors.white),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: Row(
+                              children: <Widget>[
+                                Container(
+                                  margin: EdgeInsets.only(right: 10, left: 10),
+                                  child: Text(
+                                    '₹',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
                                 ),
-                              ),
-                            )
-                          ],
-                        ),
-                      )
-                    ],
-                  ))
-            ],
-          ),
-          height: MediaQuery.of(context).size.width / 4,
-          margin: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        );
+                                Expanded(
+                                  flex: 4,
+                                  child: Container(
+                                    child: Text(
+                                      snapshot.data[item].amount.toString(),
+                                      style: TextStyle(
+                                          fontSize: 25, color: Colors.white),
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
+                          )
+                        ],
+                      ))
+                ],
+              ),
+              height: MediaQuery.of(context).size.width / 4,
+              margin: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            ));
       },
     );
   }

@@ -6,7 +6,7 @@ import 'package:rxdart/rxdart.dart';
 class SqfOrmBloc {
   final totalExpenseController = BehaviorSubject<double>();
   final expenseListController = BehaviorSubject<List<Expense>>();
-
+  final expenseModalController = BehaviorSubject<Expense>();
   List<Expense> expenseList = [];
   double totalExpense;
   Stream<List<Expense>> get expenseListStream => expenseListController.stream;
@@ -18,6 +18,9 @@ class SqfOrmBloc {
   SqfOrmBloc() {
     // TODO : LOAD THE LIST WHEN THE APP STARTS
     loadTheExpenses();
+    expenseModalController.stream
+        .listen((model) => this.updateTotalExpense(model));
+    // expenseListController.stream.listen((onData) => this.loadTheExpenses());
   }
 
   void loadTheExpenses() async {
@@ -31,6 +34,7 @@ class SqfOrmBloc {
         // either no items in List or firstTime fetching the empty list
         print("no items in list");
         totalExpenseStreamSink.add(0.00);
+        expenseListStreamSink.add(null);
         print("result length = " + expenseList.length.toString());
       }
     } catch (error) {
@@ -56,7 +60,7 @@ class SqfOrmBloc {
         description: model.description,
         total: total,
         isDeleted: false);
-        await expense.save();
+    await expense.save();
     if (expense.saveResult.success)
       print(expense.saveResult.toString());
     else
@@ -74,8 +78,14 @@ class SqfOrmBloc {
     });
   }
 
+  void removeExpenseItem(Expense removeModel) async {
+    var result = Expense().select().id.equals(removeModel.id).delete();
+    loadTheExpenses();
+  }
+
   void dispose() {
     totalExpenseController.close();
     expenseListController.close();
+    expenseModalController.close();
   }
 }
