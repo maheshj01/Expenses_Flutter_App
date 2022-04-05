@@ -8,9 +8,9 @@ class SqfOrmBloc {
   final expenseListController = BehaviorSubject<List<Expense>>();
   final expenseModalController = BehaviorSubject<Expense>();
   List<Expense> expenseList = [];
-  double totalExpense;
+  double totalExpense = 0.0;
   Stream<List<Expense>> get expenseListStream => expenseListController.stream;
-  StreamSink<List<Expense>> get expenseListStreamSink =>
+  StreamSink<List<Expense>?> get expenseListStreamSink =>
       expenseListController.sink;
   Stream<double> get totalExpenseStream => totalExpenseController.stream;
   StreamSink<double> get totalExpenseStreamSink => totalExpenseController.sink;
@@ -29,7 +29,7 @@ class SqfOrmBloc {
       if (expenseList.length > 0) {
         print("fetched the list");
         expenseListStreamSink.add(expenseList);
-        totalExpenseStreamSink.add(expenseList[expenseList.length - 1].total);
+        totalExpenseStreamSink.add(expenseList[expenseList.length - 1].total!);
       } else {
         // either no items in List or firstTime fetching the empty list
         print("no items in list");
@@ -38,7 +38,7 @@ class SqfOrmBloc {
         print("result length = " + expenseList.length.toString());
       }
     } catch (error) {
-      print("error fetching the expenses=>" + error);
+      print("error fetching the expenses=>" + error.toString());
     }
   }
 
@@ -46,7 +46,7 @@ class SqfOrmBloc {
     //TODO:query to update the total Expenses
     expenseList.insert(0, modal);
     expenseListStreamSink.add(expenseList);
-    totalExpense = totalExpenseController.value + modal.amount;
+    totalExpense = totalExpenseController.value + modal.amount!;
     print("total Expense:" + totalExpense.toString());
     print("length =" + expenseList.length.toString());
     totalExpenseStreamSink.add(totalExpense);
@@ -61,10 +61,10 @@ class SqfOrmBloc {
         total: total,
         isDeleted: false);
     await expense.save();
-    if (expense.saveResult.success)
+    if (expense.saveResult!.success)
       print(expense.saveResult.toString());
     else
-      print("failed to save to database ${expense.saveResult.errorMessage}");
+      print("failed to save to database ${expense.saveResult!.errorMessage}");
     // await Expense.withFields(model.amount, model.description, total, false)
     //     .save()
     //     .then((id) {

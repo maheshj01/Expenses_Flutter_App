@@ -74,7 +74,7 @@ class _ExpensePageState extends State<ExpensePage> {
       autofocus: false,
       decoration: InputDecoration(
         counterText: "",
-        hasFloatingPlaceholder: false,
+        floatingLabelBehavior: FloatingLabelBehavior.never,
         hintStyle: inputTextStyle,
         hintText: "Spent for ?",
         alignLabelWithHint: true,
@@ -106,7 +106,7 @@ class _ExpensePageState extends State<ExpensePage> {
           counterText: "",
           labelText: '₹',
           prefixText: '₹',
-          hasFloatingPlaceholder: false,
+          floatingLabelBehavior: FloatingLabelBehavior.never,
           labelStyle: inputTextStyle,
           focusedBorder: inputBorder,
           border: inputBorder,
@@ -270,7 +270,7 @@ class _ExpensePageState extends State<ExpensePage> {
                         child: CircleAvatar(
                           child: Container(
                             child: Image.network(
-                                "https://icon-library.net/images/male-user-icon/male-user-icon-13.jpg"),
+                                "https://icon-library.com/images/male-user-icon/male-user-icon-13.jpg"),
                           ),
                         ),
                       ),
