@@ -28,17 +28,16 @@ class SqfOrmBloc {
       expenseList = await Expense().select().toList();
       if (expenseList.length > 0) {
         print("fetched the list");
-        expenseListStreamSink.add(expenseList);
         totalExpenseStreamSink.add(expenseList[expenseList.length - 1].total!);
       } else {
         // either no items in List or firstTime fetching the empty list
         print("no items in list");
         totalExpenseStreamSink.add(0.00);
-        expenseListStreamSink.add(null);
         print("result length = " + expenseList.length.toString());
       }
+      expenseListStreamSink.add(expenseList);
     } catch (error) {
-      print("error fetching the expenses=>" + error.toString());
+      print("error fetching expenses=>" + error.toString());
     }
   }
 

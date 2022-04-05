@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:expense_manager/constants/strings.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:sqfentity/sqfentity.dart';
@@ -6,7 +7,7 @@ import 'package:sqfentity_gen/sqfentity_gen.dart';
 part 'model.g.dart';
 
 const expenseTable = SqfEntityTable(
-    tableName: 'expense',
+    tableName: expenseListTableName,
     primaryKeyName: 'id',
     primaryKeyType: PrimaryKeyType.integer_auto_incremental,
     useSoftDeleting: true,
@@ -14,6 +15,7 @@ const expenseTable = SqfEntityTable(
     fields: [
       SqfEntityField('amount', DbType.real),
       SqfEntityField('description', DbType.text),
+      SqfEntityField('type', DbType.text, defaultValue: 'once'),
       SqfEntityField('total', DbType.real, defaultValue: 1.0)
     ]);
 
@@ -30,7 +32,7 @@ const seqIdentity = SqfEntitySequence(
 
 @SqfEntityBuilder(expenseModel)
 const expenseModel = SqfEntityModel(
-    modelName: 'expenseModal', // optional
+    modelName: 'expenseModel', // optional
     databaseName: 'expenseORM.db',
     // put defined tables into the tables list.
     databaseTables: [expenseTable],

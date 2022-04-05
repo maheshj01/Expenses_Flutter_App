@@ -5,7 +5,6 @@ const pages = ["LoginPage", "ExpensePage"];
 OutlineInputBorder inputBorder = OutlineInputBorder(
     borderRadius: BorderRadius.circular(10),
     borderSide: BorderSide(color: Colors.black38));
-TextStyle inputTextStyle = TextStyle(fontSize: 25, color: Colors.white);
 
 const emptyListMessage = [
   'Nothing here yet😋\nAre you shopping ?',
@@ -13,3 +12,9 @@ const emptyListMessage = [
   "Nothing here yet😋\nIt seems You are Good at Managing your Wallet",
   "Nothing here yet😋\nIts a Lovely day to Spend !"
 ];
+
+const String rupeeSymbol = '₹';
+const String expenseListTableName = 'expense';
+const String expenseAmountColumn = 'amount';
+const String expenseTypeColumn = 'type';
+const String expenseTotalColumn = 'total';

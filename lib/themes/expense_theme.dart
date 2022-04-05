@@ -8,4 +8,8 @@ class ExpenseTheme {
   static final Color scaffoldBackgroundColor = Colors.grey.shade900;
   static final Color dismissedRight = Colors.red;
   static final Color dismissedLeft = Colors.grey.shade700;
+  static TextStyle inputTextStyle =
+      TextStyle(fontSize: 25, color: Colors.white);
+  static TextStyle rupeeStyle =
+      TextStyle(fontSize: 16, color: Colors.white);
 }

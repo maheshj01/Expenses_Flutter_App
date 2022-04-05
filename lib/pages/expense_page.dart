@@ -19,6 +19,7 @@ final TextEditingController descriptionController = TextEditingController();
 
 class _ExpensePageState extends State<ExpensePage> {
   Color dismissColor = ExpenseTheme.dismissedRight;
+
   Future _getExpenseDetails() {
     return showModalBottomSheet(
         isScrollControlled: true,
@@ -38,19 +39,45 @@ class _ExpensePageState extends State<ExpensePage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
-                        _bottomSheetIcons(Icons.clear),
+                        EmIcon(Icons.clear, onTap: () {
+                          if (amountController.text.isEmpty ||
+                              descriptionController.text.isEmpty) {
+                            // Navigator.pop(context);
+                            return;
+                          }
+                          var amount = double.parse(amountController.text);
+                          var description = descriptionController.text;
+                          amountController.clear();
+                          descriptionController.clear();
+                          Navigator.pop(context);
+                        }),
                         _expenseAmountField(),
-                        _bottomSheetIcons(Icons.done)
+                        EmIcon(Icons.done, onTap: () {
+                          if (amountController.text.isEmpty ||
+                              descriptionController.text.isEmpty) {
+                            // Navigator.pop(context);
+                            return;
+                          }
+                          var amount = double.parse(amountController.text);
+                          var description = descriptionController.text;
+                          bloc.expenseModalController.add(Expense.withFields(
+                              amount, description, 'Once', 0.0, false));
+                          // bloc.updateTotalExpense(
+                          //     Expense.withFields(amount, description, 0.0, false)),
+                          amountController.clear();
+                          descriptionController.clear();
+                          Navigator.pop(context);
+                        })
                       ],
                     ),
-                    Container(
+                    SizedBox(
                       height: 40,
                     ),
                     Container(
                       margin: EdgeInsets.symmetric(horizontal: 10),
                       child: _expenseDescriptionField(),
                     ),
-                    Container(
+                    SizedBox(
                       height: 20,
                     ),
                   ],
@@ -65,14 +92,14 @@ class _ExpensePageState extends State<ExpensePage> {
       textAlign: TextAlign.center,
       cursorColor: Colors.white,
       keyboardType: TextInputType.text,
-      style: inputTextStyle,
+      style: ExpenseTheme.inputTextStyle,
       maxLines: 3,
       maxLength: 100,
       autofocus: false,
       decoration: InputDecoration(
         counterText: "",
         floatingLabelBehavior: FloatingLabelBehavior.never,
-        hintStyle: inputTextStyle,
+        hintStyle: ExpenseTheme.inputTextStyle,
         hintText: "Spent for ?",
         alignLabelWithHint: true,
         focusedBorder: inputBorder,
@@ -93,18 +120,18 @@ class _ExpensePageState extends State<ExpensePage> {
         textAlign: TextAlign.center,
         cursorColor: Colors.white,
         keyboardType: TextInputType.number,
-        style: inputTextStyle,
+        style: ExpenseTheme.inputTextStyle,
         maxLength: 6,
         autofocus: false,
         decoration: InputDecoration(
           hintText: "0",
-          hintStyle: inputTextStyle,
-          prefixStyle: inputTextStyle,
+          hintStyle: ExpenseTheme.inputTextStyle,
+          prefixStyle: ExpenseTheme.inputTextStyle,
           counterText: "",
           labelText: '₹',
           prefixText: '₹',
           floatingLabelBehavior: FloatingLabelBehavior.never,
-          labelStyle: inputTextStyle,
+          labelStyle: ExpenseTheme.inputTextStyle,
           focusedBorder: inputBorder,
           border: inputBorder,
           filled: true,
@@ -113,37 +140,6 @@ class _ExpensePageState extends State<ExpensePage> {
         onTap: () {},
       ),
     );
-  }
-
-  Widget _bottomSheetIcons(IconData icon) {
-    return Padding(
-      padding: EdgeInsets.all(10),
-      child: IconButton(
-          icon: Icon(icon),
-          iconSize: 40,
-          color: Colors.white,
-          onPressed: () => handleBottomSheet(context, icon)),
-    );
-  }
-
-  void handleBottomSheet(BuildContext context, IconData icon) {
-    if (amountController.text.isEmpty || descriptionController.text.isEmpty) {
-      Navigator.pop(context);
-      return;
-    }
-    var amount = double.parse(amountController.text);
-    var description = descriptionController.text;
-    icon == Icons.done
-        ? {
-            bloc.expenseModalController
-                .add(Expense.withFields(amount, description, 0.0, false))
-            // bloc.updateTotalExpense(
-            //     Expense.withFields(amount, description, 0.0, false)),
-          }
-        : print("hide Bottom Sheet");
-    amountController.clear();
-    descriptionController.clear();
-    Navigator.pop(context);
   }
 
   Widget _listView(context, snapshot) {
@@ -363,25 +359,18 @@ class _ExpensePageState extends State<ExpensePage> {
     return Scaffold(
         resizeToAvoidBottomInset: true,
         floatingActionButton: FloatingActionButton(
-          backgroundColor: ExpenseTheme.floatingBackgroundColor,
-          onPressed: () {
-            print("show sheet");
-            _getExpenseDetails();
-          },
-          tooltip: 'Increment',
-          child: Icon(
-            Icons.add,
-            color: ExpenseTheme.floatingIconColor,
-          ),
-        ),
+            backgroundColor: ExpenseTheme.floatingBackgroundColor,
+            onPressed: () {
+              _getExpenseDetails();
+            },
+            tooltip: 'Add Expense',
+            child: Text('$rupeeSymbol',
+                style: ExpenseTheme.rupeeStyle
+                    .copyWith(color: Colors.black, fontSize: 32))),
         drawer: Drawer(child: drawer()),
         body: Column(
           children: <Widget>[
-            Expanded(flex: 1, child: TotalSpentValue()),
-            Container(
-              height: 5,
-              color: Colors.white,
-            ),
+            SizedBox(height: 200, child: TotalSpentValue()),
             Expanded(
               flex: 6,
               child: Container(
@@ -417,39 +406,47 @@ class TotalSpentValue extends StatefulWidget {
 class _TotalSpentValueState extends State<TotalSpentValue> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.only(left: 15, right: 15),
-      child: Column(
-        children: <Widget>[
-          Container(
-            width: 10,
-          ),
-          Expanded(
-            flex: 1,
-            child: Text("Total",
-                style: TextStyle(fontSize: 25, color: Colors.white)),
-          ),
-          Container(
-            margin: EdgeInsets.only(right: 3),
-            child:
-                Text("₹", style: TextStyle(fontSize: 20, color: Colors.white)),
-          ),
-          Expanded(
-              flex: 1,
-              child: StreamBuilder(
-                stream: bloc.totalExpenseController,
-                builder:
-                    (BuildContext context, AsyncSnapshot<double> snapshot) {
-                  return snapshot.data == null
-                      ? Text(
-                          "0.00",
-                          style: inputTextStyle,
-                        )
-                      : Text(snapshot.data.toString(), style: inputTextStyle);
-                },
-              )),
-        ],
-      ),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        StreamBuilder(
+          stream: bloc.totalExpenseController,
+          builder: (BuildContext context, AsyncSnapshot<double> snapshot) {
+            return RichText(
+                text: TextSpan(children: [
+              TextSpan(text: '$rupeeSymbol  ', style: ExpenseTheme.rupeeStyle),
+              TextSpan(
+                  text: snapshot.data == null
+                      ? '0.00'
+                      : '${snapshot.data.toString()}',
+                  style: ExpenseTheme.inputTextStyle),
+            ]));
+          },
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Text("Total Spent",
+              style: TextStyle(fontSize: 18, color: Colors.white)),
+        ),
+      ],
+    );
+  }
+}
+
+class EmIcon extends StatelessWidget {
+  EmIcon(this.iconData, {Key? key, required this.onTap}) : super(key: key);
+  final IconData iconData;
+  final Function onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.all(10),
+      child: IconButton(
+          icon: Icon(iconData),
+          iconSize: 40,
+          color: Colors.white,
+          onPressed: () => onTap()),
     );
   }
 }

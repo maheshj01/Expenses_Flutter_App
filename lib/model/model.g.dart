@@ -35,6 +35,7 @@ class TableExpense extends SqfEntityTableBase {
     fields = [
       SqfEntityFieldBase('amount', DbType.real),
       SqfEntityFieldBase('description', DbType.text),
+      SqfEntityFieldBase('type', DbType.text, defaultValue: 'once'),
       SqfEntityFieldBase('total', DbType.real),
     ];
     super.init();
@@ -67,8 +68,8 @@ class SequenceIdentitySequence extends SqfEntitySequenceBase {
 // END SEQUENCES
 
 // BEGIN DATABASE MODEL
-class ExpenseModal extends SqfEntityModelProvider {
-  ExpenseModal() {
+class ExpenseModel extends SqfEntityModelProvider {
+  ExpenseModel() {
     databaseName = expenseModel.databaseName;
     password = expenseModel.password;
     dbVersion = expenseModel.dbVersion;
@@ -98,16 +99,21 @@ class ExpenseModal extends SqfEntityModelProvider {
 // region Expense
 class Expense extends TableBase {
   Expense(
-      {this.id, this.amount, this.description, this.total, this.isDeleted}) {
+      {this.id,
+      this.amount,
+      this.description,
+      this.type,
+      this.total,
+      this.isDeleted}) {
     _setDefaultValues();
     softDeleteActivated = true;
   }
   Expense.withFields(
-      this.amount, this.description, this.total, this.isDeleted) {
+      this.amount, this.description, this.type, this.total, this.isDeleted) {
     _setDefaultValues();
   }
-  Expense.withId(
-      this.id, this.amount, this.description, this.total, this.isDeleted) {
+  Expense.withId(this.id, this.amount, this.description, this.type, this.total,
+      this.isDeleted) {
     _setDefaultValues();
   }
   // fromMap v2.0
@@ -122,6 +128,9 @@ class Expense extends TableBase {
     if (o['description'] != null) {
       description = o['description'].toString();
     }
+    if (o['type'] != null) {
+      type = o['type'].toString();
+    }
     if (o['total'] != null) {
       total = double.tryParse(o['total'].toString());
     }
@@ -133,6 +142,7 @@ class Expense extends TableBase {
   int? id;
   double? amount;
   String? description;
+  String? type;
   double? total;
   bool? isDeleted;
 
@@ -157,6 +167,9 @@ class Expense extends TableBase {
     if (description != null || !forView) {
       map['description'] = description;
     }
+    if (type != null || !forView) {
+      map['type'] = type;
+    }
     if (total != null || !forView) {
       map['total'] = total;
     }
@@ -179,6 +192,9 @@ class Expense extends TableBase {
     }
     if (description != null || !forView) {
       map['description'] = description;
+    }
+    if (type != null || !forView) {
+      map['type'] = type;
     }
     if (total != null || !forView) {
       map['total'] = total;
@@ -204,12 +220,12 @@ class Expense extends TableBase {
 
   @override
   List<dynamic> toArgs() {
-    return [amount, description, total, isDeleted];
+    return [amount, description, type, total, isDeleted];
   }
 
   @override
   List<dynamic> toArgsWithIds() {
-    return [id, amount, description, total, isDeleted];
+    return [id, amount, description, type, total, isDeleted];
   }
 
   static Future<List<Expense>?> fromWebUrl(Uri uri,
@@ -332,12 +348,12 @@ class Expense extends TableBase {
   static Future<List<dynamic>> saveAll(List<Expense> expenses) async {
     List<dynamic>? result = [];
     // If there is no open transaction, start one
-    final isStartedBatch = await ExpenseModal().batchStart();
+    final isStartedBatch = await ExpenseModel().batchStart();
     for (final obj in expenses) {
       await obj.save(ignoreBatch: false);
     }
     if (!isStartedBatch) {
-      result = await ExpenseModal().batchCommit();
+      result = await ExpenseModel().batchCommit();
       for (int i = 0; i < expenses.length; i++) {
         if (expenses[i].id == null) {
           expenses[i].id = result![i] as int;
@@ -353,8 +369,8 @@ class Expense extends TableBase {
   Future<int?> upsert({bool ignoreBatch = true}) async {
     try {
       final result = await _mnExpense.rawInsert(
-          'INSERT OR REPLACE INTO expense (id, amount, description, total,isDeleted)  VALUES (?,?,?,?,?)',
-          [id, amount, description, total, isDeleted],
+          'INSERT OR REPLACE INTO expense (id, amount, description, type, total,isDeleted)  VALUES (?,?,?,?,?,?)',
+          [id, amount, description, type, total, isDeleted],
           ignoreBatch);
       if (result! > 0) {
         saveResult = BoolResult(
@@ -379,7 +395,7 @@ class Expense extends TableBase {
   @override
   Future<BoolCommitResult> upsertAll(List<Expense> expenses) async {
     final results = await _mnExpense.rawInsertAll(
-        'INSERT OR REPLACE INTO expense (id, amount, description, total,isDeleted)  VALUES (?,?,?,?,?)',
+        'INSERT OR REPLACE INTO expense (id, amount, description, type, total,isDeleted)  VALUES (?,?,?,?,?,?)',
         expenses);
     return results;
   }
@@ -429,6 +445,7 @@ class Expense extends TableBase {
   }
 
   void _setDefaultValues() {
+    type = type ?? 'once';
     isDeleted = isDeleted ?? false;
   }
 
@@ -649,6 +666,11 @@ class ExpenseFilterBuilder extends ConjunctionBase {
   ExpenseField? _description;
   ExpenseField get description {
     return _description = _setField(_description, 'description', DbType.text);
+  }
+
+  ExpenseField? _type;
+  ExpenseField get type {
+    return _type = _setField(_type, 'type', DbType.text);
   }
 
   ExpenseField? _total;
@@ -905,6 +927,11 @@ class ExpenseFields {
         SqlSyntax.setField(_fDescription, 'description', DbType.text);
   }
 
+  static TableField? _fType;
+  static TableField get type {
+    return _fType = _fType ?? SqlSyntax.setField(_fType, 'type', DbType.text);
+  }
+
   static TableField? _fTotal;
   static TableField get total {
     return _fTotal =
@@ -922,7 +949,7 @@ class ExpenseFields {
 //region ExpenseManager
 class ExpenseManager extends SqfEntityProvider {
   ExpenseManager()
-      : super(ExpenseModal(),
+      : super(ExpenseModel(),
             tableName: _tableName,
             primaryKeyList: _primaryKeyList,
             whereStr: _whereStr);
@@ -937,7 +964,7 @@ class IdentitySequence {
   /// Assigns a new value when it is triggered and returns the new value
   /// returns Future<int>
   Future<int> nextVal([VoidCallback Function(int o)? nextval]) async {
-    final val = await ExpenseModalSequenceManager()
+    final val = await ExpenseModelSequenceManager()
         .sequence(SequenceIdentitySequence.getInstance, true);
     if (nextval != null) {
       nextval(val);
@@ -948,7 +975,7 @@ class IdentitySequence {
   /// Get the current value
   /// returns Future<int>
   Future<int> currentVal([VoidCallback Function(int o)? currentval]) async {
-    final val = await ExpenseModalSequenceManager()
+    final val = await ExpenseModelSequenceManager()
         .sequence(SequenceIdentitySequence.getInstance, false);
     if (currentval != null) {
       currentval(val);
@@ -959,7 +986,7 @@ class IdentitySequence {
   /// Reset sequence to start value
   /// returns start value
   Future<int> reset([VoidCallback Function(int o)? currentval]) async {
-    final val = await ExpenseModalSequenceManager()
+    final val = await ExpenseModelSequenceManager()
         .sequence(SequenceIdentitySequence.getInstance, false, reset: true);
     if (currentval != null) {
       currentval(val);
@@ -970,7 +997,7 @@ class IdentitySequence {
 
 /// End Region SEQUENCE IdentitySequence
 
-class ExpenseModalSequenceManager extends SqfEntityProvider {
-  ExpenseModalSequenceManager() : super(ExpenseModal());
+class ExpenseModelSequenceManager extends SqfEntityProvider {
+  ExpenseModelSequenceManager() : super(ExpenseModel());
 }
 // END OF ENTITIES
