@@ -156,22 +156,15 @@ class _ExpensePageState extends State<ExpensePage> {
               color: dismissColor,
             ),
             onDismissed: (direction) {
-              print("item dismissed");
               // bloc.removeExpenseItem(snapshot.data[item].id);
               if (direction == DismissDirection.startToEnd) {
-                print("right ${snapshot.data[item].id}");
-                setState(() {
-                  dismissColor = ExpenseTheme.dismissedRight;
-                  bloc.removeExpenseItem(snapshot.data[item]);
-                });
+                dismissColor = ExpenseTheme.dismissedRight;
                 bloc.removeExpenseItem(snapshot.data[item]);
               } else {
-                setState(() {
-                  dismissColor = ExpenseTheme.dismissedLeft;
-                });
+                dismissColor = ExpenseTheme.dismissedLeft;
               }
             },
-            key: Key("expenseItemKey"),
+            key: Key("expenseItem$item"),
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
