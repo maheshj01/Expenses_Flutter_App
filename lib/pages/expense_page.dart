@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:expense_manager/constants/exports.dart';
+import 'package:expense_manager/model/spend.dart';
 import 'package:expense_manager/themes/expense_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:expense_manager/blocs/sqform_bloc.dart';
@@ -19,127 +21,18 @@ final TextEditingController descriptionController = TextEditingController();
 
 class _ExpensePageState extends State<ExpensePage> {
   Color dismissColor = ExpenseTheme.dismissedRight;
-
   Future _getExpenseDetails() {
     return showModalBottomSheet(
         isScrollControlled: true,
         context: context,
         builder: (BuildContext builder) {
-          return SingleChildScrollView(
-            child: Container(
-                padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).viewInsets.bottom),
-                decoration: BoxDecoration(
-                    color: ExpenseTheme.bottomSheetBackgroundColor,
-                    borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20))),
-                child: Column(
-                  children: <Widget>[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        EmIcon(Icons.clear, onTap: () {
-                          if (amountController.text.isEmpty ||
-                              descriptionController.text.isEmpty) {
-                            // Navigator.pop(context);
-                            return;
-                          }
-                          var amount = double.parse(amountController.text);
-                          var description = descriptionController.text;
-                          amountController.clear();
-                          descriptionController.clear();
-                          Navigator.pop(context);
-                        }),
-                        _expenseAmountField(),
-                        EmIcon(Icons.done, onTap: () {
-                          if (amountController.text.isEmpty ||
-                              descriptionController.text.isEmpty) {
-                            // Navigator.pop(context);
-                            return;
-                          }
-                          var amount = double.parse(amountController.text);
-                          var description = descriptionController.text;
-                          bloc.expenseModalController.add(Expense.withFields(
-                              amount, description, 'Once', 0.0, false));
-                          // bloc.updateTotalExpense(
-                          //     Expense.withFields(amount, description, 0.0, false)),
-                          amountController.clear();
-                          descriptionController.clear();
-                          Navigator.pop(context);
-                        })
-                      ],
-                    ),
-                    SizedBox(
-                      height: 40,
-                    ),
-                    Container(
-                      margin: EdgeInsets.symmetric(horizontal: 10),
-                      child: _expenseDescriptionField(),
-                    ),
-                    SizedBox(
-                      height: 20,
-                    ),
-                  ],
-                )),
+          return EmBottomSheet(
+            onSubmit: (Spend spend) {
+              bloc.expenseModalController.add(Expense.withFields(spend.value,
+                  spend.description, spend.type.name.capitalize(), 0.0, false));
+            },
           );
         });
-  }
-
-  Widget _expenseDescriptionField() {
-    return TextField(
-      controller: descriptionController,
-      textAlign: TextAlign.center,
-      cursorColor: Colors.white,
-      keyboardType: TextInputType.text,
-      style: ExpenseTheme.inputTextStyle,
-      maxLines: 3,
-      maxLength: 100,
-      autofocus: false,
-      decoration: InputDecoration(
-        counterText: "",
-        floatingLabelBehavior: FloatingLabelBehavior.never,
-        hintStyle: ExpenseTheme.inputTextStyle,
-        hintText: "Spent for ?",
-        alignLabelWithHint: true,
-        focusedBorder: inputBorder,
-        border: inputBorder,
-        filled: true,
-        fillColor: Colors.black38,
-      ),
-      onTap: () {},
-    );
-  }
-
-  Widget _expenseAmountField() {
-    return Container(
-      padding: EdgeInsets.all(10),
-      width: MediaQuery.of(context).size.width / 2,
-      child: TextField(
-        controller: amountController,
-        textAlign: TextAlign.center,
-        cursorColor: Colors.white,
-        keyboardType: TextInputType.number,
-        style: ExpenseTheme.inputTextStyle,
-        maxLength: 6,
-        autofocus: false,
-        decoration: InputDecoration(
-          hintText: "0",
-          hintStyle: ExpenseTheme.inputTextStyle,
-          prefixStyle: ExpenseTheme.inputTextStyle,
-          counterText: "",
-          labelText: '₹',
-          prefixText: '₹',
-          floatingLabelBehavior: FloatingLabelBehavior.never,
-          labelStyle: ExpenseTheme.inputTextStyle,
-          focusedBorder: inputBorder,
-          border: inputBorder,
-          filled: true,
-          fillColor: Colors.black38,
-        ),
-        onTap: () {},
-      ),
-    );
   }
 
   Widget _listView(context, snapshot) {
@@ -386,6 +279,151 @@ class _ExpensePageState extends State<ExpensePage> {
             ),
           ],
         ));
+  }
+}
+
+class EmBottomSheet extends StatefulWidget {
+  final Function(Spend) onSubmit;
+  const EmBottomSheet({Key? key, required this.onSubmit}) : super(key: key);
+
+  @override
+  State<EmBottomSheet> createState() => _EmBottomSheetState();
+}
+
+class _EmBottomSheetState extends State<EmBottomSheet> {
+  Widget _expenseDescriptionField() {
+    return TextField(
+      controller: descriptionController,
+      textAlign: TextAlign.center,
+      cursorColor: Colors.white,
+      keyboardType: TextInputType.text,
+      style: ExpenseTheme.inputTextStyle,
+      maxLines: 3,
+      maxLength: 100,
+      autofocus: false,
+      decoration: InputDecoration(
+        counterText: "",
+        floatingLabelBehavior: FloatingLabelBehavior.never,
+        hintStyle: ExpenseTheme.inputTextStyle,
+        hintText: "Spent for ?",
+        alignLabelWithHint: true,
+        focusedBorder: inputBorder,
+        border: inputBorder,
+        filled: true,
+        fillColor: Colors.black38,
+      ),
+      onTap: () {},
+    );
+  }
+
+  Widget _expenseAmountField() {
+    return Container(
+      padding: EdgeInsets.all(10),
+      width: MediaQuery.of(context).size.width / 2,
+      child: TextField(
+        controller: amountController,
+        textAlign: TextAlign.center,
+        cursorColor: Colors.white,
+        keyboardType: TextInputType.number,
+        style: ExpenseTheme.inputTextStyle,
+        maxLength: 6,
+        autofocus: false,
+        decoration: InputDecoration(
+          hintText: "0",
+          hintStyle: ExpenseTheme.inputTextStyle,
+          prefixStyle: ExpenseTheme.inputTextStyle,
+          counterText: "",
+          labelText: '₹',
+          prefixText: '₹',
+          floatingLabelBehavior: FloatingLabelBehavior.never,
+          labelStyle: ExpenseTheme.inputTextStyle,
+          focusedBorder: inputBorder,
+          border: inputBorder,
+          filled: true,
+          fillColor: Colors.black38,
+        ),
+        onTap: () {},
+      ),
+    );
+  }
+
+  Spend spend = Spend(value: 0, type: SpendType.once, description: '');
+  int selectedIndex = 0;
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Container(
+          padding:
+              EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          decoration: BoxDecoration(
+              color: ExpenseTheme.bottomSheetBackgroundColor,
+              borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20), topRight: Radius.circular(20))),
+          child: Column(
+            children: <Widget>[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  EmIcon(Icons.clear, onTap: () {
+                    amountController.clear();
+                    descriptionController.clear();
+                    Navigator.pop(context);
+                  }),
+                  _expenseAmountField(),
+                  EmIcon(Icons.done, onTap: () {
+                    if (amountController.text.isEmpty ||
+                        descriptionController.text.isEmpty) {
+                      // Navigator.pop(context);
+                      return;
+                    }
+                    var amount = double.parse(amountController.text);
+                    var description = descriptionController.text;
+                    /// TODO: WorK on custom scrollview
+                    final spentValue = spend.copyWith(
+                        value: amount,
+                        description: description,
+                        type: expenseTypes[selectedIndex]);
+                    amountController.clear();
+                    descriptionController.clear();
+                    Navigator.pop(context);
+                    widget.onSubmit(spentValue);
+                  })
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                child: ToggleButtons(
+                  fillColor: Colors.grey.shade500,
+                  children: <Widget>[
+                    for (int i = 0; i < expenseTypes.length; i++)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16.0, vertical: 8.0),
+                        child: Text(
+                          '${expenseTypes[i].name}'.capitalize(),
+                          style: TextStyle(
+                              color: ExpenseTheme.toggleButtonTextColor),
+                        ),
+                      ),
+                  ],
+                  onPressed: (x) {
+                    setState(() {
+                      selectedIndex = x;
+                    });
+                  },
+                  isSelected: [for (int i = 0; i < 3; i++) selectedIndex == i],
+                ),
+              ),
+              Container(
+                margin: EdgeInsets.symmetric(horizontal: 10),
+                child: _expenseDescriptionField(),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+            ],
+          )),
+    );
   }
 }
 

@@ -1,3 +1,4 @@
+import 'package:expense_manager/model/spend.dart';
 import 'package:flutter/material.dart';
 
 const pages = ["LoginPage", "ExpensePage"];
@@ -12,6 +13,8 @@ const emptyListMessage = [
   "Nothing here yet😋\nIt seems You are Good at Managing your Wallet",
   "Nothing here yet😋\nIts a Lovely day to Spend !"
 ];
+
+List<SpendType> expenseTypes = [SpendType.once,SpendType.weekly,SpendType.monthly];
 
 const String rupeeSymbol = '₹';
 const String expenseListTableName = 'expense';

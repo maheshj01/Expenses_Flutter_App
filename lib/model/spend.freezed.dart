@@ -18,11 +18,14 @@ final _privateConstructorUsedError = UnsupportedError(
 class _$SpendTearOff {
   const _$SpendTearOff();
 
-  _Spend call(double value, SpendType type, String description) {
+  _Spend call(
+      {double value = 0.0,
+      String? description,
+      SpendType type = SpendType.once}) {
     return _Spend(
-      value,
-      type,
-      description,
+      value: value,
+      description: description,
+      type: type,
     );
   }
 }
@@ -33,8 +36,8 @@ const $Spend = _$SpendTearOff();
 /// @nodoc
 mixin _$Spend {
   double get value => throw _privateConstructorUsedError;
+  String? get description => throw _privateConstructorUsedError;
   SpendType get type => throw _privateConstructorUsedError;
-  String get description => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $SpendCopyWith<Spend> get copyWith => throw _privateConstructorUsedError;
@@ -44,7 +47,7 @@ mixin _$Spend {
 abstract class $SpendCopyWith<$Res> {
   factory $SpendCopyWith(Spend value, $Res Function(Spend) then) =
       _$SpendCopyWithImpl<$Res>;
-  $Res call({double value, SpendType type, String description});
+  $Res call({double value, String? description, SpendType type});
 }
 
 /// @nodoc
@@ -58,22 +61,22 @@ class _$SpendCopyWithImpl<$Res> implements $SpendCopyWith<$Res> {
   @override
   $Res call({
     Object? value = freezed,
-    Object? type = freezed,
     Object? description = freezed,
+    Object? type = freezed,
   }) {
     return _then(_value.copyWith(
       value: value == freezed
           ? _value.value
           : value // ignore: cast_nullable_to_non_nullable
               as double,
+      description: description == freezed
+          ? _value.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String?,
       type: type == freezed
           ? _value.type
           : type // ignore: cast_nullable_to_non_nullable
               as SpendType,
-      description: description == freezed
-          ? _value.description
-          : description // ignore: cast_nullable_to_non_nullable
-              as String,
     ));
   }
 }
@@ -83,7 +86,7 @@ abstract class _$SpendCopyWith<$Res> implements $SpendCopyWith<$Res> {
   factory _$SpendCopyWith(_Spend value, $Res Function(_Spend) then) =
       __$SpendCopyWithImpl<$Res>;
   @override
-  $Res call({double value, SpendType type, String description});
+  $Res call({double value, String? description, SpendType type});
 }
 
 /// @nodoc
@@ -98,22 +101,22 @@ class __$SpendCopyWithImpl<$Res> extends _$SpendCopyWithImpl<$Res>
   @override
   $Res call({
     Object? value = freezed,
-    Object? type = freezed,
     Object? description = freezed,
+    Object? type = freezed,
   }) {
     return _then(_Spend(
-      value == freezed
+      value: value == freezed
           ? _value.value
           : value // ignore: cast_nullable_to_non_nullable
               as double,
-      type == freezed
+      description: description == freezed
+          ? _value.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String?,
+      type: type == freezed
           ? _value.type
           : type // ignore: cast_nullable_to_non_nullable
               as SpendType,
-      description == freezed
-          ? _value.description
-          : description // ignore: cast_nullable_to_non_nullable
-              as String,
     ));
   }
 }
@@ -121,18 +124,21 @@ class __$SpendCopyWithImpl<$Res> extends _$SpendCopyWithImpl<$Res>
 /// @nodoc
 
 class _$_Spend with DiagnosticableTreeMixin implements _Spend {
-  const _$_Spend(this.value, this.type, this.description);
+  const _$_Spend(
+      {this.value = 0.0, this.description, this.type = SpendType.once});
 
+  @JsonKey()
   @override
   final double value;
   @override
-  final SpendType type;
+  final String? description;
+  @JsonKey()
   @override
-  final String description;
+  final SpendType type;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'Spend(value: $value, type: $type, description: $description)';
+    return 'Spend(value: $value, description: $description, type: $type)';
   }
 
   @override
@@ -141,8 +147,8 @@ class _$_Spend with DiagnosticableTreeMixin implements _Spend {
     properties
       ..add(DiagnosticsProperty('type', 'Spend'))
       ..add(DiagnosticsProperty('value', value))
-      ..add(DiagnosticsProperty('type', type))
-      ..add(DiagnosticsProperty('description', description));
+      ..add(DiagnosticsProperty('description', description))
+      ..add(DiagnosticsProperty('type', type));
   }
 
   @override
@@ -151,17 +157,17 @@ class _$_Spend with DiagnosticableTreeMixin implements _Spend {
         (other.runtimeType == runtimeType &&
             other is _Spend &&
             const DeepCollectionEquality().equals(other.value, value) &&
-            const DeepCollectionEquality().equals(other.type, type) &&
             const DeepCollectionEquality()
-                .equals(other.description, description));
+                .equals(other.description, description) &&
+            const DeepCollectionEquality().equals(other.type, type));
   }
 
   @override
   int get hashCode => Object.hash(
       runtimeType,
       const DeepCollectionEquality().hash(value),
-      const DeepCollectionEquality().hash(type),
-      const DeepCollectionEquality().hash(description));
+      const DeepCollectionEquality().hash(description),
+      const DeepCollectionEquality().hash(type));
 
   @JsonKey(ignore: true)
   @override
@@ -170,15 +176,15 @@ class _$_Spend with DiagnosticableTreeMixin implements _Spend {
 }
 
 abstract class _Spend implements Spend {
-  const factory _Spend(double value, SpendType type, String description) =
+  const factory _Spend({double value, String? description, SpendType type}) =
       _$_Spend;
 
   @override
   double get value;
   @override
-  SpendType get type;
+  String? get description;
   @override
-  String get description;
+  SpendType get type;
   @override
   @JsonKey(ignore: true)
   _$SpendCopyWith<_Spend> get copyWith => throw _privateConstructorUsedError;
