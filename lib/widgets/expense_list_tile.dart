@@ -1,4 +1,5 @@
 import 'package:expense_manager/constants/exports.dart';
+import 'package:expense_manager/main.dart';
 import 'package:expense_manager/model/model.dart';
 import 'package:flutter/material.dart';
 
@@ -31,13 +32,14 @@ class ExpenseListTile extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            color: Colors.black,
+            color: appSettings.getTheme == ThemeMode.dark
+                ? Colors.black
+                : ExpenseTheme.lightColorScheme.primary,
           ),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Expanded(
-                flex: 6,
+              Flexible(
                 child: Container(
                   padding: EdgeInsets.only(left: 10, right: 5),
                   child: Text(
@@ -51,46 +53,46 @@ class ExpenseListTile extends StatelessWidget {
                   ),
                 ),
               ),
-              Expanded(
-                  flex: 3,
+              Flexible(
+                  //   flex: 3,
                   child: Column(
-                    children: <Widget>[
-                      Expanded(
-                        flex: 1,
-                        child: Container(
-                          alignment: Alignment.center,
+                children: <Widget>[
+                  Expanded(
+                    flex: 1,
+                    child: Container(
+                      alignment: Alignment.center,
+                      child: Text(
+                        model.datetime!.formatDate(),
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Row(
+                      children: <Widget>[
+                        Container(
+                          margin: EdgeInsets.only(right: 10, left: 10),
                           child: Text(
-                            model.datetime!.formatDate(),
+                            '₹',
                             style: TextStyle(color: Colors.white),
                           ),
                         ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Row(
-                          children: <Widget>[
-                            Container(
-                              margin: EdgeInsets.only(right: 10, left: 10),
-                              child: Text(
-                                '₹',
-                                style: TextStyle(color: Colors.white),
-                              ),
+                        Expanded(
+                          flex: 4,
+                          child: Container(
+                            child: Text(
+                              model.amount.toString(),
+                              style:
+                                  TextStyle(fontSize: 25, color: Colors.white),
                             ),
-                            Expanded(
-                              flex: 4,
-                              child: Container(
-                                child: Text(
-                                  model.amount.toString(),
-                                  style: TextStyle(
-                                      fontSize: 25, color: Colors.white),
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      )
-                    ],
-                  ))
+                          ),
+                        )
+                      ],
+                    ),
+                  )
+                ],
+              ))
             ],
           ),
           height: MediaQuery.of(context).size.width / 4,

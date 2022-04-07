@@ -89,8 +89,7 @@ class _ExpensePageState extends State<ExpensePage> {
             },
             tooltip: 'Add Expense',
             child: Text('$rupeeSymbol',
-                style: ExpenseTheme.rupeeStyle
-                    .copyWith(color: Colors.black, fontSize: 32))),
+                style: ExpenseTheme.rupeeStyle.copyWith(fontSize: 32))),
         drawer: Drawer(child: EmDrawer()),
         body: Column(
           children: <Widget>[

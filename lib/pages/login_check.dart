@@ -1,5 +1,4 @@
 import 'package:expense_manager/constants/exports.dart';
-import 'package:expense_manager/constants/strings.dart';
 import 'package:flutter/material.dart';
 
 class LoginCheck extends StatefulWidget {
@@ -21,7 +20,7 @@ class _LoginCheckState extends State<LoginCheck> {
         child: Container(
           alignment: Alignment.bottomCenter,
           child: Text(
-            "Login to Keep Data Synced with the Cloud",
+            "Come to the Dark Side",
             style: ExpenseTheme.inputTextStyle,
             textAlign: TextAlign.center,
           ),

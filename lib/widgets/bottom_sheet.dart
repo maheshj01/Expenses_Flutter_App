@@ -49,7 +49,7 @@ class _EmBottomSheetState extends State<EmBottomSheet> {
           padding:
               EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
           decoration: BoxDecoration(
-              color: ExpenseTheme.bottomSheetBackgroundColor,
+              // color: ExpenseTheme.bottomSheetBackgroundColor,
               borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(20), topRight: Radius.circular(20))),
           child: Column(
