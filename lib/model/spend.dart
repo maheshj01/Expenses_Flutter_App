@@ -10,5 +10,6 @@ class Spend with _$Spend {
   const factory Spend(
       {@Default(0.0) double value,
       String? description,
-      @Default(SpendType.once) SpendType type}) = _Spend;
+      @Default(SpendType.once) SpendType type,
+      DateTime? date}) = _Spend;
 }

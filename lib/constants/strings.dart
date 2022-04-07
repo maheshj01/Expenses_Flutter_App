@@ -14,7 +14,13 @@ const emptyListMessage = [
   "Nothing here yet😋\nIts a Lovely day to Spend !"
 ];
 
-List<SpendType> expenseTypes = [SpendType.once,SpendType.weekly,SpendType.monthly];
+const String dateFormatter = 'MMMM dd, y';
+
+List<SpendType> expenseTypes = [
+  SpendType.once,
+  SpendType.weekly,
+  SpendType.monthly
+];
 
 const String rupeeSymbol = '₹';
 const String expenseListTableName = 'expense';

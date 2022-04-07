@@ -21,11 +21,13 @@ class _$SpendTearOff {
   _Spend call(
       {double value = 0.0,
       String? description,
-      SpendType type = SpendType.once}) {
+      SpendType type = SpendType.once,
+      DateTime? date}) {
     return _Spend(
       value: value,
       description: description,
       type: type,
+      date: date,
     );
   }
 }
@@ -38,6 +40,7 @@ mixin _$Spend {
   double get value => throw _privateConstructorUsedError;
   String? get description => throw _privateConstructorUsedError;
   SpendType get type => throw _privateConstructorUsedError;
+  DateTime? get date => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $SpendCopyWith<Spend> get copyWith => throw _privateConstructorUsedError;
@@ -47,7 +50,8 @@ mixin _$Spend {
 abstract class $SpendCopyWith<$Res> {
   factory $SpendCopyWith(Spend value, $Res Function(Spend) then) =
       _$SpendCopyWithImpl<$Res>;
-  $Res call({double value, String? description, SpendType type});
+  $Res call(
+      {double value, String? description, SpendType type, DateTime? date});
 }
 
 /// @nodoc
@@ -63,6 +67,7 @@ class _$SpendCopyWithImpl<$Res> implements $SpendCopyWith<$Res> {
     Object? value = freezed,
     Object? description = freezed,
     Object? type = freezed,
+    Object? date = freezed,
   }) {
     return _then(_value.copyWith(
       value: value == freezed
@@ -77,6 +82,10 @@ class _$SpendCopyWithImpl<$Res> implements $SpendCopyWith<$Res> {
           ? _value.type
           : type // ignore: cast_nullable_to_non_nullable
               as SpendType,
+      date: date == freezed
+          ? _value.date
+          : date // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
     ));
   }
 }
@@ -86,7 +95,8 @@ abstract class _$SpendCopyWith<$Res> implements $SpendCopyWith<$Res> {
   factory _$SpendCopyWith(_Spend value, $Res Function(_Spend) then) =
       __$SpendCopyWithImpl<$Res>;
   @override
-  $Res call({double value, String? description, SpendType type});
+  $Res call(
+      {double value, String? description, SpendType type, DateTime? date});
 }
 
 /// @nodoc
@@ -103,6 +113,7 @@ class __$SpendCopyWithImpl<$Res> extends _$SpendCopyWithImpl<$Res>
     Object? value = freezed,
     Object? description = freezed,
     Object? type = freezed,
+    Object? date = freezed,
   }) {
     return _then(_Spend(
       value: value == freezed
@@ -117,15 +128,23 @@ class __$SpendCopyWithImpl<$Res> extends _$SpendCopyWithImpl<$Res>
           ? _value.type
           : type // ignore: cast_nullable_to_non_nullable
               as SpendType,
+      date: date == freezed
+          ? _value.date
+          : date // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
     ));
   }
 }
 
 /// @nodoc
 
-class _$_Spend with DiagnosticableTreeMixin implements _Spend {
+class _$_Spend extends _Spend with DiagnosticableTreeMixin {
   const _$_Spend(
-      {this.value = 0.0, this.description, this.type = SpendType.once});
+      {this.value = 0.0,
+      this.description,
+      this.type = SpendType.once,
+      this.date})
+      : super._();
 
   @JsonKey()
   @override
@@ -135,10 +154,12 @@ class _$_Spend with DiagnosticableTreeMixin implements _Spend {
   @JsonKey()
   @override
   final SpendType type;
+  @override
+  final DateTime? date;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'Spend(value: $value, description: $description, type: $type)';
+    return 'Spend(value: $value, description: $description, type: $type, date: $date)';
   }
 
   @override
@@ -148,7 +169,8 @@ class _$_Spend with DiagnosticableTreeMixin implements _Spend {
       ..add(DiagnosticsProperty('type', 'Spend'))
       ..add(DiagnosticsProperty('value', value))
       ..add(DiagnosticsProperty('description', description))
-      ..add(DiagnosticsProperty('type', type));
+      ..add(DiagnosticsProperty('type', type))
+      ..add(DiagnosticsProperty('date', date));
   }
 
   @override
@@ -159,7 +181,8 @@ class _$_Spend with DiagnosticableTreeMixin implements _Spend {
             const DeepCollectionEquality().equals(other.value, value) &&
             const DeepCollectionEquality()
                 .equals(other.description, description) &&
-            const DeepCollectionEquality().equals(other.type, type));
+            const DeepCollectionEquality().equals(other.type, type) &&
+            const DeepCollectionEquality().equals(other.date, date));
   }
 
   @override
@@ -167,7 +190,8 @@ class _$_Spend with DiagnosticableTreeMixin implements _Spend {
       runtimeType,
       const DeepCollectionEquality().hash(value),
       const DeepCollectionEquality().hash(description),
-      const DeepCollectionEquality().hash(type));
+      const DeepCollectionEquality().hash(type),
+      const DeepCollectionEquality().hash(date));
 
   @JsonKey(ignore: true)
   @override
@@ -175,9 +199,13 @@ class _$_Spend with DiagnosticableTreeMixin implements _Spend {
       __$SpendCopyWithImpl<_Spend>(this, _$identity);
 }
 
-abstract class _Spend implements Spend {
-  const factory _Spend({double value, String? description, SpendType type}) =
-      _$_Spend;
+abstract class _Spend extends Spend {
+  const factory _Spend(
+      {double value,
+      String? description,
+      SpendType type,
+      DateTime? date}) = _$_Spend;
+  const _Spend._() : super._();
 
   @override
   double get value;
@@ -185,6 +213,8 @@ abstract class _Spend implements Spend {
   String? get description;
   @override
   SpendType get type;
+  @override
+  DateTime? get date;
   @override
   @JsonKey(ignore: true)
   _$SpendCopyWith<_Spend> get copyWith => throw _privateConstructorUsedError;

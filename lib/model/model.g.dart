@@ -33,6 +33,8 @@ class TableExpense extends SqfEntityTableBase {
 
     // declare fields
     fields = [
+      SqfEntityFieldBase('datetime', DbType.datetime,
+          minValue: DateTime.parse('1900-01-01')),
       SqfEntityFieldBase('amount', DbType.real),
       SqfEntityFieldBase('description', DbType.text),
       SqfEntityFieldBase('type', DbType.text, defaultValue: 'once'),
@@ -100,6 +102,7 @@ class ExpenseModel extends SqfEntityModelProvider {
 class Expense extends TableBase {
   Expense(
       {this.id,
+      this.datetime,
       this.amount,
       this.description,
       this.type,
@@ -108,12 +111,12 @@ class Expense extends TableBase {
     _setDefaultValues();
     softDeleteActivated = true;
   }
-  Expense.withFields(
-      this.amount, this.description, this.type, this.total, this.isDeleted) {
+  Expense.withFields(this.datetime, this.amount, this.description, this.type,
+      this.total, this.isDeleted) {
     _setDefaultValues();
   }
-  Expense.withId(this.id, this.amount, this.description, this.type, this.total,
-      this.isDeleted) {
+  Expense.withId(this.id, this.datetime, this.amount, this.description,
+      this.type, this.total, this.isDeleted) {
     _setDefaultValues();
   }
   // fromMap v2.0
@@ -122,6 +125,12 @@ class Expense extends TableBase {
       _setDefaultValues();
     }
     id = int.tryParse(o['id'].toString());
+    if (o['datetime'] != null) {
+      datetime = int.tryParse(o['datetime'].toString()) != null
+          ? DateTime.fromMillisecondsSinceEpoch(
+              int.tryParse(o['datetime'].toString())!)
+          : DateTime.tryParse(o['datetime'].toString());
+    }
     if (o['amount'] != null) {
       amount = double.tryParse(o['amount'].toString());
     }
@@ -140,6 +149,7 @@ class Expense extends TableBase {
   }
   // FIELDS (Expense)
   int? id;
+  DateTime? datetime;
   double? amount;
   String? description;
   String? type;
@@ -161,6 +171,15 @@ class Expense extends TableBase {
       {bool forQuery = false, bool forJson = false, bool forView = false}) {
     final map = <String, dynamic>{};
     map['id'] = id;
+    if (datetime != null) {
+      map['datetime'] = forJson
+          ? datetime!.toString()
+          : forQuery
+              ? datetime!.millisecondsSinceEpoch
+              : datetime;
+    } else if (datetime != null || !forView) {
+      map['datetime'] = null;
+    }
     if (amount != null || !forView) {
       map['amount'] = amount;
     }
@@ -187,6 +206,15 @@ class Expense extends TableBase {
       bool forView = false]) async {
     final map = <String, dynamic>{};
     map['id'] = id;
+    if (datetime != null) {
+      map['datetime'] = forJson
+          ? datetime!.toString()
+          : forQuery
+              ? datetime!.millisecondsSinceEpoch
+              : datetime;
+    } else if (datetime != null || !forView) {
+      map['datetime'] = null;
+    }
     if (amount != null || !forView) {
       map['amount'] = amount;
     }
@@ -220,12 +248,27 @@ class Expense extends TableBase {
 
   @override
   List<dynamic> toArgs() {
-    return [amount, description, type, total, isDeleted];
+    return [
+      datetime != null ? datetime!.millisecondsSinceEpoch : null,
+      amount,
+      description,
+      type,
+      total,
+      isDeleted
+    ];
   }
 
   @override
   List<dynamic> toArgsWithIds() {
-    return [id, amount, description, type, total, isDeleted];
+    return [
+      id,
+      datetime != null ? datetime!.millisecondsSinceEpoch : null,
+      amount,
+      description,
+      type,
+      total,
+      isDeleted
+    ];
   }
 
   static Future<List<Expense>?> fromWebUrl(Uri uri,
@@ -369,8 +412,16 @@ class Expense extends TableBase {
   Future<int?> upsert({bool ignoreBatch = true}) async {
     try {
       final result = await _mnExpense.rawInsert(
-          'INSERT OR REPLACE INTO expense (id, amount, description, type, total,isDeleted)  VALUES (?,?,?,?,?,?)',
-          [id, amount, description, type, total, isDeleted],
+          'INSERT OR REPLACE INTO expense (id, datetime, amount, description, type, total,isDeleted)  VALUES (?,?,?,?,?,?,?)',
+          [
+            id,
+            datetime != null ? datetime!.millisecondsSinceEpoch : null,
+            amount,
+            description,
+            type,
+            total,
+            isDeleted
+          ],
           ignoreBatch);
       if (result! > 0) {
         saveResult = BoolResult(
@@ -395,7 +446,7 @@ class Expense extends TableBase {
   @override
   Future<BoolCommitResult> upsertAll(List<Expense> expenses) async {
     final results = await _mnExpense.rawInsertAll(
-        'INSERT OR REPLACE INTO expense (id, amount, description, type, total,isDeleted)  VALUES (?,?,?,?,?,?)',
+        'INSERT OR REPLACE INTO expense (id, datetime, amount, description, type, total,isDeleted)  VALUES (?,?,?,?,?,?,?)',
         expenses);
     return results;
   }
@@ -658,6 +709,11 @@ class ExpenseFilterBuilder extends ConjunctionBase {
     return _id = _setField(_id, 'id', DbType.integer);
   }
 
+  ExpenseField? _datetime;
+  ExpenseField get datetime {
+    return _datetime = _setField(_datetime, 'datetime', DbType.datetime);
+  }
+
   ExpenseField? _amount;
   ExpenseField get amount {
     return _amount = _setField(_amount, 'amount', DbType.real);
@@ -913,6 +969,12 @@ class ExpenseFields {
   static TableField? _fId;
   static TableField get id {
     return _fId = _fId ?? SqlSyntax.setField(_fId, 'id', DbType.integer);
+  }
+
+  static TableField? _fDatetime;
+  static TableField get datetime {
+    return _fDatetime = _fDatetime ??
+        SqlSyntax.setField(_fDatetime, 'datetime', DbType.datetime);
   }
 
   static TableField? _fAmount;

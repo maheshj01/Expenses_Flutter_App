@@ -13,6 +13,7 @@ const expenseTable = SqfEntityTable(
     useSoftDeleting: true,
     modelName: null,
     fields: [
+      SqfEntityField('datetime', DbType.datetime),
       SqfEntityField('amount', DbType.real),
       SqfEntityField('description', DbType.text),
       SqfEntityField('type', DbType.text, defaultValue: 'once'),

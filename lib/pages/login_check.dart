@@ -34,7 +34,7 @@ class _LoginCheckState extends State<LoginCheck> {
             child: ElevatedButton(
               child: Text("Skip"),
               onPressed: () {
-                Navigator.pushReplacementNamed(context, pages[1]);
+                Navigator.pushReplacementNamed(context, 'ExpensePage');
               },
             ),
           ))

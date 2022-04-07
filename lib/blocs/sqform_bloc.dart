@@ -58,6 +58,8 @@ class SqfOrmBloc {
         amount: model.amount,
         description: model.description,
         total: total,
+        datetime: model.datetime ?? DateTime.now(),
+        type: model.type!,
         isDeleted: false);
     await expense.save();
     if (expense.saveResult!.success)
