@@ -7,3 +7,9 @@ An open sourced expense manager.
 - flutter pub get
 - flutter pub run build_runner build --delete-conflicting-outputs
 - flutter run
+
+
+### TODO
+
+- Categorize by adding a label to each expense
+- filter by multiple labels

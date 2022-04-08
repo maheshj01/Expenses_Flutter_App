@@ -5,7 +5,7 @@ const pages = ["LoginPage", "ExpensePage"];
 
 OutlineInputBorder inputBorder = OutlineInputBorder(
     borderRadius: BorderRadius.circular(10),
-    borderSide: BorderSide(color: Colors.black38));
+    borderSide: BorderSide(color: Colors.black38, width: 0.5));
 
 const emptyListMessage = [
   'Nothing here yet😋\nAre you shopping ?',

@@ -1,0 +1,13 @@
+{
+    "files.autoSaveDelay": 3000,
+    "files.exclude": {
+       "build":true,
+       "test":true,
+       ".*":true,
+       "web":true,
+       "android":true,
+       "ios":true,
+       "windows":true,
+       "macos":true,
+    }
+}

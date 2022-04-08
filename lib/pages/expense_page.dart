@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:expense_manager/constants/exports.dart';
+import 'package:expense_manager/main.dart';
 import 'package:expense_manager/model/spend.dart';
 import 'package:expense_manager/widgets/bottom_sheet.dart';
 import 'package:expense_manager/widgets/drawer.dart';
@@ -25,6 +26,10 @@ class _ExpensePageState extends State<ExpensePage> {
     return showModalBottomSheet(
         isScrollControlled: true,
         context: context,
+        shape: RoundedRectangleBorder(
+          //the rounded corner is created here
+          borderRadius: BorderRadius.circular(14.0),
+        ),
         builder: (BuildContext builder) {
           return EmBottomSheet(
             onSubmit: (Spend spend) {
@@ -83,7 +88,6 @@ class _ExpensePageState extends State<ExpensePage> {
     return Scaffold(
         resizeToAvoidBottomInset: true,
         floatingActionButton: FloatingActionButton(
-            backgroundColor: ExpenseTheme.floatingBackgroundColor,
             onPressed: () {
               _getExpenseDetails();
             },
@@ -107,10 +111,24 @@ class _ExpensePageState extends State<ExpensePage> {
                                 TextStyle(color: Colors.white, fontSize: 16)))
                     : CustomScrollView(
                         slivers: <Widget>[
-                          SliverPersistentHeader(
-                            delegate: EmSliverAppBar(
-                              child: OverflowBox(
+                          // SliverPersistentHeader(
+                          //   delegate: EmSliverAppBar(
+                          //     child: OverflowBox(
+                          //         maxHeight: 200, child: TotalSpentValue()),
+                          //   ),
+                          // ),
+                          SliverAppBar(
+                            pinned: true,
+                            snap: false,
+                            floating: false,
+                            expandedHeight: 160.0,
+                            flexibleSpace: const FlexibleSpaceBar(
+                              titlePadding: EdgeInsets.only(
+                                  top: kToolbarHeight,
+                                  bottom: kTextTabBarHeight / 2),
+                              title: OverflowBox(
                                   maxHeight: 200, child: TotalSpentValue()),
+                              // background: FlutterLogo(),
                             ),
                           ),
                           SliverList(
@@ -133,7 +151,6 @@ class TotalSpentValue extends StatelessWidget {
   const TotalSpentValue({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    var brightness = MediaQuery.of(context).platformBrightness;
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
@@ -143,9 +160,9 @@ class TotalSpentValue extends StatelessWidget {
             return RichText(
                 text: TextSpan(
                     style: TextStyle(
-                        color: brightness == Brightness.dark
-                            ? Colors.black
-                            : Colors.white),
+                        color: ExpenseTheme.isDarkTheme(context)
+                            ? Colors.white
+                            : Colors.black),
                     children: [
                   TextSpan(
                       text: '$rupeeSymbol  ', style: ExpenseTheme.rupeeStyle),
@@ -159,10 +176,14 @@ class TotalSpentValue extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: Text("Total Spent",
-              style: TextStyle(
+          child: Text(
+            "Total Spent",
+            style: TextStyle(
                 fontSize: 18,
-              )),
+                color: ExpenseTheme.isDarkTheme(context)
+                    ? Colors.white
+                    : Colors.black),
+          ),
         ),
       ],
     );

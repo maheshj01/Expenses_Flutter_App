@@ -4,30 +4,31 @@ class ExpenseTheme {
   static final Color buttoncolor = Colors.red;
   static final Color bottomSheetBackgroundColor = Colors.grey.shade800;
   static final Color floatingIconColor = Colors.black;
-  static final Color toggleButtonTextColor = Colors.black;
   static final Color floatingBackgroundColor = Colors.white;
   static final Color scaffoldBackgroundColor = Colors.grey.shade900;
   static final Color dismissedRight = Colors.red;
   static final Color dismissedLeft = Colors.grey.shade700;
 
-
   static TextStyle inputTextStyle = TextStyle(
     fontSize: 25,
   );
   static TextStyle rupeeStyle = TextStyle(
-    fontSize: 16,
+    fontSize: 18,
   );
-  
+
+  static bool isDarkTheme(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
   static const _lightFillColor = Colors.black;
   static const _darkFillColor = Colors.white;
   static final Color _lightFocusColor = Colors.black.withOpacity(0.12);
   static final Color _darkFocusColor = Colors.white.withOpacity(0.12);
 
   static ThemeData lightThemeData =
-      themeData(lightColorScheme, _lightFocusColor);
-  static ThemeData darkThemeData = themeData(darkColorScheme, _darkFocusColor);
+      _themeData(lightColorScheme, _lightFocusColor);
+  static ThemeData darkThemeData = _themeData(darkColorScheme, _darkFocusColor);
 
-  static ThemeData themeData(ColorScheme colorScheme, Color focusColor) {
+  static ThemeData _themeData(ColorScheme colorScheme, Color focusColor) {
     return ThemeData(
       colorScheme: colorScheme,
       textTheme: _textTheme,

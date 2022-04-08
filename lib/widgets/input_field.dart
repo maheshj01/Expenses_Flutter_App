@@ -43,7 +43,8 @@ class _EMInputFieldState extends State<EMInputField> {
     return TextField(
       controller: controller,
       textAlign: TextAlign.center,
-      cursorColor: Colors.white,
+      cursorColor: Theme.of(context).colorScheme.primary,
+      cursorWidth: 2.5,
       keyboardType: widget.keyboardType,
       style: ExpenseTheme.inputTextStyle,
       maxLength: widget.maxLength,
@@ -59,10 +60,11 @@ class _EMInputFieldState extends State<EMInputField> {
         prefixText: widget.labelText,
         floatingLabelBehavior: FloatingLabelBehavior.never,
         labelStyle: ExpenseTheme.inputTextStyle,
+        enabledBorder: inputBorder,
         focusedBorder: inputBorder,
         border: inputBorder,
         filled: true,
-        fillColor: Colors.black38,
+        fillColor: Colors.black38.withOpacity(0.1),
       ),
       onTap: () {},
     );

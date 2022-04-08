@@ -49,7 +49,6 @@ class _EmBottomSheetState extends State<EmBottomSheet> {
           padding:
               EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
           decoration: BoxDecoration(
-              // color: ExpenseTheme.bottomSheetBackgroundColor,
               borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(20), topRight: Radius.circular(20))),
           child: Column(
@@ -87,7 +86,6 @@ class _EmBottomSheetState extends State<EmBottomSheet> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: ToggleButtons(
-                  fillColor: Colors.grey.shade500,
                   children: <Widget>[
                     for (int i = 0; i < expenseTypes.length; i++)
                       Padding(
@@ -95,8 +93,6 @@ class _EmBottomSheetState extends State<EmBottomSheet> {
                             horizontal: 16.0, vertical: 8.0),
                         child: Text(
                           '${expenseTypes[i].name}'.capitalize(),
-                          style: TextStyle(
-                              color: ExpenseTheme.toggleButtonTextColor),
                         ),
                       ),
                   ],
