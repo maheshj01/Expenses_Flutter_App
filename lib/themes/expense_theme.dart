@@ -10,16 +10,18 @@ class ExpenseTheme {
   static final Color dismissedRight = Colors.red;
   static final Color dismissedLeft = Colors.grey.shade700;
 
+
+  static TextStyle inputTextStyle = TextStyle(
+    fontSize: 25,
+  );
+  static TextStyle rupeeStyle = TextStyle(
+    fontSize: 16,
+  );
+  
   static const _lightFillColor = Colors.black;
   static const _darkFillColor = Colors.white;
   static final Color _lightFocusColor = Colors.black.withOpacity(0.12);
   static final Color _darkFocusColor = Colors.white.withOpacity(0.12);
-
-  static TextStyle inputTextStyle =
-      TextStyle(fontSize: 25, color: Colors.white);
-  static TextStyle rupeeStyle = TextStyle(
-    fontSize: 16,
-  );
 
   static ThemeData lightThemeData =
       themeData(lightColorScheme, _lightFocusColor);

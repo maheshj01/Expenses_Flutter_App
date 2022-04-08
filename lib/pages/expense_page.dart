@@ -91,38 +91,41 @@ class _ExpensePageState extends State<ExpensePage> {
             child: Text('$rupeeSymbol',
                 style: ExpenseTheme.rupeeStyle.copyWith(fontSize: 32))),
         drawer: Drawer(child: EmDrawer()),
-        body: Column(
-          children: <Widget>[
-            SizedBox(height: 200, child: TotalSpentValue()),
-            Expanded(
-              flex: 6,
-              child: Container(
-                  padding: EdgeInsets.only(bottom: 10),
-                  child: StreamBuilder<List<Expense>>(
-                    stream: bloc.expenseListStream,
-                    builder: (BuildContext context,
-                        AsyncSnapshot<List<Expense>> snapshot) {
-                      return snapshot.data == null
-                          ? Center(
-                              child: Text(
-                                  emptyListMessage[Random()
-                                      .nextInt(emptyListMessage.length)],
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 16)))
-                          : ListView.builder(
-                              itemCount: snapshot.data?.length,
-                              itemBuilder: (BuildContext context, int item) {
-                                return ExpenseListTile(
-                                  model: snapshot.data![item],
-                                );
-                              },
-                            );
-                    },
-                  )),
-            ),
-          ],
-        ));
+        body: Padding(
+            padding: EdgeInsets.only(bottom: 10),
+            child: StreamBuilder<List<Expense>>(
+              stream: bloc.expenseListStream,
+              builder: (BuildContext context,
+                  AsyncSnapshot<List<Expense>> snapshot) {
+                return snapshot.data == null
+                    ? Center(
+                        child: Text(
+                            emptyListMessage[
+                                Random().nextInt(emptyListMessage.length)],
+                            textAlign: TextAlign.center,
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 16)))
+                    : CustomScrollView(
+                        slivers: <Widget>[
+                          SliverPersistentHeader(
+                            delegate: EmSliverAppBar(
+                              child: OverflowBox(
+                                  maxHeight: 200, child: TotalSpentValue()),
+                            ),
+                          ),
+                          SliverList(
+                              delegate: SliverChildBuilderDelegate(
+                            (BuildContext context, int index) {
+                              return ExpenseListTile(
+                                model: snapshot.data![index % 2],
+                              );
+                            },
+                            childCount: snapshot.data!.length * 10,
+                          ))
+                        ],
+                      );
+              },
+            )));
   }
 }
 
@@ -130,6 +133,7 @@ class TotalSpentValue extends StatelessWidget {
   const TotalSpentValue({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
+    var brightness = MediaQuery.of(context).platformBrightness;
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
@@ -137,24 +141,55 @@ class TotalSpentValue extends StatelessWidget {
           stream: bloc.totalExpenseController,
           builder: (BuildContext context, AsyncSnapshot<double> snapshot) {
             return RichText(
-                text: TextSpan(children: [
-              TextSpan(text: '$rupeeSymbol  ', style: ExpenseTheme.rupeeStyle),
-              TextSpan(
-                  text: snapshot.data == null
-                      ? '0.00'
-                      : '${snapshot.data.toString()}',
-                  style: ExpenseTheme.inputTextStyle),
-            ]));
+                text: TextSpan(
+                    style: TextStyle(
+                        color: brightness == Brightness.dark
+                            ? Colors.black
+                            : Colors.white),
+                    children: [
+                  TextSpan(
+                      text: '$rupeeSymbol  ', style: ExpenseTheme.rupeeStyle),
+                  TextSpan(
+                      text: snapshot.data == null
+                          ? '0.00'
+                          : '${snapshot.data.toString()}',
+                      style: ExpenseTheme.inputTextStyle),
+                ]));
           },
         ),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
           child: Text("Total Spent",
-              style: TextStyle(fontSize: 18, color: Colors.white)),
+              style: TextStyle(
+                fontSize: 18,
+              )),
         ),
       ],
     );
   }
+}
+
+class EmSliverAppBar extends SliverPersistentHeaderDelegate {
+  final Widget child;
+  EmSliverAppBar({required this.child});
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    // TODO: implement build
+    return child;
+  }
+
+  @override
+  // TODO: implement maxExtent
+  double get maxExtent => 200.0;
+
+  @override
+  // TODO: implement minExtent
+  double get minExtent => 20.0;
+
+  @override
+  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
+      true;
 }
 
 class EmIcon extends StatelessWidget {
