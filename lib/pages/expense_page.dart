@@ -102,14 +102,26 @@ class _ExpensePageState extends State<ExpensePage>
 
                       SliverAppBar(
                         pinned: true,
-                        snap: false,
-                        floating: false,
+                        // snap: true,
+                        floating: true,
                         expandedHeight: 160.0,
                         flexibleSpace: FlexibleSpaceBar(
+                          background: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                end: Alignment.bottomCenter,
+                                begin: Alignment.topCenter,
+                                colors: [
+                                  ExpenseTheme.colorScheme.surface,
+                                  ExpenseTheme.colorScheme.background,
+                                ],
+                              ),
+                            ),
+                          ),
                           expandedTitleScale: 1.2,
                           titlePadding: EdgeInsets.only(
-                              top: kToolbarHeight,
-                              bottom: kTextTabBarHeight / 2),
+                            top: kToolbarHeight * 1.5,
+                          ),
                           title: OverflowBox(
                               maxHeight: 200,
                               child: StreamBuilder(
@@ -125,11 +137,8 @@ class _ExpensePageState extends State<ExpensePage>
                                     );
                                   })),
                         ),
-                      ),
-                      SliverToBoxAdapter(
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: Padding(
+                        actions: [
+                          Padding(
                             padding: const EdgeInsets.only(right: 8.0),
                             child: IconButton(
                                 icon: Icon(
@@ -140,13 +149,12 @@ class _ExpensePageState extends State<ExpensePage>
                                 ),
                                 onPressed: () {
                                   expenses = snapshot.data!;
-                                  // bloc.expenseListStreamSink.add([]);
                                   isReversed = !isReversed;
                                   bloc.expenseListStreamSink
                                       .add(expenses.reversed.toList());
                                 }),
                           ),
-                        ),
+                        ],
                       ),
                       if (snapshot.data!.isEmpty)
                         SliverToBoxAdapter(
