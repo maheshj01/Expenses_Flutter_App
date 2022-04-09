@@ -47,6 +47,7 @@ class _ExpensePageState extends State<ExpensePage>
 
   @override
   void dispose() {
+    _animationController.dispose();
     amountController.dispose();
     descriptionController.dispose();
     super.dispose();
@@ -129,20 +130,48 @@ class _ExpensePageState extends State<ExpensePage>
                                     );
                                   })),
                         ),
-                        actions: [
-                          Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: IconButton(
-                                icon: Icon(isReversed ? Icons.sort : Icons.list,
-                                    color: ExpenseTheme.colorScheme.primary),
-                                onPressed: () {
-                                  expenses = snapshot.data!;
-                                  isReversed = !isReversed;
-                                  bloc.expenseListStreamSink
-                                      .add(expenses.reversed.toList());
-                                }),
-                          ),
-                        ],
+                      ),
+                      SliverAppBar(
+                        pinned: true,
+                        floating: false,
+                        expandedHeight: 50.0,
+                        leading: SizedBox(),
+                        // flexibleSpace: ,
+                        flexibleSpace: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                for (int i = 0; i < expenseTypes.length; i++)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8.0),
+                                    child: Chip(
+                                        label: Text(
+                                      expenseTypes[i].name,
+                                      style: ExpenseTheme.rupeeStyle,
+                                    )),
+                                  ),
+                                Expanded(child: SizedBox()),
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 8.0),
+                                  child: IconButton(
+                                      icon: Icon(
+                                          isReversed ? Icons.sort : Icons.list,
+                                          color:
+                                              ExpenseTheme.colorScheme.primary),
+                                      onPressed: () {
+                                        expenses = snapshot.data!;
+                                        isReversed = !isReversed;
+                                        bloc.expenseListStreamSink
+                                            .add(expenses.reversed.toList());
+                                      }),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                       if (snapshot.data!.isEmpty)
                         SliverToBoxAdapter(
@@ -159,10 +188,6 @@ class _ExpensePageState extends State<ExpensePage>
                             delegate: SliverChildBuilderDelegate(
                           (BuildContext context, int index) {
                             bool isSameDate = true;
-                            // if (isReversed) {
-                            //   list = snapshot.data!.toList();
-                            // } else {
-                            // }
                             final list = snapshot.data!.reversed.toList();
                             final item = list[index];
                             if (index == 0) {
