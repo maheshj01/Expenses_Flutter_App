@@ -21,6 +21,7 @@ class _EmBottomSheetState extends State<EmBottomSheet> {
       autoFocus: false,
       hintText: "What is this for ?",
       onChange: (x) {},
+      style: ExpenseTheme.rupeeStyle,
       onSubmit: (x) => submit(),
     );
   }

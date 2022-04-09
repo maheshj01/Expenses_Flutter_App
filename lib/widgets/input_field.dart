@@ -11,6 +11,7 @@ class EMInputField extends StatefulWidget {
   final int? maxLength;
   final int? maxLines;
   final bool autoFocus;
+  final TextStyle? style;
   const EMInputField(
       {Key? key,
       this.controller,
@@ -20,6 +21,7 @@ class EMInputField extends StatefulWidget {
       this.labelText,
       this.onSubmit,
       this.maxLines,
+      this.style,
       this.autoFocus = false,
       this.onChange})
       : super(key: key);
@@ -46,20 +48,20 @@ class _EMInputFieldState extends State<EMInputField> {
       cursorColor: Theme.of(context).colorScheme.primary,
       cursorWidth: 2.5,
       keyboardType: widget.keyboardType,
-      style: ExpenseTheme.inputTextStyle,
+      style: widget.style ?? ExpenseTheme.inputTextStyle,
       maxLength: widget.maxLength,
       maxLines: widget.maxLines,
       autofocus: widget.autoFocus,
       onSubmitted: (x) => widget.onSubmit!(x),
       decoration: InputDecoration(
         hintText: widget.hintText,
-        hintStyle: ExpenseTheme.inputTextStyle,
-        prefixStyle: ExpenseTheme.inputTextStyle,
+        hintStyle: widget.style ?? ExpenseTheme.inputTextStyle,
+        prefixStyle: widget.style ?? ExpenseTheme.inputTextStyle,
         counterText: "",
         labelText: widget.labelText,
         prefixText: widget.labelText,
         floatingLabelBehavior: FloatingLabelBehavior.never,
-        labelStyle: ExpenseTheme.inputTextStyle,
+        labelStyle: widget.style ?? ExpenseTheme.inputTextStyle,
         enabledBorder: inputBorder,
         focusedBorder: inputBorder,
         border: inputBorder,

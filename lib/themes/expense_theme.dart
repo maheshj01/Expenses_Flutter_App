@@ -1,3 +1,4 @@
+import 'package:expense_manager/main.dart';
 import 'package:flutter/material.dart';
 
 class ExpenseTheme {
@@ -54,21 +55,23 @@ class ExpenseTheme {
       ),
     );
   }
+  static ColorScheme get colorScheme => appSettings.theme==ThemeMode.dark? darkColorScheme: lightColorScheme;
 
-  static ColorScheme lightColorScheme = ColorScheme(
-    primary: Color(0xFFB93C5D),
-    primaryContainer: Color(0xFF117378),
-    secondary: Color(0xFFEFF3F3),
-    secondaryContainer: Color(0xFFFAFBFB),
-    background: Color(0xFFE6EBEB),
-    surface: Color(0xFFFAFBFB),
-    onBackground: Colors.white,
-    error: _lightFillColor,
-    onError: _lightFillColor,
-    onPrimary: _lightFillColor,
-    onSecondary: Color(0xFF322942),
+  static ColorScheme lightColorScheme = ColorScheme.fromSeed(
+    seedColor: Color.fromARGB(255, 126, 120, 211),
+    //   primary: Color.fromARGB(255, 87, 138, 206),
+    //   primaryContainer: Color(0xFF117378),
+    //   secondary: Color(0xFFEFF3F3),
+    //   secondaryContainer: Color(0xFFFAFBFB),
+    background: Color.fromARGB(255, 230, 219, 253),
+    //   surface: Color(0xFFFAFBFB),
+    //   onBackground: Colors.white,
+    //   error: _lightFillColor,
+    //   onError: _lightFillColor,
+    //   onPrimary: _lightFillColor,
+    //   onSecondary: Color(0xFF322942),
     onSurface: Color(0xFF241E30),
-    brightness: Brightness.light,
+    //   brightness: Brightness.light,
   );
 
   static ColorScheme darkColorScheme = ColorScheme(

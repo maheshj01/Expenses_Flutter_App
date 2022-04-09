@@ -64,6 +64,8 @@ class _ExpensePageState extends State<ExpensePage>
         vsync: this, duration: new Duration(milliseconds: totalDuration));
   }
 
+  bool isReversed = false;
+  List<Expense> expenses = [];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -83,12 +85,7 @@ class _ExpensePageState extends State<ExpensePage>
               builder: (BuildContext context,
                   AsyncSnapshot<List<Expense>> snapshot) {
                 if (snapshot.data == null)
-                  return Center(
-                      child: Text(
-                          emptyListMessage[
-                              Random().nextInt(emptyListMessage.length)],
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.white, fontSize: 16)));
+                  return Center(child: CircularProgressIndicator());
                 else {
                   totalItems = snapshot.data!.length;
                   animationDuration = totalItems / 100; // in seconds
@@ -102,6 +99,7 @@ class _ExpensePageState extends State<ExpensePage>
                       //         maxHeight: 200, child: TotalSpentValue()),
                       //   ),
                       // ),
+
                       SliverAppBar(
                         pinned: true,
                         snap: false,
@@ -126,47 +124,84 @@ class _ExpensePageState extends State<ExpensePage>
                                       value: snapshot.data!,
                                     );
                                   })),
-                          // background: FlutterLogo(),
                         ),
                       ),
-                      SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                        (BuildContext context, int index) {
-                          bool isSameDate = true;
-                          final item = snapshot.data![index];
-                          if (index == 0) {
-                            isSameDate = false;
-                          } else {
-                            final prevItem = snapshot.data![index - 1];
-                            isSameDate =
-                                item.datetime!.isSameDate(prevItem.datetime!);
-                          }
-                          if (index == 0 || !(isSameDate)) {
-                            return Column(
-                              children: [
-                                SizedBox(
-                                  height: 12,
+                      SliverToBoxAdapter(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: IconButton(
+                                icon: Icon(
+                                  Icons.sort,
+                                  color: isReversed
+                                      ? ExpenseTheme.colorScheme.primary
+                                      : Colors.white,
                                 ),
-                                Text(item.datetime!.formatDate()),
-                                ExpenseListTile(
-                                  model: snapshot.data![index],
-                                  controller: _animationController,
-                                  durationInMilliSeconds: animationDuration,
-                                  index: index,
-                                ),
-                              ],
-                            );
-                          } else {
-                            return ExpenseListTile(
-                              model: snapshot.data![index],
-                              controller: _animationController,
-                              durationInMilliSeconds: animationDuration,
-                              index: index,
-                            );
-                          }
-                        },
-                        childCount: snapshot.data!.length,
-                      ))
+                                onPressed: () {
+                                  expenses = snapshot.data!;
+                                  // bloc.expenseListStreamSink.add([]);
+                                  isReversed = !isReversed;
+                                  bloc.expenseListStreamSink
+                                      .add(expenses.reversed.toList());
+                                }),
+                          ),
+                        ),
+                      ),
+                      if (snapshot.data!.isEmpty)
+                        SliverToBoxAdapter(
+                          child: Center(
+                              child: Text(
+                                  emptyListMessage[Random()
+                                      .nextInt(emptyListMessage.length)],
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 16))),
+                        )
+                      else
+                        SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                          (BuildContext context, int index) {
+                            bool isSameDate = true;
+                            // if (isReversed) {
+                            //   list = snapshot.data!.toList();
+                            // } else {
+                            // }
+                            final list = snapshot.data!.reversed.toList();
+                            final item = list[index];
+                            if (index == 0) {
+                              isSameDate = false;
+                            } else {
+                              final prevItem = list[index - 1];
+                              isSameDate =
+                                  item.datetime!.isSameDate(prevItem.datetime!);
+                            }
+                            if (index == 0 || !(isSameDate)) {
+                              return Column(
+                                children: [
+                                  SizedBox(
+                                    height: 12,
+                                  ),
+                                  Text(item.datetime!.formatDate()),
+                                  ExpenseListTile(
+                                    model: list[index],
+                                    controller: _animationController,
+                                    durationInMilliSeconds: animationDuration,
+                                    index: index,
+                                  ),
+                                ],
+                              );
+                            } else {
+                              return ExpenseListTile(
+                                model: list[index],
+                                controller: _animationController,
+                                durationInMilliSeconds: animationDuration,
+                                index: index,
+                              );
+                            }
+                          },
+                          childCount: snapshot.data!.length,
+                        ))
                     ],
                   );
                 }
