@@ -3,99 +3,96 @@ import 'package:expense_manager/main.dart';
 import 'package:expense_manager/model/model.dart';
 import 'package:flutter/material.dart';
 
-class ExpenseListTile extends StatelessWidget {
-  ExpenseListTile({Key? key, required this.model}) : super(key: key);
+class ExpenseListTile extends StatefulWidget {
+  ExpenseListTile(
+      {Key? key,
+      required this.index,
+      required this.model,
+      required this.controller,
+      required this.durationInMilliSeconds})
+      : super(key: key);
+
+  final AnimationController controller;
+  final double durationInMilliSeconds;
   Expense model;
+  final int index;
+
+  @override
+  State<ExpenseListTile> createState() => _ExpenseListTileState();
+}
+
+class _ExpenseListTileState extends State<ExpenseListTile> {
+  late Animation<Offset> _animation;
+  late double start;
+  late double end;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    start = (widget.durationInMilliSeconds * widget.index).toDouble();
+    end = start + widget.durationInMilliSeconds;
+    print("START $start , end $end");
+    _animation = Tween<Offset>(
+      begin: Offset(2.0, 0),
+      end: Offset(0.0, 0),
+    ).animate(
+      CurvedAnimation(
+        parent: widget.controller,
+        curve: Interval(
+          start,
+          end,
+          curve: Curves.fastOutSlowIn,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    Color dismissColor = ExpenseTheme.dismissedRight;
-    return Dismissible(
-        direction: DismissDirection.startToEnd,
-        dismissThresholds: {
-          DismissDirection.startToEnd: 0.4,
-          DismissDirection.endToStart: 0.4
-        },
-        background: Container(
-          color: dismissColor,
-        ),
-        onDismissed: (direction) {
-          // bloc.removeExpenseItem(snapshot.data[item].id);
-          if (direction == DismissDirection.startToEnd) {
-            dismissColor = ExpenseTheme.dismissedRight;
-            bloc.removeExpenseItem(model);
-          } else {
-            dismissColor = ExpenseTheme.dismissedLeft;
-          }
-        },
-        key: Key("expenseItem${model.id}"),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            color: appSettings.getTheme == ThemeMode.dark
-                ? Colors.black
-                : ExpenseTheme.lightColorScheme.primary,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              Expanded(
-                child: Container(
-                  padding: EdgeInsets.only(left: 10, right: 5),
-                  child: Text(
-                    model.description!,
-                    textAlign: TextAlign.justify,
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 5,
-                  ),
-                ),
+    return AnimatedBuilder(
+        animation: _animation,
+        builder: (context, snapshot) {
+          return SlideTransition(
+            position: _animation,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: appSettings.getTheme == ThemeMode.dark
+                    ? Colors.black
+                    : ExpenseTheme.lightColorScheme.primary,
               ),
-              Flexible(
-                  child: Column(
+              height: 100,
+              margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   Expanded(
-                    flex: 1,
                     child: Container(
-                      alignment: Alignment.center,
+                      padding: EdgeInsets.only(left: 10, right: 5),
                       child: Text(
-                        model.datetime!.formatDate(),
-                        style: TextStyle(color: Colors.white),
+                        widget.model.description!,
+                        textAlign: TextAlign.justify,
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 3,
                       ),
                     ),
                   ),
-                  Expanded(
-                    flex: 2,
-                    child: Row(
-                      children: <Widget>[
-                        Container(
-                          margin: EdgeInsets.only(right: 10, left: 10),
-                          child: Text(
-                            '₹',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 4,
-                          child: Container(
-                            child: Text(
-                              model.amount.toString(),
-                              style:
-                                  TextStyle(fontSize: 25, color: Colors.white),
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
+                  SizedBox(
+                    width: 8,
+                  ),
+                  TotalSpentValue(
+                    currency: rupeeSymbol,
+                    value: widget.model.amount!,
+                    hasLabel: false,
                   )
                 ],
-              ))
-            ],
-          ),
-          height: MediaQuery.of(context).size.width / 4,
-          margin: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        ));
+              ),
+            ),
+          );
+        });
   }
 }

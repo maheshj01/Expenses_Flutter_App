@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:expense_manager/constants/exports.dart';
-import 'package:expense_manager/utils/utils.dart';
 import 'package:expense_manager/model/spend.dart';
 import 'package:expense_manager/widgets/bottom_sheet.dart';
 import 'package:expense_manager/widgets/drawer.dart';
@@ -9,7 +8,6 @@ import 'package:expense_manager/widgets/expense_list_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:expense_manager/blocs/sqform_bloc.dart';
 import 'package:expense_manager/model/model.dart';
-import 'package:intl/intl.dart';
 
 class ExpensePage extends StatefulWidget {
   @override
@@ -22,7 +20,8 @@ final TextEditingController amountController = new TextEditingController();
 final TextEditingController descriptionController = TextEditingController();
 // final pdf = document.Document();
 
-class _ExpensePageState extends State<ExpensePage> {
+class _ExpensePageState extends State<ExpensePage>
+    with TickerProviderStateMixin {
   Future _getExpenseDetails() {
     return showModalBottomSheet(
         isScrollControlled: true,
@@ -46,37 +45,6 @@ class _ExpensePageState extends State<ExpensePage> {
         });
   }
 
-  List<DropdownMenuItem<String>> list = [
-    DropdownMenuItem<String>(
-      value: 'August',
-      child: Text(
-        'August',
-        style: TextStyle(color: Colors.white),
-      ),
-    ),
-    DropdownMenuItem<String>(
-      value: 'September',
-      child: Text(
-        'September',
-        style: TextStyle(color: Colors.white),
-      ),
-    ),
-    DropdownMenuItem<String>(
-        value: 'October',
-        child: Text(
-          'October',
-          style: TextStyle(color: Colors.white),
-        )),
-    DropdownMenuItem<String>(
-      value: 'November',
-      child: Text(
-        'November',
-        style: TextStyle(color: Colors.white),
-      ),
-    )
-  ];
-  String selectedValue = "August";
-
   @override
   void dispose() {
     amountController.dispose();
@@ -84,14 +52,17 @@ class _ExpensePageState extends State<ExpensePage> {
     super.dispose();
   }
 
-  /**
-   * 
-   * [2, 2, 3, 4, 4]
-   * 
-   * output
-   *    0      1 ,  2       3
-   * [['T', 2, 2],['T', 3],['T', 4, 4]
-   */
+  late AnimationController _animationController;
+  double animationDuration = 0.0;
+  int totalItems = 6;
+  final int totalDuration = 6000;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _animationController = AnimationController(
+        vsync: this, duration: new Duration(milliseconds: totalDuration));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -119,6 +90,10 @@ class _ExpensePageState extends State<ExpensePage> {
                           textAlign: TextAlign.center,
                           style: TextStyle(color: Colors.white, fontSize: 16)));
                 else {
+                  totalItems = snapshot.data!.length;
+                  animationDuration = totalItems / 100; // in seconds
+                  print('animation Duration for each item=$animationDuration');
+                  _animationController.forward();
                   return CustomScrollView(
                     slivers: <Widget>[
                       // SliverPersistentHeader(
@@ -132,13 +107,25 @@ class _ExpensePageState extends State<ExpensePage> {
                         snap: false,
                         floating: false,
                         expandedHeight: 160.0,
-                        flexibleSpace: const FlexibleSpaceBar(
+                        flexibleSpace: FlexibleSpaceBar(
                           expandedTitleScale: 1.2,
                           titlePadding: EdgeInsets.only(
                               top: kToolbarHeight,
                               bottom: kTextTabBarHeight / 2),
                           title: OverflowBox(
-                              maxHeight: 200, child: TotalSpentValue()),
+                              maxHeight: 200,
+                              child: StreamBuilder(
+                                  stream: bloc.totalExpenseController,
+                                  builder: (BuildContext context,
+                                      AsyncSnapshot<double> snapshot) {
+                                    if (snapshot.data == null) {
+                                      return SizedBox();
+                                    }
+                                    return TotalSpentValue(
+                                      currency: rupeeSymbol,
+                                      value: snapshot.data!,
+                                    );
+                                  })),
                           // background: FlutterLogo(),
                         ),
                       ),
@@ -163,12 +150,18 @@ class _ExpensePageState extends State<ExpensePage> {
                                 Text(item.datetime!.formatDate()),
                                 ExpenseListTile(
                                   model: snapshot.data![index],
+                                  controller: _animationController,
+                                  durationInMilliSeconds: animationDuration,
+                                  index: index,
                                 ),
                               ],
                             );
                           } else {
                             return ExpenseListTile(
                               model: snapshot.data![index],
+                              controller: _animationController,
+                              durationInMilliSeconds: animationDuration,
+                              index: index,
                             );
                           }
                         },
@@ -183,43 +176,47 @@ class _ExpensePageState extends State<ExpensePage> {
 }
 
 class TotalSpentValue extends StatelessWidget {
-  const TotalSpentValue({Key? key}) : super(key: key);
+  final double value;
+  final String currency;
+  final double fontSize;
+  final bool hasLabel;
+  const TotalSpentValue(
+      {Key? key,
+      required this.value,
+      required this.currency,
+      this.hasLabel = true,
+      this.fontSize = 25.0})
+      : super(key: key);
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        StreamBuilder(
-          stream: bloc.totalExpenseController,
-          builder: (BuildContext context, AsyncSnapshot<double> snapshot) {
-            return RichText(
-                text: TextSpan(
-                    style: TextStyle(
-                        color: ExpenseTheme.isDarkTheme(context)
-                            ? Colors.white
-                            : Colors.black),
-                    children: [
-                  TextSpan(
-                      text: '$rupeeSymbol  ', style: ExpenseTheme.rupeeStyle),
-                  TextSpan(
-                      text: snapshot.data == null
-                          ? '0.00'
-                          : '${snapshot.data.toString()}',
-                      style: ExpenseTheme.inputTextStyle),
-                ]));
-          },
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: Text(
-            "Total Spent",
-            style: TextStyle(
-                fontSize: 18,
-                color: ExpenseTheme.isDarkTheme(context)
-                    ? Colors.white
-                    : Colors.black),
-          ),
-        ),
+        RichText(
+            text: TextSpan(
+                style: TextStyle(
+                    color: ExpenseTheme.isDarkTheme(context)
+                        ? Colors.white
+                        : Colors.black),
+                children: [
+              TextSpan(text: '$currency ', style: ExpenseTheme.rupeeStyle),
+              TextSpan(
+                  text: '${value.toString()}',
+                  style: ExpenseTheme.inputTextStyle),
+            ])),
+        hasLabel
+            ? Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(
+                  "Total Spent",
+                  style: TextStyle(
+                      fontSize: 18,
+                      color: ExpenseTheme.isDarkTheme(context)
+                          ? Colors.white
+                          : Colors.black),
+                ),
+              )
+            : SizedBox(),
       ],
     );
   }
