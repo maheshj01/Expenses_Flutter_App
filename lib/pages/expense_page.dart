@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:expense_manager/constants/exports.dart';
-import 'package:expense_manager/main.dart';
+import 'package:expense_manager/utils/utils.dart';
 import 'package:expense_manager/model/spend.dart';
 import 'package:expense_manager/widgets/bottom_sheet.dart';
 import 'package:expense_manager/widgets/drawer.dart';
@@ -9,6 +9,7 @@ import 'package:expense_manager/widgets/expense_list_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:expense_manager/blocs/sqform_bloc.dart';
 import 'package:expense_manager/model/model.dart';
+import 'package:intl/intl.dart';
 
 class ExpensePage extends StatefulWidget {
   @override
@@ -83,6 +84,15 @@ class _ExpensePageState extends State<ExpensePage> {
     super.dispose();
   }
 
+  /**
+   * 
+   * [2, 2, 3, 4, 4]
+   * 
+   * output
+   *    0      1 ,  2       3
+   * [['T', 2, 2],['T', 3],['T', 4, 4]
+   */
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -101,47 +111,72 @@ class _ExpensePageState extends State<ExpensePage> {
               stream: bloc.expenseListStream,
               builder: (BuildContext context,
                   AsyncSnapshot<List<Expense>> snapshot) {
-                return snapshot.data == null
-                    ? Center(
-                        child: Text(
-                            emptyListMessage[
-                                Random().nextInt(emptyListMessage.length)],
-                            textAlign: TextAlign.center,
-                            style:
-                                TextStyle(color: Colors.white, fontSize: 16)))
-                    : CustomScrollView(
-                        slivers: <Widget>[
-                          // SliverPersistentHeader(
-                          //   delegate: EmSliverAppBar(
-                          //     child: OverflowBox(
-                          //         maxHeight: 200, child: TotalSpentValue()),
-                          //   ),
-                          // ),
-                          SliverAppBar(
-                            pinned: true,
-                            snap: false,
-                            floating: false,
-                            expandedHeight: 160.0,
-                            flexibleSpace: const FlexibleSpaceBar(
-                              titlePadding: EdgeInsets.only(
-                                  top: kToolbarHeight,
-                                  bottom: kTextTabBarHeight / 2),
-                              title: OverflowBox(
-                                  maxHeight: 200, child: TotalSpentValue()),
-                              // background: FlutterLogo(),
-                            ),
-                          ),
-                          SliverList(
-                              delegate: SliverChildBuilderDelegate(
-                            (BuildContext context, int index) {
-                              return ExpenseListTile(
-                                model: snapshot.data![index % 2],
-                              );
-                            },
-                            childCount: snapshot.data!.length * 10,
-                          ))
-                        ],
-                      );
+                if (snapshot.data == null)
+                  return Center(
+                      child: Text(
+                          emptyListMessage[
+                              Random().nextInt(emptyListMessage.length)],
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.white, fontSize: 16)));
+                else {
+                  return CustomScrollView(
+                    slivers: <Widget>[
+                      // SliverPersistentHeader(
+                      //   delegate: EmSliverAppBar(
+                      //     child: OverflowBox(
+                      //         maxHeight: 200, child: TotalSpentValue()),
+                      //   ),
+                      // ),
+                      SliverAppBar(
+                        pinned: true,
+                        snap: false,
+                        floating: false,
+                        expandedHeight: 160.0,
+                        flexibleSpace: const FlexibleSpaceBar(
+                          expandedTitleScale: 1.2,
+                          titlePadding: EdgeInsets.only(
+                              top: kToolbarHeight,
+                              bottom: kTextTabBarHeight / 2),
+                          title: OverflowBox(
+                              maxHeight: 200, child: TotalSpentValue()),
+                          // background: FlutterLogo(),
+                        ),
+                      ),
+                      SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                        (BuildContext context, int index) {
+                          bool isSameDate = true;
+                          final item = snapshot.data![index];
+                          if (index == 0) {
+                            isSameDate = false;
+                          } else {
+                            final prevItem = snapshot.data![index - 1];
+                            isSameDate =
+                                item.datetime!.isSameDate(prevItem.datetime!);
+                          }
+                          if (index == 0 || !(isSameDate)) {
+                            return Column(
+                              children: [
+                                SizedBox(
+                                  height: 12,
+                                ),
+                                Text(item.datetime!.formatDate()),
+                                ExpenseListTile(
+                                  model: snapshot.data![index],
+                                ),
+                              ],
+                            );
+                          } else {
+                            return ExpenseListTile(
+                              model: snapshot.data![index],
+                            );
+                          }
+                        },
+                        childCount: snapshot.data!.length,
+                      ))
+                    ],
+                  );
+                }
               },
             )));
   }

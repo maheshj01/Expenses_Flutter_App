@@ -7,7 +7,7 @@ extension Capitalize on String {
   }
 }
 
-extension FormatDate on DateTime {
+extension DateHelper on DateTime {
   String formatDate() {
     final now = DateTime.now();
     final differenceInDays = getDifferenceInDaysWithNow();

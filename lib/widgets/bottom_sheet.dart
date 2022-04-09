@@ -21,6 +21,7 @@ class _EmBottomSheetState extends State<EmBottomSheet> {
       autoFocus: false,
       hintText: "What is this for ?",
       onChange: (x) {},
+      onSubmit: (x) => submit(),
     );
   }
 
@@ -40,8 +41,28 @@ class _EmBottomSheetState extends State<EmBottomSheet> {
     );
   }
 
+  void submit() {
+    if (amountController.text.isEmpty || descriptionController.text.isEmpty) {
+      // Navigator.pop(context);
+      return;
+    }
+    var amount = double.parse(amountController.text);
+    var description = descriptionController.text;
+
+    /// TODO: WorK on custom scrollview
+    final spentValue = spend.copyWith(
+        value: amount,
+        description: description,
+        type: expenseTypes[selectedIndex]);
+    amountController.clear();
+    descriptionController.clear();
+    Navigator.pop(context);
+    widget.onSubmit(spentValue);
+  }
+
   Spend spend = Spend(value: 0, type: SpendType.once, description: '');
   int selectedIndex = 0;
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -62,25 +83,7 @@ class _EmBottomSheetState extends State<EmBottomSheet> {
                     Navigator.pop(context);
                   }),
                   _expenseAmountField(),
-                  EmIcon(Icons.done, onTap: () {
-                    if (amountController.text.isEmpty ||
-                        descriptionController.text.isEmpty) {
-                      // Navigator.pop(context);
-                      return;
-                    }
-                    var amount = double.parse(amountController.text);
-                    var description = descriptionController.text;
-
-                    /// TODO: WorK on custom scrollview
-                    final spentValue = spend.copyWith(
-                        value: amount,
-                        description: description,
-                        type: expenseTypes[selectedIndex]);
-                    amountController.clear();
-                    descriptionController.clear();
-                    Navigator.pop(context);
-                    widget.onSubmit(spentValue);
-                  })
+                  EmIcon(Icons.done, onTap: submit)
                 ],
               ),
               Padding(

@@ -39,7 +39,7 @@ class ExpenseListTile extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Flexible(
+              Expanded(
                 child: Container(
                   padding: EdgeInsets.only(left: 10, right: 5),
                   child: Text(
@@ -54,7 +54,6 @@ class ExpenseListTile extends StatelessWidget {
                 ),
               ),
               Flexible(
-                  //   flex: 3,
                   child: Column(
                 children: <Widget>[
                   Expanded(
