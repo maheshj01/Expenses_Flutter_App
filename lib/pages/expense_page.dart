@@ -61,7 +61,7 @@ class _ExpensePageState extends State<ExpensePage>
     // TODO: implement initState
     super.initState();
     _animationController = AnimationController(
-        vsync: this, duration: new Duration(milliseconds: totalDuration));
+        vsync: this, duration: Duration(milliseconds: totalDuration));
   }
 
   bool isReversed = false;
@@ -93,16 +93,8 @@ class _ExpensePageState extends State<ExpensePage>
                   _animationController.forward();
                   return CustomScrollView(
                     slivers: <Widget>[
-                      // SliverPersistentHeader(
-                      //   delegate: EmSliverAppBar(
-                      //     child: OverflowBox(
-                      //         maxHeight: 200, child: TotalSpentValue()),
-                      //   ),
-                      // ),
-
                       SliverAppBar(
                         pinned: true,
-                        // snap: true,
                         floating: true,
                         expandedHeight: 160.0,
                         flexibleSpace: FlexibleSpaceBar(
@@ -141,12 +133,8 @@ class _ExpensePageState extends State<ExpensePage>
                           Padding(
                             padding: const EdgeInsets.only(right: 8.0),
                             child: IconButton(
-                                icon: Icon(
-                                  Icons.sort,
-                                  color: isReversed
-                                      ? ExpenseTheme.colorScheme.primary
-                                      : Colors.white,
-                                ),
+                                icon: Icon(isReversed ? Icons.sort : Icons.list,
+                                    color: ExpenseTheme.colorScheme.primary),
                                 onPressed: () {
                                   expenses = snapshot.data!;
                                   isReversed = !isReversed;
@@ -223,11 +211,13 @@ class TotalSpentValue extends StatelessWidget {
   final String currency;
   final double fontSize;
   final bool hasLabel;
+  final Color? color;
   const TotalSpentValue(
       {Key? key,
       required this.value,
       required this.currency,
       this.hasLabel = true,
+      this.color,
       this.fontSize = 25.0})
       : super(key: key);
   @override
@@ -239,8 +229,9 @@ class TotalSpentValue extends StatelessWidget {
             text: TextSpan(
                 style: TextStyle(
                     color: ExpenseTheme.isDarkTheme(context)
-                        ? Colors.white
-                        : Colors.black),
+                        ? color ?? Colors.white
+                        : color ?? Colors.black,
+                    fontWeight: FontWeight.w500),
                 children: [
               TextSpan(text: '$currency ', style: ExpenseTheme.rupeeStyle),
               TextSpan(

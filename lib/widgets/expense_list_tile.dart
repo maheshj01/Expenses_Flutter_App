@@ -29,7 +29,7 @@ class _ExpenseListTileState extends State<ExpenseListTile> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    start = (widget.durationInMilliSeconds * widget.index).toDouble();
+    start = (widget.durationInMilliSeconds * widget.index).toDouble() * 0.2;
     end = start + widget.durationInMilliSeconds;
     print("START $start , end $end");
     _animation = Tween<Offset>(
@@ -41,7 +41,7 @@ class _ExpenseListTileState extends State<ExpenseListTile> {
         curve: Interval(
           start,
           end,
-          curve: Curves.fastOutSlowIn,
+          curve: Curves.easeIn,
         ),
       ),
     );
@@ -57,8 +57,8 @@ class _ExpenseListTileState extends State<ExpenseListTile> {
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
-                color: appSettings.getTheme == ThemeMode.dark
-                    ? Colors.black
+                color: ExpenseTheme.isDarkTheme(context)
+                    ? ExpenseTheme.darkColorScheme.surface
                     : ExpenseTheme.lightColorScheme.primary,
               ),
               height: 100,
@@ -88,6 +88,7 @@ class _ExpenseListTileState extends State<ExpenseListTile> {
                     currency: rupeeSymbol,
                     value: widget.model.amount!,
                     hasLabel: false,
+                    color: ExpenseTheme.darkColorScheme.primary,
                   )
                 ],
               ),

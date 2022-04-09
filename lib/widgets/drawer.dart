@@ -1,3 +1,4 @@
+import 'package:expense_manager/constants/exports.dart';
 import 'package:expense_manager/main.dart';
 import 'package:expense_manager/pages/expense_page.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ class EmDrawer extends StatefulWidget {
 }
 
 class _EmDrawerState extends State<EmDrawer> {
+  bool isDark = false;
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -21,14 +23,14 @@ class _EmDrawerState extends State<EmDrawer> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    Container(
-                      child: CircleAvatar(
-                        child: Container(
-                          child: Image.network(
-                              "https://icon-library.com/images/male-user-icon/male-user-icon-13.jpg"),
-                        ),
-                      ),
-                    ),
+                    // Container(
+                    //   child: CircleAvatar(
+                    //     child: Container(
+                    //       child: Image.network(
+                    //           "https://icon-library.com/images/male-user-icon/male-user-icon-13.jpg"),
+                    //     ),
+                    //   ),
+                    // ),
                     Container(
                       child: Text(
                         "Name",
@@ -72,15 +74,32 @@ class _EmDrawerState extends State<EmDrawer> {
                 ),
               ),
               Divider(),
-              Switch(
-                  value: appSettings.getTheme == ThemeMode.dark,
-                  onChanged: (isDark) {
-                    if (isDark) {
-                      appSettings.setTheme(ThemeMode.dark);
-                    } else {
-                      appSettings.setTheme(ThemeMode.light);
-                    }
-                  }),
+              Container(
+                padding: EdgeInsets.only(right: 16),
+                alignment: Alignment.centerRight,
+                child: IconButton(
+                    onPressed: () {
+                      if (isDark) {
+                        appSettings.setTheme(ThemeMode.dark);
+                      } else {
+                        appSettings.setTheme(ThemeMode.light);
+                      }
+                      isDark = !isDark;
+                    },
+                    icon: Icon(
+                      Icons.wb_sunny,
+                      color: ExpenseTheme.colorScheme.primary,
+                    )),
+              ),
+              // Switch(
+              //     value: appSettings.getTheme == ThemeMode.dark,
+              //     onChanged: (isDark) {
+              //       if (isDark) {
+              //         appSettings.setTheme(ThemeMode.dark);
+              //       } else {
+              //         appSettings.setTheme(ThemeMode.light);
+              //       }
+              //     }),
               SizedBox(
                 height: 50,
               )
