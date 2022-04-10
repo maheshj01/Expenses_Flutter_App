@@ -11,5 +11,6 @@ class Spend with _$Spend {
       {@Default(0.0) double value,
       String? description,
       @Default(SpendType.once) SpendType type,
+      @Default('other') String label,
       DateTime? date}) = _Spend;
 }

@@ -1,6 +1,5 @@
 import 'package:expense_manager/constants/exports.dart';
 import 'package:expense_manager/main.dart';
-import 'package:expense_manager/pages/expense_page.dart';
 import 'package:flutter/material.dart';
 
 class EmDrawer extends StatefulWidget {
@@ -11,7 +10,7 @@ class EmDrawer extends StatefulWidget {
 }
 
 class _EmDrawerState extends State<EmDrawer> {
-  bool isDark = false;
+  bool isDark = true;
   @override
   Widget build(BuildContext context) {
     return Drawer(

@@ -17,6 +17,7 @@ const expenseTable = SqfEntityTable(
       SqfEntityField('amount', DbType.real),
       SqfEntityField('description', DbType.text),
       SqfEntityField('type', DbType.text, defaultValue: 'once'),
+      SqfEntityField('label', DbType.text, defaultValue: ''),
       SqfEntityField('total', DbType.real, defaultValue: 1.0)
     ]);
 

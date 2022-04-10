@@ -38,6 +38,7 @@ class TableExpense extends SqfEntityTableBase {
       SqfEntityFieldBase('amount', DbType.real),
       SqfEntityFieldBase('description', DbType.text),
       SqfEntityFieldBase('type', DbType.text, defaultValue: 'once'),
+      SqfEntityFieldBase('label', DbType.text, defaultValue: 'other'),
       SqfEntityFieldBase('total', DbType.real),
     ];
     super.init();
@@ -106,17 +107,18 @@ class Expense extends TableBase {
       this.amount,
       this.description,
       this.type,
+      this.label,
       this.total,
       this.isDeleted}) {
     _setDefaultValues();
     softDeleteActivated = true;
   }
   Expense.withFields(this.datetime, this.amount, this.description, this.type,
-      this.total, this.isDeleted) {
+      this.label, this.total, this.isDeleted) {
     _setDefaultValues();
   }
   Expense.withId(this.id, this.datetime, this.amount, this.description,
-      this.type, this.total, this.isDeleted) {
+      this.type, this.label, this.total, this.isDeleted) {
     _setDefaultValues();
   }
   // fromMap v2.0
@@ -140,6 +142,9 @@ class Expense extends TableBase {
     if (o['type'] != null) {
       type = o['type'].toString();
     }
+    if (o['label'] != null) {
+      label = o['label'].toString();
+    }
     if (o['total'] != null) {
       total = double.tryParse(o['total'].toString());
     }
@@ -153,6 +158,7 @@ class Expense extends TableBase {
   double? amount;
   String? description;
   String? type;
+  String? label;
   double? total;
   bool? isDeleted;
 
@@ -189,6 +195,9 @@ class Expense extends TableBase {
     if (type != null || !forView) {
       map['type'] = type;
     }
+    if (label != null || !forView) {
+      map['label'] = label;
+    }
     if (total != null || !forView) {
       map['total'] = total;
     }
@@ -224,6 +233,9 @@ class Expense extends TableBase {
     if (type != null || !forView) {
       map['type'] = type;
     }
+    if (label != null || !forView) {
+      map['label'] = label;
+    }
     if (total != null || !forView) {
       map['total'] = total;
     }
@@ -253,6 +265,7 @@ class Expense extends TableBase {
       amount,
       description,
       type,
+      label,
       total,
       isDeleted
     ];
@@ -266,6 +279,7 @@ class Expense extends TableBase {
       amount,
       description,
       type,
+      label,
       total,
       isDeleted
     ];
@@ -412,13 +426,14 @@ class Expense extends TableBase {
   Future<int?> upsert({bool ignoreBatch = true}) async {
     try {
       final result = await _mnExpense.rawInsert(
-          'INSERT OR REPLACE INTO expense (id, datetime, amount, description, type, total,isDeleted)  VALUES (?,?,?,?,?,?,?)',
+          'INSERT OR REPLACE INTO expense (id, datetime, amount, description, type, label, total,isDeleted)  VALUES (?,?,?,?,?,?,?,?)',
           [
             id,
             datetime != null ? datetime!.millisecondsSinceEpoch : null,
             amount,
             description,
             type,
+            label,
             total,
             isDeleted
           ],
@@ -446,7 +461,7 @@ class Expense extends TableBase {
   @override
   Future<BoolCommitResult> upsertAll(List<Expense> expenses) async {
     final results = await _mnExpense.rawInsertAll(
-        'INSERT OR REPLACE INTO expense (id, datetime, amount, description, type, total,isDeleted)  VALUES (?,?,?,?,?,?,?)',
+        'INSERT OR REPLACE INTO expense (id, datetime, amount, description, type, label, total,isDeleted)  VALUES (?,?,?,?,?,?,?,?)',
         expenses);
     return results;
   }
@@ -497,6 +512,7 @@ class Expense extends TableBase {
 
   void _setDefaultValues() {
     type = type ?? 'once';
+    label = label ?? 'other';
     isDeleted = isDeleted ?? false;
   }
 
@@ -727,6 +743,11 @@ class ExpenseFilterBuilder extends ConjunctionBase {
   ExpenseField? _type;
   ExpenseField get type {
     return _type = _setField(_type, 'type', DbType.text);
+  }
+
+  ExpenseField? _label;
+  ExpenseField get label {
+    return _label = _setField(_label, 'label', DbType.text);
   }
 
   ExpenseField? _total;
@@ -992,6 +1013,12 @@ class ExpenseFields {
   static TableField? _fType;
   static TableField get type {
     return _fType = _fType ?? SqlSyntax.setField(_fType, 'type', DbType.text);
+  }
+
+  static TableField? _fLabel;
+  static TableField get label {
+    return _fLabel =
+        _fLabel ?? SqlSyntax.setField(_fLabel, 'label', DbType.text);
   }
 
   static TableField? _fTotal;

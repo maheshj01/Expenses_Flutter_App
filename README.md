@@ -13,3 +13,4 @@ An open sourced expense manager.
 
 - Categorize by adding a label to each expense
 - filter by multiple labels
+- Add a date filter, monthly, yearly, etc

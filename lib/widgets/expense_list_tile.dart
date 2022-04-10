@@ -1,5 +1,4 @@
 import 'package:expense_manager/constants/exports.dart';
-import 'package:expense_manager/main.dart';
 import 'package:expense_manager/model/model.dart';
 import 'package:flutter/material.dart';
 
@@ -31,10 +30,9 @@ class _ExpenseListTileState extends State<ExpenseListTile> {
     super.initState();
     start = (widget.durationInMilliSeconds * widget.index).toDouble() * 0.2;
     end = start + widget.durationInMilliSeconds;
-    print("START $start , end $end");
     _animation = Tween<Offset>(
-      begin: Offset(2.0, 0),
-      end: Offset(0.0, 0),
+      begin: Offset(0.0, 2.0),
+      end: Offset.zero,
     ).animate(
       CurvedAnimation(
         parent: widget.controller,
@@ -52,6 +50,7 @@ class _ExpenseListTileState extends State<ExpenseListTile> {
     return AnimatedBuilder(
         animation: _animation,
         builder: (context, snapshot) {
+          final labels = widget.model.label!.split(',').toList();
           return SlideTransition(
             position: _animation,
             child: Container(
@@ -61,24 +60,41 @@ class _ExpenseListTileState extends State<ExpenseListTile> {
                     ? ExpenseTheme.darkColorScheme.surface
                     : ExpenseTheme.lightColorScheme.primary,
               ),
-              height: 100,
+              height: 140,
               margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              padding: EdgeInsets.symmetric(horizontal: 8),
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   Expanded(
-                    child: Container(
-                      padding: EdgeInsets.only(left: 10, right: 5),
-                      child: Text(
-                        widget.model.description!,
-                        textAlign: TextAlign.justify,
-                        style: TextStyle(
-                          color: Colors.white,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: EdgeInsets.only(left: 10, right: 5),
+                          child: Text(
+                            widget.model.description!,
+                            textAlign: TextAlign.justify,
+                            style: TextStyle(
+                              color: Colors.white,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 3,
+                          ),
                         ),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 3,
-                      ),
+                        labels.isEmpty
+                            ? SizedBox()
+                            : Row(
+                                children: [
+                                  for (int i = 0; i < labels.length; i++)
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 4.0),
+                                      child: Chip(label: Text('${labels[i]}')),
+                                    )
+                                ],
+                              )
+                      ],
                     ),
                   ),
                   SizedBox(

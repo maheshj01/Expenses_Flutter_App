@@ -6,7 +6,7 @@ import 'package:expense_manager/widgets/bottom_sheet.dart';
 import 'package:expense_manager/widgets/drawer.dart';
 import 'package:expense_manager/widgets/expense_list_tile.dart';
 import 'package:flutter/material.dart';
-import 'package:expense_manager/blocs/sqform_bloc.dart';
+import 'package:expense_manager/blocs/expense_bloc.dart';
 import 'package:expense_manager/model/model.dart';
 
 class ExpensePage extends StatefulWidget {
@@ -15,9 +15,10 @@ class ExpensePage extends StatefulWidget {
 }
 
 // final bloc = ExpenseBloc();
-final bloc = SqfOrmBloc();
+final bloc = ExpenseBloc();
 final TextEditingController amountController = new TextEditingController();
 final TextEditingController descriptionController = TextEditingController();
+final TextEditingController labelController = TextEditingController();
 // final pdf = document.Document();
 
 class _ExpensePageState extends State<ExpensePage>
@@ -28,16 +29,18 @@ class _ExpensePageState extends State<ExpensePage>
         context: context,
         shape: RoundedRectangleBorder(
           //the rounded corner is created here
-          borderRadius: BorderRadius.circular(14.0),
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(14.0), topRight: Radius.circular(14.0)),
         ),
         builder: (BuildContext builder) {
           return EmBottomSheet(
             onSubmit: (Spend spend) {
-              bloc.expenseModalController.add(Expense.withFields(
+              bloc.expenseModelStreamSink.add(Expense.withFields(
                   DateTime.now(),
                   spend.value,
                   spend.description,
                   spend.type.name.capitalize(),
+                  spend.label,
                   0.0,
                   false));
             },
@@ -50,6 +53,7 @@ class _ExpensePageState extends State<ExpensePage>
     _animationController.dispose();
     amountController.dispose();
     descriptionController.dispose();
+    bloc.dispose();
     super.dispose();
   }
 
@@ -64,6 +68,8 @@ class _ExpensePageState extends State<ExpensePage>
     _animationController = AnimationController(
         vsync: this, duration: Duration(milliseconds: totalDuration));
   }
+
+  List<String> selectedLabels = [];
 
   bool isReversed = false;
   List<Expense> expenses = [];
@@ -84,13 +90,12 @@ class _ExpensePageState extends State<ExpensePage>
             child: StreamBuilder<List<Expense>>(
               stream: bloc.expenseListStream,
               builder: (BuildContext context,
-                  AsyncSnapshot<List<Expense>> snapshot) {
-                if (snapshot.data == null)
+                  AsyncSnapshot<List<Expense>> expenseSnapshot) {
+                if (expenseSnapshot.data == null)
                   return Center(child: CircularProgressIndicator());
                 else {
-                  totalItems = snapshot.data!.length;
+                  totalItems = expenseSnapshot.data!.length;
                   animationDuration = totalItems / 100; // in seconds
-                  print('animation Duration for each item=$animationDuration');
                   _animationController.forward();
                   return CustomScrollView(
                     slivers: <Widget>[
@@ -104,10 +109,16 @@ class _ExpensePageState extends State<ExpensePage>
                               gradient: LinearGradient(
                                 end: Alignment.bottomCenter,
                                 begin: Alignment.topCenter,
-                                colors: [
-                                  ExpenseTheme.colorScheme.surface,
-                                  ExpenseTheme.colorScheme.background,
-                                ],
+                                colors: ExpenseTheme.isDarkTheme(context)
+                                    ? [
+                                        ExpenseTheme.darkColorScheme.surface,
+                                        ExpenseTheme.darkColorScheme.background,
+                                      ]
+                                    : [
+                                        ExpenseTheme.lightColorScheme.surface,
+                                        ExpenseTheme
+                                            .lightColorScheme.background,
+                                      ],
                               ),
                             ),
                           ),
@@ -120,13 +131,13 @@ class _ExpensePageState extends State<ExpensePage>
                               child: StreamBuilder(
                                   stream: bloc.totalExpenseController,
                                   builder: (BuildContext context,
-                                      AsyncSnapshot<double> snapshot) {
-                                    if (snapshot.data == null) {
+                                      AsyncSnapshot<double> totalSnapshot) {
+                                    if (totalSnapshot.data == null) {
                                       return SizedBox();
                                     }
                                     return TotalSpentValue(
                                       currency: rupeeSymbol,
-                                      value: snapshot.data!,
+                                      value: totalSnapshot.data!,
                                     );
                                   })),
                         ),
@@ -137,43 +148,81 @@ class _ExpensePageState extends State<ExpensePage>
                         expandedHeight: 50.0,
                         leading: SizedBox(),
                         // flexibleSpace: ,
-                        flexibleSpace: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        flexibleSpace: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                for (int i = 0; i < expenseTypes.length; i++)
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8.0),
-                                    child: Chip(
-                                        label: Text(
-                                      expenseTypes[i].name,
-                                      style: ExpenseTheme.rupeeStyle,
-                                    )),
-                                  ),
-                                Expanded(child: SizedBox()),
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 8.0),
-                                  child: IconButton(
-                                      icon: Icon(
-                                          isReversed ? Icons.sort : Icons.list,
-                                          color:
-                                              ExpenseTheme.colorScheme.primary),
-                                      onPressed: () {
-                                        expenses = snapshot.data!;
-                                        isReversed = !isReversed;
-                                        bloc.expenseListStreamSink
-                                            .add(expenses.reversed.toList());
-                                      }),
-                                ),
-                              ],
+                            Expanded(
+                                child: StreamBuilder<List<String>>(
+                                    stream: bloc.labelStream,
+                                    builder: (BuildContext context,
+                                        AsyncSnapshot<List<String>>
+                                            labelSnapshot) {
+                                      return labelSnapshot.data == null ||
+                                              labelSnapshot.data!.isEmpty
+                                          ? SizedBox()
+                                          : LabelsFilterWidget(
+                                              labels: labelSnapshot.data!,
+                                              selectedlabels: selectedLabels,
+                                              color: ExpenseTheme
+                                                  .colorScheme.primary
+                                                  .withOpacity(0.4),
+                                              onTap: (x) async {
+                                                if (!selectedLabels
+                                                    .contains(x)) {
+                                                  setState(() {
+                                                    selectedLabels.add(x);
+                                                  });
+                                                } else {
+                                                  setState(() {
+                                                    selectedLabels.remove(x);
+                                                  });
+
+                                                  /// no labels were selected
+                                                  if (selectedLabels.isEmpty) {
+                                                    bloc.loadTheExpenses();
+                                                    return;
+                                                  }
+                                                }
+                                                final expenses =
+                                                    await bloc.getExpenses();
+                                                List<Expense> filteredList = [];
+                                                expenses.forEach((expense) {
+                                                  final expenseLabels = expense
+                                                      .label!
+                                                      .split(',')
+                                                      .toList();
+                                                  bool areAllTileLabelsPresent =
+                                                      true;
+                                                  expenseLabels
+                                                      .forEach((label) {
+                                                    if (selectedLabels
+                                                        .contains(label)) {
+                                                      filteredList.add(expense);
+                                                    }
+                                                    ;
+                                                  });
+                                                });
+                                                bloc.loadTheExpenses(
+                                                    expenses: filteredList);
+                                              });
+                                    })),
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: IconButton(
+                                  icon: Icon(
+                                      isReversed ? Icons.sort : Icons.list,
+                                      color: ExpenseTheme.colorScheme.primary),
+                                  onPressed: () {
+                                    expenses = expenseSnapshot.data!;
+                                    isReversed = !isReversed;
+                                    bloc.expenseListStreamSink
+                                        .add(expenses.reversed.toList());
+                                  }),
                             ),
                           ],
                         ),
                       ),
-                      if (snapshot.data!.isEmpty)
+                      if (expenseSnapshot.data!.isEmpty)
                         SliverToBoxAdapter(
                           child: Center(
                               child: Text(
@@ -188,7 +237,8 @@ class _ExpensePageState extends State<ExpensePage>
                             delegate: SliverChildBuilderDelegate(
                           (BuildContext context, int index) {
                             bool isSameDate = true;
-                            final list = snapshot.data!.reversed.toList();
+                            final list =
+                                expenseSnapshot.data!.reversed.toList();
                             final item = list[index];
                             if (index == 0) {
                               isSameDate = false;
@@ -221,13 +271,54 @@ class _ExpensePageState extends State<ExpensePage>
                               );
                             }
                           },
-                          childCount: snapshot.data!.length,
+                          childCount: expenseSnapshot.data!.length,
                         ))
                     ],
                   );
                 }
               },
             )));
+  }
+}
+
+class LabelsFilterWidget extends StatelessWidget {
+  const LabelsFilterWidget(
+      {Key? key,
+      this.onTap,
+      this.color,
+      required this.labels,
+      required this.selectedlabels})
+      : super(key: key);
+  final Function? onTap;
+  final Color? color;
+  final List<String> labels;
+  final List<String> selectedlabels;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      shrinkWrap: true,
+      itemCount: labels.length,
+      scrollDirection: Axis.horizontal,
+      itemBuilder: (_, x) {
+        final label = labels[x];
+        bool isSelected = selectedlabels.contains(label);
+        return InkWell(
+          onTap: () => onTap!(label),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Chip(
+                backgroundColor: isSelected
+                    ? color!.withOpacity(1.0)
+                    : color!.withOpacity(0.4),
+                label: Text(
+                  label,
+                  style: ExpenseTheme.rupeeStyle,
+                )),
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -305,9 +396,11 @@ class EmSliverAppBar extends SliverPersistentHeaderDelegate {
 }
 
 class EmIcon extends StatelessWidget {
-  EmIcon(this.iconData, {Key? key, required this.onTap}) : super(key: key);
+  EmIcon(this.iconData, {Key? key, required this.onTap, this.size = 40})
+      : super(key: key);
   final IconData iconData;
   final Function onTap;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
@@ -315,7 +408,7 @@ class EmIcon extends StatelessWidget {
       padding: EdgeInsets.all(10),
       child: IconButton(
           icon: Icon(iconData),
-          iconSize: 40,
+          iconSize: size,
           color: Colors.white,
           onPressed: () => onTap()),
     );

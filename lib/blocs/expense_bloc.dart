@@ -3,35 +3,59 @@ import 'dart:async';
 import 'package:expense_manager/model/model.dart';
 import 'package:rxdart/rxdart.dart';
 
-class SqfOrmBloc {
+class ExpenseBloc {
   final totalExpenseController = BehaviorSubject<double>();
-  final expenseListController = BehaviorSubject<List<Expense>>();
-  final expenseModalController = BehaviorSubject<Expense>();
+  final _expenseListController = BehaviorSubject<List<Expense>>();
+  final _expenseModalController = BehaviorSubject<Expense>();
+  final _labelBloc = BehaviorSubject<List<String>>();
   List<Expense> expenseList = [];
   double totalExpense = 0.0;
-  Stream<List<Expense>> get expenseListStream => expenseListController.stream;
+
+  Stream<List<Expense>> get expenseListStream => _expenseListController.stream;
   StreamSink<List<Expense>?> get expenseListStreamSink =>
-      expenseListController.sink;
+      _expenseListController.sink;
+  Stream<Expense> get expenseModelStream => _expenseModalController.stream;
+  StreamSink<Expense> get expenseModelStreamSink =>
+      _expenseModalController.sink;
+
   Stream<double> get totalExpenseStream => totalExpenseController.stream;
   StreamSink<double> get totalExpenseStreamSink => totalExpenseController.sink;
 
-  SqfOrmBloc() {
-    // TODO : LOAD THE LIST WHEN THE APP STARTS
+  Stream<List<String>> get labelStream => _labelBloc.stream;
+  StreamSink<List<String>> get labelStreamSink => _labelBloc.sink;
+
+  ExpenseBloc() {
     loadTheExpenses();
-    expenseModalController.stream
+    _expenseModalController.stream
         .listen((model) => this.updateTotalExpense(model));
-    // expenseListController.stream.listen((onData) => this.loadTheExpenses());
   }
 
-  void loadTheExpenses() async {
+  void loadTheExpenses({List<Expense>? expenses}) async {
+    List<String> labels = [];
     try {
-      expenseList = await Expense().select().toList();
+      expenseList = expenses ?? await Expense().select().toList();
       if (expenseList.length > 0) {
-        print("fetched the list");
         totalExpenseStreamSink.add(expenseList[expenseList.length - 1].total!);
+        expenseList.forEach((element) {
+          print(element.label);
+
+          /// label is a commas separated string
+          if (element.label!.isNotEmpty) {
+            final expenseLabels = element.label!.split(',').toList();
+            expenseLabels.forEach((label) {
+              if (!labels.contains(label)) {
+                labels.add(label);
+              }
+            });
+          }
+        });
+
+        /// loading expenses without filters
+        if (expenses == null) {
+          updateLabels(labels);
+        }
       } else {
         // either no items in List or firstTime fetching the empty list
-        print("no items in list");
         totalExpenseStreamSink.add(0.00);
         print("result length = " + expenseList.length.toString());
       }
@@ -39,6 +63,20 @@ class SqfOrmBloc {
     } catch (error) {
       print("error fetching expenses=>" + error.toString());
     }
+  }
+
+  Future<List<Expense>> getExpenses() async {
+    try {
+      final expenses = await Expense().select().toList();
+      return expenses;
+    } catch (_) {
+      print('Exception occured $_');
+      return [];
+    }
+  }
+
+  Future<void> updateLabels(List<String> newLabels) async {
+    labelStreamSink.add(newLabels);
   }
 
   Future<void> updateTotalExpense(Expense modal) async {
@@ -56,6 +94,7 @@ class SqfOrmBloc {
         total: total,
         datetime: model.datetime ?? DateTime.now(),
         type: model.type!,
+        label: model.label,
         isDeleted: false);
     await expense.save();
     if (expense.saveResult!.success)
@@ -75,7 +114,8 @@ class SqfOrmBloc {
 
   void dispose() {
     totalExpenseController.close();
-    expenseListController.close();
-    expenseModalController.close();
+    _expenseListController.close();
+    _expenseModalController.close();
+    _labelBloc.close();
   }
 }

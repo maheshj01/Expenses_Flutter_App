@@ -49,11 +49,13 @@ class _EmBottomSheetState extends State<EmBottomSheet> {
     }
     var amount = double.parse(amountController.text);
     var description = descriptionController.text;
+    var label = labels.join(',');
 
     /// TODO: WorK on custom scrollview
     final spentValue = spend.copyWith(
         value: amount,
         description: description,
+        label: label,
         type: expenseTypes[selectedIndex]);
     amountController.clear();
     descriptionController.clear();
@@ -61,9 +63,35 @@ class _EmBottomSheetState extends State<EmBottomSheet> {
     widget.onSubmit(spentValue);
   }
 
+  void deleteLabel(String x) {
+    labels.remove(x);
+    if (labelController.text.isEmpty) {
+      setState(() {
+        isAddLabel = false;
+      });
+    }
+  }
+
+  void addLabel(String x) {
+    if (labelController.text.isEmpty) {
+      setState(() {
+        isAddLabel = false;
+      });
+      return;
+    }
+    if (!labels.contains(x)) {
+      setState(() {
+        labels.add(x.toLowerCase().trim());
+        isAddLabel = false;
+      });
+      labelController.clear();
+    }
+  }
+
   Spend spend = Spend(value: 0, type: SpendType.once, description: '');
   int selectedIndex = 0;
-
+  bool isAddLabel = false;
+  List<String> labels = [];
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -108,6 +136,68 @@ class _EmBottomSheetState extends State<EmBottomSheet> {
                   isSelected: [for (int i = 0; i < 3; i++) selectedIndex == i],
                 ),
               ),
+              SizedBox(
+                height: labels.isEmpty ? 0 : 40,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    for (int i = 0; i < labels.length; i++)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Chip(
+                            onDeleted: () => deleteLabel(labels[i]),
+                            label: Text(
+                              '${labels[i]}',
+                              style: ExpenseTheme.rupeeStyle,
+                            )),
+                      ),
+                  ],
+                ),
+              ),
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    isAddLabel = true;
+                  });
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0) +
+                      EdgeInsets.only(top: 8, bottom: 16),
+                  child: Row(children: [
+                    Icon(Icons.add, size: 30),
+                    Text(
+                      'Add Label',
+                      style: ExpenseTheme.rupeeStyle,
+                    )
+                  ]),
+                ),
+              ),
+              isAddLabel
+                  ? Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0) +
+                          EdgeInsets.only(bottom: 16),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(vertical: 12),
+                              child: EMInputField(
+                                  hintText: 'e.g Entertainment',
+                                  style: ExpenseTheme.rupeeStyle,
+                                  controller: labelController,
+                                  onSubmit: (x) => addLabel(x)),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 20,
+                          ),
+                          EmIcon(Icons.done,
+                              size: 32,
+                              onTap: () => addLabel(labelController.text))
+                        ],
+                      ),
+                    )
+                  : SizedBox(),
               Container(
                 margin: EdgeInsets.symmetric(horizontal: 10),
                 child: _expenseDescriptionField(),
