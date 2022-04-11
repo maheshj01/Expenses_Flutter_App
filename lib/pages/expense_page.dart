@@ -48,6 +48,38 @@ class _ExpensePageState extends State<ExpensePage>
         });
   }
 
+  Future<void> onFilterTap(String x) async {
+    if (!selectedLabels.contains(x)) {
+      setState(() {
+        selectedLabels.add(x);
+      });
+    } else {
+      setState(() {
+        selectedLabels.remove(x);
+      });
+
+      /// no labels were selected
+      if (selectedLabels.isEmpty) {
+        bloc.loadTheExpenses();
+        return;
+      }
+    }
+    final expenses = await bloc.getExpenses();
+    List<Expense> filteredList = [];
+    expenses.forEach((expense) {
+      final expenseLabels = expense.label!.split(',').toList();
+      bool areAllTileLabelsPresent = true;
+      expenseLabels.forEach((label) {
+        if (selectedLabels.contains(label)) {
+          filteredList.add(expense);
+        }
+        ;
+      });
+    });
+    bloc.loadTheExpenses(expenses: filteredList);
+    bloc.updateTotalFromList(expenses: filteredList);
+  }
+
   @override
   void dispose() {
     _animationController.dispose();
@@ -166,45 +198,8 @@ class _ExpensePageState extends State<ExpensePage>
                                               color: ExpenseTheme
                                                   .colorScheme.primary
                                                   .withOpacity(0.4),
-                                              onTap: (x) async {
-                                                if (!selectedLabels
-                                                    .contains(x)) {
-                                                  setState(() {
-                                                    selectedLabels.add(x);
-                                                  });
-                                                } else {
-                                                  setState(() {
-                                                    selectedLabels.remove(x);
-                                                  });
-
-                                                  /// no labels were selected
-                                                  if (selectedLabels.isEmpty) {
-                                                    bloc.loadTheExpenses();
-                                                    return;
-                                                  }
-                                                }
-                                                final expenses =
-                                                    await bloc.getExpenses();
-                                                List<Expense> filteredList = [];
-                                                expenses.forEach((expense) {
-                                                  final expenseLabels = expense
-                                                      .label!
-                                                      .split(',')
-                                                      .toList();
-                                                  bool areAllTileLabelsPresent =
-                                                      true;
-                                                  expenseLabels
-                                                      .forEach((label) {
-                                                    if (selectedLabels
-                                                        .contains(label)) {
-                                                      filteredList.add(expense);
-                                                    }
-                                                    ;
-                                                  });
-                                                });
-                                                bloc.loadTheExpenses(
-                                                    expenses: filteredList);
-                                              });
+                                              onTap: (x) async =>
+                                                  onFilterTap(x));
                                     })),
                             Padding(
                               padding: const EdgeInsets.only(right: 8.0),
@@ -289,7 +284,7 @@ class LabelsFilterWidget extends StatelessWidget {
       required this.labels,
       required this.selectedlabels})
       : super(key: key);
-  final Function? onTap;
+  final Function(String)? onTap;
   final Color? color;
   final List<String> labels;
   final List<String> selectedlabels;

@@ -60,15 +60,15 @@ class _ExpenseListTileState extends State<ExpenseListTile> {
                     ? ExpenseTheme.darkColorScheme.surface
                     : ExpenseTheme.lightColorScheme.primary,
               ),
-              height: 140,
+              height: 120,
               margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   Expanded(
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         Container(
                           padding: EdgeInsets.only(left: 10, right: 5),
@@ -79,7 +79,7 @@ class _ExpenseListTileState extends State<ExpenseListTile> {
                               color: Colors.white,
                             ),
                             overflow: TextOverflow.ellipsis,
-                            maxLines: 3,
+                            maxLines: 2,
                           ),
                         ),
                         labels.isEmpty
