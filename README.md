@@ -11,6 +11,15 @@ An open sourced expense manager.
 
 ### TODO
 
-- Categorize by adding a label to each expense
-- filter by multiple labels
-- Add a date filter, monthly, yearly, etc
+[X] Categorize by adding a label to each expense
+[X] filter by multiple labels
+[] total calculation logic is incorrect
+[] Add a date filter, monthly, yearly, etc
+[] integrate firebase
+[] Sync data with firebase when network is available
+[] Integrate Google signIn
+[] Add a shared tab in bottom navigation (Shared Expenses List)
+[] Add a details page for Expense
+[] Add a privacy policy page
+[] Add a share bottom sheet
+

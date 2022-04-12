@@ -5,8 +5,8 @@
        "test":true,
        ".*":true,
        "web":true,
-       "android":true,
-       "ios":true,
+       "android":false,
+       "ios":false,
        "windows":true,
        "macos":true,
     }
