@@ -68,9 +68,9 @@ class _ExpensePageState extends State<ExpensePage>
     List<Expense> filteredList = [];
     expenses.forEach((expense) {
       final expenseLabels = expense.label!.split(',').toList();
-      bool areAllTileLabelsPresent = true;
       expenseLabels.forEach((label) {
-        if (selectedLabels.contains(label)) {
+        if (selectedLabels.contains(label) &&
+            !filteredList.containsObject(expense)) {
           filteredList.add(expense);
         }
         ;

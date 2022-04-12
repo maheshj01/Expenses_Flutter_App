@@ -33,3 +33,15 @@ extension DateHelper on DateTime {
     return now.difference(this).inDays;
   }
 }
+
+
+extension ListContainsObject<T> on List {
+  bool containsObject(T object) {
+    for (var item in this) {
+      if (object == item) {
+        return true;
+      }
+    }
+    return false;
+  }
+}

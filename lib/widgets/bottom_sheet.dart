@@ -37,18 +37,22 @@ class _EmBottomSheetState extends State<EmBottomSheet> {
         autoFocus: true,
         hintText: "0",
         labelText: '$rupeeSymbol',
+        onSubmit: (x) {},
         onChange: (x) {},
       ),
     );
   }
 
   void submit() {
-    if (amountController.text.isEmpty || descriptionController.text.isEmpty) {
+    var description = descriptionController.text;
+    var labelField = labelController.text;
+    if (amountController.text.isEmpty ||
+        descriptionController.text.isEmpty ||
+        labelField.isNotEmpty) {
       // Navigator.pop(context);
       return;
     }
     var amount = double.parse(amountController.text);
-    var description = descriptionController.text;
     var label = labels.join(',');
 
     /// TODO: WorK on custom scrollview

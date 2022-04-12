@@ -50,7 +50,10 @@ class _ExpenseListTileState extends State<ExpenseListTile> {
     return AnimatedBuilder(
         animation: _animation,
         builder: (context, snapshot) {
-          final labels = widget.model.label!.split(',').toList();
+          List<String> labels = [];
+          if (!widget.model.label!.isEmpty) {
+            labels = widget.model.label!.split(',').toList();
+          }
           return SlideTransition(
             position: _animation,
             child: Container(
@@ -68,7 +71,8 @@ class _ExpenseListTileState extends State<ExpenseListTile> {
                 children: <Widget>[
                   Expanded(
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
                           padding: EdgeInsets.only(left: 10, right: 5),
@@ -84,15 +88,19 @@ class _ExpenseListTileState extends State<ExpenseListTile> {
                         ),
                         labels.isEmpty
                             ? SizedBox()
-                            : Row(
-                                children: [
-                                  for (int i = 0; i < labels.length; i++)
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 4.0),
-                                      child: Chip(label: Text('${labels[i]}')),
-                                    )
-                                ],
+                            : Padding(
+                                padding: const EdgeInsets.only(top: 8.0),
+                                child: Row(
+                                  children: [
+                                    for (int i = 0; i < labels.length; i++)
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 4.0),
+                                        child:
+                                            Chip(label: Text('${labels[i]}')),
+                                      )
+                                  ],
+                                ),
                               )
                       ],
                     ),

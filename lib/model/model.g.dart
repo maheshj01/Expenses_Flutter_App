@@ -209,6 +209,20 @@ class Expense extends TableBase {
   }
 
   @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is Expense &&
+            runtimeType == other.runtimeType &&
+            id == other.id &&
+            datetime == other.datetime &&
+            amount == other.amount &&
+            description == other.description &&
+            type == other.type &&
+            label == other.label &&
+            total == other.total;
+  }
+
+  @override
   Future<Map<String, dynamic>> toMapWithChildren(
       [bool forQuery = false,
       bool forJson = false,

@@ -89,11 +89,28 @@ class ExpenseBloc {
   }
 
   Future<void> onExpenseListChange(Expense modal) async {
-    final totalExpense = totalExpenseController.value + modal.amount!;
+    final lastExpense = await getLastExpenseFromDb();
+    final lastAmount = lastExpense?.amount ?? 0.0;
+    final totalExpense = lastAmount + modal.amount!;
     totalExpenseStreamSink.add(totalExpense);
     await insertDb(modal, totalExpense);
     loadTheExpenses();
     updateTotalFromList(expenses: expenseList);
+  }
+
+  Future<Expense?> getLastExpenseFromDb() async {
+    try {
+      final expenseListInDesc =
+          await Expense().select().orderByDesc('id').toList();
+      if (expenseListInDesc.isEmpty) {
+        return null;
+      } else {
+        return expenseListInDesc[0];
+      }
+    } catch (_) {
+      print('Exception occured $_');
+      return null;
+    }
   }
 
   Future<void> insertDb(Expense model, double total) async {

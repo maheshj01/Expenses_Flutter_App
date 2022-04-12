@@ -53,6 +53,7 @@ class _EMInputFieldState extends State<EMInputField> {
       maxLines: widget.maxLines,
       autofocus: widget.autoFocus,
       onSubmitted: (x) => widget.onSubmit!(x),
+      textInputAction: TextInputAction.next,
       decoration: InputDecoration(
         hintText: widget.hintText,
         hintStyle: widget.style ?? ExpenseTheme.inputTextStyle,
