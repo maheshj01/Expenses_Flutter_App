@@ -14,13 +14,10 @@ class ExpensePage extends StatefulWidget {
   _ExpensePageState createState() => _ExpensePageState();
 }
 
-// final bloc = ExpenseBloc();
 final bloc = ExpenseBloc();
 final TextEditingController amountController = new TextEditingController();
 final TextEditingController descriptionController = TextEditingController();
 final TextEditingController labelController = TextEditingController();
-// final pdf = document.Document();
-
 class _ExpensePageState extends State<ExpensePage>
     with TickerProviderStateMixin {
   Future _getExpenseDetails() {
@@ -76,8 +73,7 @@ class _ExpensePageState extends State<ExpensePage>
         ;
       });
     });
-    bloc.loadTheExpenses(expenses: filteredList);
-    bloc.updateTotalFromList(expenses: filteredList);
+    bloc.loadTheExpenses(filteredList: filteredList);
   }
 
   @override

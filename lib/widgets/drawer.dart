@@ -69,6 +69,12 @@ class _EmDrawerState extends State<EmDrawer> {
                       leading: Icon(Icons.person_pin),
                       onTap: () {},
                     ),
+                    ListTile(
+                      title:
+                          Text("Define budget", style: TextStyle(fontSize: 18)),
+                      leading: Icon(Icons.account_balance_wallet_outlined),
+                      onTap: () {},
+                    ),
                   ],
                 ),
               ),

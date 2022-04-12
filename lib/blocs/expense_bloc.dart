@@ -8,7 +8,6 @@ class ExpenseBloc {
   final _expenseListController = BehaviorSubject<List<Expense>>();
   final _expenseModalController = BehaviorSubject<Expense>();
   final _labelBloc = BehaviorSubject<List<String>>();
-  List<Expense> expenseList = [];
 
   Stream<List<Expense>> get expenseListStream => _expenseListController.stream;
   StreamSink<List<Expense>?> get expenseListStreamSink =>
@@ -26,17 +25,19 @@ class ExpenseBloc {
   ExpenseBloc() {
     loadTheExpenses();
     _expenseModalController.stream
-        .listen((model) => this.onExpenseListChange(model));
+        .listen((model) => this.onExpenseAdded(model));
   }
 
-  void loadTheExpenses({List<Expense>? expenses}) async {
+  /// loads the specified list of expenses
+  /// if the list is null then it loads all the expenses from the database
+  /// This is also updates the total expense for the list
+  void loadTheExpenses({List<Expense>? filteredList}) async {
     List<String> labels = [];
+    List<Expense> expenseList = [];
     try {
-      expenseList = expenses ?? await getExpenses();
+      expenseList = filteredList ?? await getExpenses();
       if (expenseList.length > 0) {
         expenseList.forEach((element) {
-          print(element.label);
-
           /// label is a commas separated string
           if (element.label!.isNotEmpty) {
             final expenseLabels = element.label!.split(',').toList();
@@ -49,7 +50,7 @@ class ExpenseBloc {
         });
 
         /// loading expenses without filters
-        if (expenses == null) {
+        if (filteredList == null) {
           updateLabels(labels);
         }
       } else {
@@ -58,6 +59,7 @@ class ExpenseBloc {
         print("result length = " + expenseList.length.toString());
       }
       expenseListStreamSink.add(expenseList);
+      updateTotalFromList(expenses: expenseList);
     } catch (error) {
       print("error fetching expenses=>" + error.toString());
     }
@@ -88,14 +90,13 @@ class ExpenseBloc {
     labelStreamSink.add(newLabels);
   }
 
-  Future<void> onExpenseListChange(Expense modal) async {
+  Future<void> onExpenseAdded(Expense modal) async {
     final lastExpense = await getLastExpenseFromDb();
-    final lastAmount = lastExpense?.amount ?? 0.0;
-    final totalExpense = lastAmount + modal.amount!;
+    final lastAmount = lastExpense == null ? 0.0 : lastExpense.amount;
+    final totalExpense = lastAmount! + modal.amount!;
     totalExpenseStreamSink.add(totalExpense);
     await insertDb(modal, totalExpense);
     loadTheExpenses();
-    updateTotalFromList(expenses: expenseList);
   }
 
   Future<Expense?> getLastExpenseFromDb() async {
