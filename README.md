@@ -12,7 +12,8 @@ An open sourced expense manager.
 
 [X] Categorize by adding a label to each expense
 [X] filter by multiple labels
-[] total calculation logic is incorrect
+[X] total calculation logic is incorrect
+[] Add a custom date for each expense
 [] Add a bottom sheet for date filter, monthly, yearly, sort etc
 [] integrate firebase
 [] Sync data with firebase when network is available

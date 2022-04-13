@@ -6,6 +6,7 @@ import 'package:expense_manager/model/spend.dart';
 import 'package:expense_manager/widgets/expense_sheet.dart';
 import 'package:expense_manager/widgets/drawer.dart';
 import 'package:expense_manager/widgets/expense_list_tile.dart';
+import 'package:expense_manager/widgets/filter_sheet.dart';
 import 'package:expense_manager/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:expense_manager/blocs/expense_bloc.dart';
@@ -26,11 +27,11 @@ class _ExpensePageState extends State<ExpensePage>
   Future<void> _getExpenseDetails() async {
     // final double value = Random().nextDouble() * 1000;
     // bloc.expenseModelStreamSink.add(Expense.withFields(
-    //     DateTime(2021, 12, 6, 1, 1, 1),
+    //     DateTime(2022, 2, 1, 1, 1, 1),
     //     double.parse((Random().nextDouble() * 1000).toStringAsFixed(2)),
     //     'I am a description for expense.',
     //     SpendType.once.name.capitalize(),
-    //     'Shopping',
+    //     'food',
     //     value,
     //     false));
     showEMBottomSheet(context, ExpenseSheet(
@@ -52,37 +53,6 @@ class _ExpensePageState extends State<ExpensePage>
         FilterSheet(filter: filter, onFilterChange: (x) => onFilter!(x)));
   }
 
-  Future<void> onFilterTap(String x) async {
-    if (!filter.labels.contains(x)) {
-      setState(() {
-        filter.labels.add(x);
-      });
-    } else {
-      setState(() {
-        filter.labels.remove(x);
-      });
-
-      /// no labels were selected
-      if (filter.labels.isEmpty) {
-        bloc.loadTheExpenses();
-        return;
-      }
-    }
-    final expenses = await bloc.getExpenses();
-    List<Expense> filteredList = [];
-    expenses.forEach((expense) {
-      final expenseLabels = expense.label!.split(',').toList();
-      expenseLabels.forEach((label) {
-        if (filter.labels.contains(label) &&
-            !filteredList.containsObject(expense)) {
-          filteredList.add(expense);
-        }
-        ;
-      });
-    });
-    bloc.loadTheExpenses(filteredList: filteredList);
-  }
-
   @override
   void dispose() {
     _animationController.dispose();
@@ -96,7 +66,7 @@ class _ExpensePageState extends State<ExpensePage>
   double animationDuration = 0.0;
   int totalItems = 6;
   final int totalDuration = 6000;
-  FilterModel filter = FilterModel(labels: [], sortByNewest: true);
+  FilterModel filter = FilterModel(labels: [], sortByDate: true);
   @override
   void initState() {
     // TODO: implement initState
@@ -177,31 +147,31 @@ class _ExpensePageState extends State<ExpensePage>
                       ),
                       SliverAppBar(
                         pinned: true,
-                        floating: false,
-                        expandedHeight: 50.0,
                         leading: SizedBox(),
-                        // flexibleSpace: ,
+                        titleSpacing: 0,
+                        toolbarHeight: 24,
                         flexibleSpace: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Expanded(
-                                child: StreamBuilder<List<String>>(
-                                    stream: bloc.labelStream,
-                                    builder: (BuildContext context,
-                                        AsyncSnapshot<List<String>>
-                                            labelSnapshot) {
-                                      return labelSnapshot.data == null ||
-                                              labelSnapshot.data!.isEmpty
-                                          ? SizedBox()
-                                          : LabelsFilterWidget(
-                                              labels: labelSnapshot.data!,
-                                              selectedlabels: filter.labels,
-                                              color: ExpenseTheme
-                                                  .colorScheme.primary
-                                                  .withOpacity(0.4),
-                                              onTap: (x) async =>
-                                                  onFilterTap(x));
-                                    })),
+                            Expanded(child: SizedBox()
+                                // StreamBuilder<List<String>>(
+                                //     stream: bloc.labelStream,
+                                //     builder: (BuildContext context,
+                                //         AsyncSnapshot<List<String>>
+                                //             labelSnapshot) {
+                                //       return labelSnapshot.data == null ||
+                                //               labelSnapshot.data!.isEmpty
+                                //           ? SizedBox()
+                                //           : LabelsFilterWidget(
+                                //               labels: labelSnapshot.data!,
+                                //               selectedlabels: filter.labels,
+                                //               color: ExpenseTheme
+                                //                   .colorScheme.primary
+                                //                   .withOpacity(0.4),
+                                //               onTap: (x) async =>
+                                //                   onFilterTap(x));
+                                //     })
+                                ),
                             Padding(
                               padding: const EdgeInsets.only(right: 8.0),
                               child: IconButton(
@@ -209,16 +179,37 @@ class _ExpensePageState extends State<ExpensePage>
                                       color: ExpenseTheme.colorScheme.primary),
                                   onPressed: () {
                                     _showFilterSheet(onFilter: (x) async {
+                                      expenses = await bloc.getExpenses();
+                                      List<Expense> filteredList = [];
+                                      if (x.labels.isEmpty) {
+                                        bloc.loadTheExpenses(
+                                            filteredList: expenses);
+                                        filteredList = expenses;
+                                      } else {
+                                        expenses.forEach((expense) {
+                                          final expenseLabels = expense.label!
+                                              .split(',')
+                                              .toList();
+                                          expenseLabels.forEach((label) {
+                                            if (x.labels.contains(label) &&
+                                                !filteredList
+                                                    .containsObject(expense)) {
+                                              filteredList.add(expense);
+                                            }
+                                          });
+                                        });
+                                      }
                                       if (x.didSortChange) {
-                                        expenses = await bloc.getExpenses();
-                                        if (x.sortByNewest) {
-                                          bloc.expenseListStreamSink
-                                              .add(expenses.reversed.toList());
-                                        } else {
-                                          bloc.expenseListStreamSink
-                                              .add(expenses);
+                                        if (x.sortByDate) {
+                                          filteredList =
+                                              filteredList.reversed.toList();
                                         }
                                       }
+                                      bloc.loadTheExpenses(
+                                          filteredList: filteredList);
+                                      setState(() {
+                                        filter = x;
+                                      });
                                     });
                                   }),
                             ),
@@ -284,145 +275,6 @@ class _ExpensePageState extends State<ExpensePage>
   }
 }
 
-class FilterSheet extends StatefulWidget {
-  final FilterModel filter;
-  final Function(FilterModel) onFilterChange;
-  const FilterSheet(
-      {Key? key, required this.onFilterChange, required this.filter})
-      : super(key: key);
-
-  @override
-  State<FilterSheet> createState() => _FilterSheetState();
-}
-
-class _FilterSheetState extends State<FilterSheet> {
-  bool isNewest = true;
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    isNewest = widget.filter.sortByNewest;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    Widget filterTile(String text, {bool isSelected = false}) {
-      return InkWell(
-          onTap: () {
-            setState(() {
-              isNewest = text == 'Newest' ? true : false;
-            });
-          },
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                child: Text(
-                  text,
-                  style: ExpenseTheme.textTheme.headline6!.copyWith(
-                      fontWeight: isSelected
-                          ? ExpenseTheme.bold
-                          : ExpenseTheme.semiBold),
-                ),
-              ),
-              isSelected
-                  ? Icon(Icons.check, color: Colors.green, size: 24)
-                  : SizedBox()
-            ],
-          ));
-    }
-
-    return Padding(
-        padding: const EdgeInsets.only(left: 16.0, top: 16, right: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Sort by',
-              style: ExpenseTheme.textTheme.headline4,
-            ),
-            SizedBox(
-              height: 8,
-            ),
-            Divider(),
-            filterTile('Newest', isSelected: isNewest),
-            filterTile('Last Added', isSelected: !isNewest),
-            Divider(),
-            SizedBox(
-              height: 150,
-            ),
-            Row(children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    widget.filter.didSortChange =
-                        widget.filter.sortByNewest != isNewest;
-                    widget.filter.sortByNewest = isNewest;
-                    widget.onFilterChange(widget.filter);
-                  },
-                  child: Text('Apply'),
-                ),
-              ),
-              SizedBox(
-                width: 8,
-              ),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: Text('Cancel'),
-                ),
-              ),
-            ]),
-          ],
-        ));
-  }
-}
-
-class LabelsFilterWidget extends StatelessWidget {
-  const LabelsFilterWidget(
-      {Key? key,
-      this.onTap,
-      this.color,
-      required this.labels,
-      required this.selectedlabels})
-      : super(key: key);
-  final Function(String)? onTap;
-  final Color? color;
-  final List<String> labels;
-  final List<String> selectedlabels;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      shrinkWrap: true,
-      itemCount: labels.length,
-      scrollDirection: Axis.horizontal,
-      itemBuilder: (_, x) {
-        final label = labels[x];
-        bool isSelected = selectedlabels.contains(label);
-        return InkWell(
-          onTap: () => onTap!(label),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Chip(
-                backgroundColor: isSelected
-                    ? color!.withOpacity(1.0)
-                    : color!.withOpacity(0.4),
-                label: Text(
-                  label,
-                  style: ExpenseTheme.rupeeStyle,
-                )),
-          ),
-        );
-      },
-    );
-  }
-}
-
 class TotalSpentValue extends StatelessWidget {
   final double value;
   final String currency;
@@ -469,49 +321,6 @@ class TotalSpentValue extends StatelessWidget {
               )
             : SizedBox(),
       ],
-    );
-  }
-}
-
-class EmSliverAppBar extends SliverPersistentHeaderDelegate {
-  final Widget child;
-  EmSliverAppBar({required this.child});
-  @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
-    // TODO: implement build
-    return child;
-  }
-
-  @override
-  // TODO: implement maxExtent
-  double get maxExtent => 200.0;
-
-  @override
-  // TODO: implement minExtent
-  double get minExtent => 20.0;
-
-  @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
-      true;
-}
-
-class EmIcon extends StatelessWidget {
-  EmIcon(this.iconData, {Key? key, required this.onTap, this.size = 40})
-      : super(key: key);
-  final IconData iconData;
-  final Function onTap;
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(10),
-      child: IconButton(
-          icon: Icon(iconData),
-          iconSize: size,
-          color: Colors.white,
-          onPressed: () => onTap()),
     );
   }
 }
