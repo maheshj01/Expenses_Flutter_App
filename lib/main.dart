@@ -1,4 +1,5 @@
 import 'package:expense_manager/constants/exports.dart';
+import 'package:expense_manager/utils/settings.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -27,20 +28,5 @@ class MyApp extends StatelessWidget {
             // home: LoginCheck(),
           );
         });
-  }
-}
-
-class Settings extends ChangeNotifier {
-  ThemeMode theme = ThemeMode.system;
-
-  ThemeMode get getTheme => theme;
-
-  void setTheme(ThemeMode theme) {
-    this.theme = theme;
-    notifyListeners();
-  }
-
-  void notifyListeners() {
-    super.notifyListeners();
   }
 }

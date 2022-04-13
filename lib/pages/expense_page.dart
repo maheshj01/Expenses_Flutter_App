@@ -149,29 +149,11 @@ class _ExpensePageState extends State<ExpensePage>
                         pinned: true,
                         leading: SizedBox(),
                         titleSpacing: 0,
-                        toolbarHeight: 24,
+                        toolbarHeight: 0,
                         flexibleSpace: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Expanded(child: SizedBox()
-                                // StreamBuilder<List<String>>(
-                                //     stream: bloc.labelStream,
-                                //     builder: (BuildContext context,
-                                //         AsyncSnapshot<List<String>>
-                                //             labelSnapshot) {
-                                //       return labelSnapshot.data == null ||
-                                //               labelSnapshot.data!.isEmpty
-                                //           ? SizedBox()
-                                //           : LabelsFilterWidget(
-                                //               labels: labelSnapshot.data!,
-                                //               selectedlabels: filter.labels,
-                                //               color: ExpenseTheme
-                                //                   .colorScheme.primary
-                                //                   .withOpacity(0.4),
-                                //               onTap: (x) async =>
-                                //                   onFilterTap(x));
-                                //     })
-                                ),
+                            Expanded(child: SizedBox()),
                             Padding(
                               padding: const EdgeInsets.only(right: 8.0),
                               child: IconButton(

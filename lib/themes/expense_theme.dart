@@ -56,8 +56,9 @@ class ExpenseTheme {
     );
   }
 
-  static ColorScheme get colorScheme =>
-      appSettings.theme == ThemeMode.dark ? darkColorScheme : lightColorScheme;
+  static ColorScheme get colorScheme => appSettings.getTheme == ThemeMode.dark
+      ? darkColorScheme
+      : lightColorScheme;
 
   static ColorScheme lightColorScheme = ColorScheme.fromSeed(
     seedColor: Color.fromARGB(255, 126, 120, 211),

@@ -172,7 +172,9 @@ class LabelsFilterWidget extends StatelessWidget {
                   : color!.withOpacity(0.4),
               label: Text(
                 label,
-                style: ExpenseTheme.rupeeStyle,
+                style: ExpenseTheme.rupeeStyle.copyWith(
+                  color: isSelected ? Colors.white : Colors.black,
+                ),
               )),
         ),
       );
