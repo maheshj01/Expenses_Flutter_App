@@ -238,12 +238,14 @@ class EmButton extends StatefulWidget {
 class _EmButtonState extends State<EmButton> {
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 48,
-      child: ElevatedButton(
-        onPressed: () => widget.onTap(),
-        child: Text('${widget.text}'),
+    final size = MediaQuery.of(context).size;
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        minimumSize: Size(size.width, 48),
+        maximumSize: Size(size.width, 48),
       ),
+      onPressed: () => widget.onTap(),
+      child: Text('${widget.text}'),
     );
   }
 }

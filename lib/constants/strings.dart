@@ -1,7 +1,7 @@
 import 'package:expense_manager/model/spend.dart';
 import 'package:flutter/material.dart';
 
-const pages = ["LoginPage", "ExpensePage"];
+const pages = ["LoginPage","ExpensePage","HomePage","SettingsPage" ];
 
 const logoPath = 'assets/images/expender.png';
 const assetDirectory = 'assets/';

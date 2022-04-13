@@ -1,4 +1,5 @@
 import 'package:expense_manager/constants/exports.dart';
+import 'package:expense_manager/pages/home.dart';
 import 'package:expense_manager/utils/settings.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +24,8 @@ class MyApp extends StatelessWidget {
             initialRoute: pages[0],
             routes: {
               pages[0]: (context) => LoginCheck(),
-              pages[1]: (context) => ExpensePage()
+              pages[1]: (context) => ExpensePage(),
+              pages[2]: (context) => HomePage()
             },
             // home: LoginCheck(),
           );

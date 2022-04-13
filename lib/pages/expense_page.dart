@@ -34,18 +34,21 @@ class _ExpensePageState extends State<ExpensePage>
     //     'food',
     //     value,
     //     false));
-    showEMBottomSheet(context, ExpenseSheet(
-      onSubmit: (Spend spend) {
-        bloc.expenseModelStreamSink.add(Expense.withFields(
-            DateTime(2022, 1, 1, 1, 1, 1),
-            spend.value,
-            spend.description,
-            spend.type.name.capitalize(),
-            spend.label,
-            0.0,
-            false));
-      },
-    ));
+    showEMBottomSheet(
+        context,
+        Builder(
+            builder: (_) => ExpenseSheet(
+                  onSubmit: (Spend spend) {
+                    bloc.expenseModelStreamSink.add(Expense.withFields(
+                        DateTime.now(),
+                        spend.value,
+                        spend.description,
+                        spend.type.name.capitalize(),
+                        spend.label,
+                        0.0,
+                        false));
+                  },
+                )));
   }
 
   Future<void> _showFilterSheet({Function(FilterModel)? onFilter}) async {

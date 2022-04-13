@@ -17,18 +17,39 @@ class _LoginCheckState extends State<LoginCheck> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: Column(children: <Widget>[
-      Expanded(
-        flex: 2,
-        child: Center(
-            child: Image.asset(appSettings.getTheme == ThemeMode.light
-                ? '$imagesDirectory/logo_dark.png'
-                : '$imagesDirectory/logo_white.png')),
-      ),
-      Expanded(
-          child: Column(
-        children: [EmButton(onTap: () {}, text: 'Sign up')],
-      ))
-    ]));
+        body: Column(
+            // crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+          Expanded(
+            flex: 2,
+            child: Center(
+                child: Image.asset(appSettings.getTheme == ThemeMode.light
+                    ? '$imagesDirectory/logo_dark.png'
+                    : '$imagesDirectory/logo_white.png')),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16),
+            child: Column(
+              children: [
+                EmButton(
+                    onTap: () {
+                      Navigator.of(context).pushNamed(pages[1]);
+                    },
+                    text: 'Login'),
+                SizedBox(
+                  height: 16,
+                ),
+                EmButton(
+                    onTap: () {
+                      Navigator.of(context).pushNamed(pages[2]);
+                    },
+                    text: 'Sign Up with Google'),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: 32,
+          )
+        ]));
   }
 }

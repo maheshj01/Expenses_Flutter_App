@@ -99,110 +99,113 @@ class ExpenseSheetState extends State<ExpenseSheet> {
   List<String> labels = [];
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            EmIcon(Icons.clear, onTap: () {
-              amountController.clear();
-              descriptionController.clear();
-              Navigator.pop(context);
-            }),
-            _expenseAmountField(),
-            EmIcon(Icons.done, onTap: submit)
-          ],
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16.0),
-          child: ToggleButtons(
+    return Padding(
+      padding: MediaQuery.of(context).viewInsets,
+      child: Column(
+        children: <Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              for (int i = 0; i < expenseTypes.length; i++)
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 8.0),
-                  child: Text(
-                    '${expenseTypes[i].name}'.capitalize(),
-                  ),
-                ),
+              EmIcon(Icons.clear, onTap: () {
+                amountController.clear();
+                descriptionController.clear();
+                Navigator.pop(context);
+              }),
+              _expenseAmountField(),
+              EmIcon(Icons.done, onTap: submit)
             ],
-            onPressed: (x) {
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16.0),
+            child: ToggleButtons(
+              children: <Widget>[
+                for (int i = 0; i < expenseTypes.length; i++)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 8.0),
+                    child: Text(
+                      '${expenseTypes[i].name}'.capitalize(),
+                    ),
+                  ),
+              ],
+              onPressed: (x) {
+                setState(() {
+                  selectedIndex = x;
+                });
+              },
+              isSelected: [for (int i = 0; i < 3; i++) selectedIndex == i],
+            ),
+          ),
+          SizedBox(
+            height: labels.isEmpty ? 0 : 40,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                for (int i = 0; i < labels.length; i++)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Chip(
+                        onDeleted: () => deleteLabel(labels[i]),
+                        label: Text(
+                          '${labels[i]}',
+                          style: ExpenseTheme.rupeeStyle,
+                        )),
+                  ),
+              ],
+            ),
+          ),
+          InkWell(
+            onTap: () {
               setState(() {
-                selectedIndex = x;
+                isAddLabel = true;
               });
             },
-            isSelected: [for (int i = 0; i < 3; i++) selectedIndex == i],
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0) +
+                  EdgeInsets.only(top: 8, bottom: 16),
+              child: Row(children: [
+                Icon(Icons.add, size: 30),
+                Text(
+                  'Add Label',
+                  style: ExpenseTheme.rupeeStyle,
+                )
+              ]),
+            ),
           ),
-        ),
-        SizedBox(
-          height: labels.isEmpty ? 0 : 40,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: [
-              for (int i = 0; i < labels.length; i++)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Chip(
-                      onDeleted: () => deleteLabel(labels[i]),
-                      label: Text(
-                        '${labels[i]}',
-                        style: ExpenseTheme.rupeeStyle,
-                      )),
-                ),
-            ],
-          ),
-        ),
-        InkWell(
-          onTap: () {
-            setState(() {
-              isAddLabel = true;
-            });
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0) +
-                EdgeInsets.only(top: 8, bottom: 16),
-            child: Row(children: [
-              Icon(Icons.add, size: 30),
-              Text(
-                'Add Label',
-                style: ExpenseTheme.rupeeStyle,
-              )
-            ]),
-          ),
-        ),
-        isAddLabel
-            ? Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0) +
-                    EdgeInsets.only(bottom: 16),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(vertical: 12),
-                        child: EMInputField(
-                            hintText: 'e.g Entertainment',
-                            style: ExpenseTheme.rupeeStyle,
-                            controller: labelController,
-                            onSubmit: (x) => addLabel(x)),
+          isAddLabel
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0) +
+                      EdgeInsets.only(bottom: 16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(vertical: 12),
+                          child: EMInputField(
+                              hintText: 'e.g Entertainment',
+                              style: ExpenseTheme.rupeeStyle,
+                              controller: labelController,
+                              onSubmit: (x) => addLabel(x)),
+                        ),
                       ),
-                    ),
-                    SizedBox(
-                      width: 20,
-                    ),
-                    EmIcon(Icons.done,
-                        size: 32, onTap: () => addLabel(labelController.text))
-                  ],
-                ),
-              )
-            : SizedBox(),
-        Container(
-          margin: EdgeInsets.symmetric(horizontal: 10),
-          child: _expenseDescriptionField(),
-        ),
-        SizedBox(
-          height: 20,
-        ),
-      ],
+                      SizedBox(
+                        width: 20,
+                      ),
+                      EmIcon(Icons.done,
+                          size: 32, onTap: () => addLabel(labelController.text))
+                    ],
+                  ),
+                )
+              : SizedBox(),
+          Container(
+            margin: EdgeInsets.symmetric(horizontal: 10),
+            child: _expenseDescriptionField(),
+          ),
+          SizedBox(
+            height: 20,
+          ),
+        ],
+      ),
     );
   }
 }
