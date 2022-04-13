@@ -32,7 +32,7 @@ class ExpenseTheme {
   static ThemeData _themeData(ColorScheme colorScheme, Color focusColor) {
     return ThemeData(
       colorScheme: colorScheme,
-      textTheme: _textTheme,
+      textTheme: textTheme,
       // Matches manifest.json colors and background color.
       primaryColor: const Color(0xFF030303),
       appBarTheme: AppBarTheme(
@@ -51,7 +51,7 @@ class ExpenseTheme {
           _lightFillColor.withOpacity(0.80),
           _darkFillColor,
         ),
-        contentTextStyle: _textTheme.subtitle1!.apply(color: _darkFillColor),
+        contentTextStyle: textTheme.subtitle1!.apply(color: _darkFillColor),
       ),
     );
   }
@@ -92,21 +92,29 @@ class ExpenseTheme {
     brightness: Brightness.dark,
   );
 
-  static const _regular = FontWeight.w400;
+  static FontWeight get regular => _regular;
+  static FontWeight get medium => _medium;
+  static FontWeight get semiBold => _semiBold;
+  static FontWeight get bold => _bold;
+
+  static const _regular = FontWeight.normal;
   static const _medium = FontWeight.w500;
   static const _semiBold = FontWeight.w600;
   static const _bold = FontWeight.w700;
 
-  static final TextTheme _textTheme = TextTheme(
+  static final TextTheme textTheme = TextTheme(
+    headline1: TextStyle(fontWeight: _bold, fontSize: 56.0),
+    headline2: TextStyle(fontWeight: _bold, fontSize: 48.0),
+    headline3: TextStyle(fontWeight: _bold, fontSize: 32.0),
     headline4: TextStyle(fontWeight: _bold, fontSize: 20.0),
+    headline5: TextStyle(fontWeight: _bold, fontSize: 16.0),
+    headline6: TextStyle(fontWeight: _bold, fontSize: 16.0),
     caption: TextStyle(fontWeight: _semiBold, fontSize: 16.0),
-    headline5: TextStyle(fontWeight: _medium, fontSize: 16.0),
     subtitle1: TextStyle(fontWeight: _medium, fontSize: 16.0),
+    subtitle2: TextStyle(fontWeight: _medium, fontSize: 14.0),
     overline: TextStyle(fontWeight: _medium, fontSize: 12.0),
     bodyText1: TextStyle(fontWeight: _regular, fontSize: 14.0),
-    subtitle2: TextStyle(fontWeight: _medium, fontSize: 14.0),
     bodyText2: TextStyle(fontWeight: _regular, fontSize: 16.0),
-    headline6: TextStyle(fontWeight: _bold, fontSize: 16.0),
     button: TextStyle(fontWeight: _semiBold, fontSize: 14.0),
   );
 }

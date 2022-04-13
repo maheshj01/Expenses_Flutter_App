@@ -24,7 +24,6 @@ dependencies:
   http: ^0.13.4
   intl: ^0.17.0
   path_provider: ^2.0.9
-  pdf: ^3.7.3
   rxdart: ^0.27.3
   sqfentity: ^2.2.0+5
   sqfentity_gen: ^2.2.0+10

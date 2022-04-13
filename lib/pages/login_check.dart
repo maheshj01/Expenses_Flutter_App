@@ -20,7 +20,7 @@ class _LoginCheckState extends State<LoginCheck> {
         child: Container(
           alignment: Alignment.bottomCenter,
           child: Text(
-            "Come to the Dark Side",
+            "Come to the Dart Side",
             style: ExpenseTheme.inputTextStyle,
             textAlign: TextAlign.center,
           ),
