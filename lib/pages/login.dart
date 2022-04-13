@@ -1,4 +1,6 @@
 import 'package:expense_manager/constants/exports.dart';
+import 'package:expense_manager/main.dart';
+import 'package:expense_manager/widgets/filter_sheet.dart';
 import 'package:flutter/material.dart';
 
 class LoginCheck extends StatefulWidget {
@@ -17,26 +19,16 @@ class _LoginCheckState extends State<LoginCheck> {
     return Scaffold(
         body: Column(children: <Widget>[
       Expanded(
-        child: Container(
-          alignment: Alignment.bottomCenter,
-          child: Text(
-            "Come to the Dart Side",
-            style: ExpenseTheme.inputTextStyle,
-            textAlign: TextAlign.center,
-          ),
-        ),
-        flex: 1,
+        flex: 2,
+        child: Center(
+            child: Image.asset(appSettings.getTheme == ThemeMode.light
+                ? '$imagesDirectory/logo_dark.png'
+                : '$imagesDirectory/logo_white.png')),
       ),
       Expanded(
-          flex: 2,
-          child: Center(
-            child: ElevatedButton(
-              child: Text("Skip"),
-              onPressed: () {
-                Navigator.pushReplacementNamed(context, 'ExpensePage');
-              },
-            ),
-          ))
+          child: Column(
+        children: [EmButton(onTap: () {}, text: 'Sign up')],
+      ))
     ]));
   }
 }
