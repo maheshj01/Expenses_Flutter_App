@@ -22,18 +22,23 @@ class _AnimatedIndexedStackState extends State<AnimatedIndexedStack>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
+  late Animation<double> _fadeAnimation;
   late int _index;
 
   @override
   void initState() {
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 300),
     );
-    _animation = Tween(begin: 0.4, end: 1.0).animate(
+    _animation = Tween(begin: 1.2, end: 1.0).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeIn,
+    ));
+    _fadeAnimation = Tween(begin: 0.6, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: Curves.linear,
+        curve: Curves.easeIn,
       ),
     );
 
@@ -46,10 +51,11 @@ class _AnimatedIndexedStackState extends State<AnimatedIndexedStack>
   void didUpdateWidget(AnimatedIndexedStack oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.index != _index) {
-      _controller.reverse().then((_) {
-        setState(() => _index = widget.index);
-        _controller.forward();
-      });
+      // _controller.reverse().then((_) {
+      _controller.reset();
+      setState(() => _index = widget.index);
+      _controller.forward();
+      // });
     }
   }
 
@@ -65,12 +71,8 @@ class _AnimatedIndexedStackState extends State<AnimatedIndexedStack>
       animation: _animation,
       builder: (context, child) {
         return FadeTransition(
-          opacity: _controller,
-          child: Transform.scale(
-            scale: 1.010 - (_controller.value * .010),
-            child: child,
-          ),
-        );
+            opacity: _fadeAnimation,
+            child: ScaleTransition(scale: _animation, child: child));
       },
       child: IndexedStack(
         alignment: Alignment.center,
