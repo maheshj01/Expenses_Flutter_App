@@ -55,7 +55,7 @@ class _EmDrawerState extends State<EmDrawer> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => ExpensePage()));
+                                builder: (context) => ExpensesListPage()));
                       },
                     ),
                     ListTile(

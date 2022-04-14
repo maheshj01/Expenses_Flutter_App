@@ -28,6 +28,7 @@ dependencies:
   sqfentity: ^2.2.0+5
   sqfentity_gen: ^2.2.0+10
   shared_preferences: ^2.0.13
+  animations: ^2.0.2
 
 dependency_overrides:
   analyzer: ^3.0.0

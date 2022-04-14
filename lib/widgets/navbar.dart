@@ -1,4 +1,5 @@
 import 'package:expense_manager/constants/exports.dart';
+import 'package:expense_manager/model/navbar.dart';
 import 'package:flutter/material.dart';
 
 class AdaptiveNavBar extends StatefulWidget {
@@ -58,12 +59,6 @@ class _AdaptiveNavBarState extends State<AdaptiveNavBar> {
           selectedIndex: widget.index);
     }
   }
-}
-
-class MenuItem {
-  final IconData iconData;
-  final String text;
-  MenuItem(this.iconData, this.text);
 }
 
 /// Bottom navigation bar for mobile/tablets
@@ -129,6 +124,7 @@ class _ExpNavbarState extends State<ExpNavbar>
           return Transform.translate(
             offset: Offset(0, animation.value),
             child: BottomNavigationBar(
+              enableFeedback: true,
               type: BottomNavigationBarType.fixed,
               currentIndex: widget.index,
               selectedItemColor: ExpenseTheme.colorScheme.primary,

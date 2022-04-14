@@ -245,7 +245,10 @@ class _EmButtonState extends State<EmButton> {
         maximumSize: Size(size.width, 48),
       ),
       onPressed: () => widget.onTap(),
-      child: Text('${widget.text}'),
+      child: Text(
+        '${widget.text}',
+        style: TextStyle(color: Colors.white),
+      ),
     );
   }
 }

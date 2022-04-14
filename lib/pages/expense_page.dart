@@ -12,9 +12,13 @@ import 'package:flutter/material.dart';
 import 'package:expense_manager/blocs/expense_bloc.dart';
 import 'package:expense_manager/model/model.dart';
 
-class ExpensePage extends StatefulWidget {
+class ExpensesListPage extends StatefulWidget {
+  final ScrollController? scrollController;
+
+  const ExpensesListPage({Key? key, this.scrollController}) : super(key: key);
+
   @override
-  _ExpensePageState createState() => _ExpensePageState();
+  _ExpensesListPageState createState() => _ExpensesListPageState();
 }
 
 final bloc = ExpenseBloc();
@@ -22,34 +26,8 @@ final TextEditingController amountController = new TextEditingController();
 final TextEditingController descriptionController = TextEditingController();
 final TextEditingController labelController = TextEditingController();
 
-class _ExpensePageState extends State<ExpensePage>
+class _ExpensesListPageState extends State<ExpensesListPage>
     with TickerProviderStateMixin {
-  Future<void> _getExpenseDetails() async {
-    // final double value = Random().nextDouble() * 1000;
-    // bloc.expenseModelStreamSink.add(Expense.withFields(
-    //     DateTime(2022, 2, 1, 1, 1, 1),
-    //     double.parse((Random().nextDouble() * 1000).toStringAsFixed(2)),
-    //     'I am a description for expense.',
-    //     SpendType.once.name.capitalize(),
-    //     'food',
-    //     value,
-    //     false));
-    showEMBottomSheet(
-        context,
-        Builder(
-            builder: (_) => ExpenseSheet(
-                  onSubmit: (Spend spend) {
-                    bloc.expenseModelStreamSink.add(Expense.withFields(
-                        DateTime.now(),
-                        spend.value,
-                        spend.description,
-                        spend.type.name.capitalize(),
-                        spend.label,
-                        0.0,
-                        false));
-                  },
-                )));
-  }
 
   Future<void> _showFilterSheet({Function(FilterModel)? onFilter}) async {
     showEMBottomSheet(context,
@@ -72,24 +50,20 @@ class _ExpensePageState extends State<ExpensePage>
   FilterModel filter = FilterModel(labels: [], sortByDate: true);
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _animationController = AnimationController(
         vsync: this, duration: Duration(milliseconds: totalDuration));
+    _controller = widget.scrollController ?? ScrollController();
   }
 
   List<Expense> expenses = [];
+
+  late ScrollController _controller;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         resizeToAvoidBottomInset: true,
-        floatingActionButton: FloatingActionButton(
-            onPressed: () {
-              _getExpenseDetails();
-            },
-            tooltip: 'Add Expense',
-            child: Text('$rupeeSymbol',
-                style: ExpenseTheme.rupeeStyle.copyWith(fontSize: 32))),
         drawer: Drawer(child: EmDrawer()),
         body: Padding(
             padding: EdgeInsets.only(bottom: 10),
@@ -104,6 +78,7 @@ class _ExpensePageState extends State<ExpensePage>
                   animationDuration = totalItems / 100; // in seconds
                   _animationController.forward();
                   return CustomScrollView(
+                    controller: _controller,
                     slivers: <Widget>[
                       SliverAppBar(
                         pinned: true,
@@ -289,7 +264,7 @@ class TotalSpentValue extends StatelessWidget {
                 children: [
               TextSpan(text: '$currency ', style: ExpenseTheme.rupeeStyle),
               TextSpan(
-                  text: '${value.toString()}',
+                  text: '${value.toStringAsFixed(2)}',
                   style: ExpenseTheme.inputTextStyle),
             ])),
         hasLabel
