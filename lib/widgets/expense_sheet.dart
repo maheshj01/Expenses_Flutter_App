@@ -1,5 +1,6 @@
 import 'package:expense_manager/constants/exports.dart';
 import 'package:expense_manager/model/spend.dart';
+import 'package:expense_manager/utils/settings.dart';
 import 'package:expense_manager/widgets/filter_sheet.dart';
 import 'package:expense_manager/widgets/input_field.dart';
 import 'package:flutter/material.dart';
@@ -37,7 +38,7 @@ class ExpenseSheetState extends State<ExpenseSheet> {
         maxLength: 6,
         autoFocus: true,
         hintText: "0",
-        labelText: '$rupeeSymbol',
+        labelText: '${Settings.currency.symbol}',
         onSubmit: (x) {},
         onChange: (x) {},
       ),

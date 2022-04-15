@@ -4,11 +4,12 @@ import 'package:expense_manager/model/navbar.dart';
 import 'package:expense_manager/model/spend.dart';
 import 'package:expense_manager/pages/expense_page.dart';
 import 'package:expense_manager/themes/expense_theme.dart';
+import 'package:expense_manager/utils/settings.dart';
 import 'package:expense_manager/utils/utils.dart';
 import 'package:expense_manager/widgets/animated_indexed_stack.dart';
 import 'package:expense_manager/widgets/expense_sheet.dart';
 import 'package:expense_manager/widgets/navbar.dart';
-import 'package:expense_manager/widgets/profile.dart';
+import 'package:expense_manager/pages/profile.dart';
 import 'package:expense_manager/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -125,7 +126,7 @@ class _HomePageState extends State<HomePage> {
                       _getExpenseDetails();
                     },
                     tooltip: 'Add Expense',
-                    child: Text('$rupeeSymbol',
+                    child: Text('${Settings.currency.symbol}',
                         style: ExpenseTheme.rupeeStyle.copyWith(fontSize: 32))),
               ),
             )

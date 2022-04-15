@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:expense_manager/constants/exports.dart';
 import 'package:expense_manager/model/filter.dart';
+import 'package:expense_manager/utils/settings.dart';
 import 'package:expense_manager/widgets/expense_list_tile.dart';
 import 'package:expense_manager/widgets/filter_sheet.dart';
 import 'package:expense_manager/widgets/widgets.dart';
@@ -113,7 +114,7 @@ class _ExpensesListPageState extends State<ExpensesListPage>
                                       return SizedBox();
                                     }
                                     return TotalSpentValue(
-                                      currency: rupeeSymbol,
+                                      currency: Settings.currency.symbol,
                                       value: totalSnapshot.data!,
                                     );
                                   })),

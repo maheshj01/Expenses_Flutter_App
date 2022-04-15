@@ -1,4 +1,5 @@
 import 'package:expense_manager/constants/exports.dart';
+import 'package:expense_manager/model/currency.dart';
 import 'package:expense_manager/model/navbar.dart';
 import 'package:expense_manager/utils/settings.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,7 @@ class _EmProfileState extends State<EmProfile> {
   @override
   void initState() {
     super.initState();
+    currency = Settings.currency;
     WidgetsBinding.instance!.addPostFrameCallback((_) {
       isDark = Settings.getTheme == ThemeMode.dark;
     });
@@ -30,7 +32,8 @@ class _EmProfileState extends State<EmProfile> {
   }
 
   late NavbarNotifier navBar;
-
+  late Currency currency;
+  String dropdownValue = 'One';
   @override
   Widget build(BuildContext context) {
     Widget _subtitle(String subtitle) {
@@ -104,6 +107,31 @@ class _EmProfileState extends State<EmProfile> {
                 ]),
             onTap: () {},
           ),
+          DropdownButton<Currency>(
+            value: currency,
+            icon: const Icon(Icons.arrow_downward),
+            iconSize: 24,
+            elevation: 16,
+            style: const TextStyle(color: Colors.deepPurple),
+            underline: Container(
+              height: 2,
+              color: Colors.deepPurpleAccent,
+            ),
+            onChanged: (Currency? newValue) {
+              Settings.setCurrency(newValue!);
+              setState(() {
+                currency = newValue;
+              });
+              Settings().notify();
+            },
+            items:
+                currencyList.map<DropdownMenuItem<Currency>>((Currency value) {
+              return DropdownMenuItem<Currency>(
+                value: value,
+                child: Text(value.name),
+              );
+            }).toList(),
+          )
         ],
       ),
     );

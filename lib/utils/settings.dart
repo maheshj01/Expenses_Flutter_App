@@ -1,3 +1,4 @@
+import 'package:expense_manager/model/currency.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -13,10 +14,20 @@ class Settings extends ChangeNotifier {
   static late SharedPreferences _prefs;
   static ThemeMode _theme = ThemeMode.system;
   static String _themeModeKey = 'themeMode';
+  static String _currencyKey = 'currency';
+  static Currency _currency = Currency.init();
 
   static Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
     loadTheme();
+    fetchCurrency();
+  }
+
+  static Currency get currency => _currency;
+
+  static void setCurrency(Currency value) {
+    _currency = value;
+    _prefs.setString(_currencyKey, value.code);
   }
 
   static ThemeMode get getTheme => _theme;
@@ -31,6 +42,18 @@ class Settings extends ChangeNotifier {
         ? ThemeMode.dark
         : ThemeMode.light;
     setTheme(_theme);
+  }
+
+  static Future<void> fetchCurrency() async {
+    final _currencyCode = _prefs.getString('$_currencyKey');
+    if (_currencyCode == null) {
+      _currency = Currency.init();
+    } else {
+      _currency = currencyList.firstWhere(
+          (element) => element.code == _currencyCode,
+          orElse: () => Currency.init());
+    }
+    setCurrency(_currency);
   }
 
   void notify() {

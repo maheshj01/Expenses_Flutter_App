@@ -1,5 +1,6 @@
 import 'package:expense_manager/constants/exports.dart';
 import 'package:expense_manager/model/model.dart';
+import 'package:expense_manager/utils/settings.dart';
 import 'package:flutter/material.dart';
 
 class ExpenseListTile extends StatefulWidget {
@@ -71,19 +72,22 @@ class _ExpenseListTileState extends State<ExpenseListTile> {
                 children: <Widget>[
                   Expanded(
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          padding: EdgeInsets.only(left: 10, right: 5),
-                          child: Text(
-                            widget.model.description!,
-                            textAlign: TextAlign.justify,
-                            style: TextStyle(
-                              color: Colors.white,
+                        Expanded(
+                          child: Container(
+                            alignment: Alignment.centerLeft,
+                            padding:
+                                EdgeInsets.only(left: 10, right: 5, top: 8),
+                            child: Text(
+                              widget.model.description!,
+                              textAlign: TextAlign.justify,
+                              style: TextStyle(
+                                color: Colors.white,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 2,
                             ),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 2,
                           ),
                         ),
                         labels.isEmpty
@@ -109,7 +113,7 @@ class _ExpenseListTileState extends State<ExpenseListTile> {
                     width: 8,
                   ),
                   TotalSpentValue(
-                    currency: rupeeSymbol,
+                    currency: Settings.currency.symbol,
                     value: widget.model.amount!,
                     hasLabel: false,
                     color: ExpenseTheme.darkColorScheme.primary,
