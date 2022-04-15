@@ -8,6 +8,7 @@ import 'package:expense_manager/utils/utils.dart';
 import 'package:expense_manager/widgets/animated_indexed_stack.dart';
 import 'package:expense_manager/widgets/expense_sheet.dart';
 import 'package:expense_manager/widgets/navbar.dart';
+import 'package:expense_manager/widgets/profile.dart';
 import 'package:expense_manager/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -90,6 +91,7 @@ class _HomePageState extends State<HomePage> {
                 Container(
                   color: Colors.blue,
                 ),
+                EmProfile()
               ],
             ),
             Positioned(
@@ -98,6 +100,12 @@ class _HomePageState extends State<HomePage> {
                 right: 0,
                 child: AdaptiveNavBar(
                   index: _selectedIndex,
+                  items: [
+                    MenuItem(Icons.dashboard, 'Dashboard'),
+                    MenuItem(Icons.account_balance_wallet_rounded, 'Expenses'),
+                    MenuItem(Icons.people, 'Shared'),
+                    MenuItem(Icons.person, 'Profile'),
+                  ],
                   isHidden: _navBarNotifier.hideBottomNavBar,
                   onChanged: (x) {
                     setState(() {
@@ -108,13 +116,18 @@ class _HomePageState extends State<HomePage> {
             Positioned(
               bottom: kBottomNavigationBarHeight * 1.4,
               right: 24,
-              child: FloatingActionButton(
-                  onPressed: () {
-                    _getExpenseDetails();
-                  },
-                  tooltip: 'Add Expense',
-                  child: Text('$rupeeSymbol',
-                      style: ExpenseTheme.rupeeStyle.copyWith(fontSize: 32))),
+              child: AnimatedOpacity(
+                opacity: _selectedIndex == 3 ? 0 : 1,
+                duration: Duration(milliseconds: 300),
+                child: FloatingActionButton(
+                    onPressed: () {
+                      if (_selectedIndex == 3) return;
+                      _getExpenseDetails();
+                    },
+                    tooltip: 'Add Expense',
+                    child: Text('$rupeeSymbol',
+                        style: ExpenseTheme.rupeeStyle.copyWith(fontSize: 32))),
+              ),
             )
           ]);
         });

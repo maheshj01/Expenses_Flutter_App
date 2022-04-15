@@ -42,7 +42,7 @@ class _LoginCheckState extends State<LoginCheck> {
                 ),
                 EmButton(
                     onTap: () {
-                      Navigator.of(context).pushNamed(pages[2]);
+                      Navigator.of(context).pushReplacementNamed(pages[2]);
                     },
                     text: 'Sign Up with Google'),
               ],

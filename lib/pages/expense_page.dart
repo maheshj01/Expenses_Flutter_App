@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:expense_manager/constants/exports.dart';
 import 'package:expense_manager/model/filter.dart';
-import 'package:expense_manager/widgets/drawer.dart';
 import 'package:expense_manager/widgets/expense_list_tile.dart';
 import 'package:expense_manager/widgets/filter_sheet.dart';
 import 'package:expense_manager/widgets/widgets.dart';
@@ -62,7 +61,6 @@ class _ExpensesListPageState extends State<ExpensesListPage>
   Widget build(BuildContext context) {
     return Scaffold(
         resizeToAvoidBottomInset: true,
-        drawer: Drawer(child: EmDrawer()),
         body: Padding(
             padding: EdgeInsets.only(bottom: 10),
             child: StreamBuilder<List<Expense>>(

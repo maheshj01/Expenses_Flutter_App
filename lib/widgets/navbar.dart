@@ -11,11 +11,12 @@ class AdaptiveNavBar extends StatefulWidget {
   /// For Desktop platforms navbar is always visible
   final bool isHidden;
   final Function(int index)? onChanged;
-
+  final List<MenuItem> items;
   const AdaptiveNavBar(
       {Key? key,
       required this.index,
       this.onChanged,
+      required this.items,
       this.isHidden = false,
       this.isDesktop = false})
       : super(key: key);
@@ -25,13 +26,26 @@ class AdaptiveNavBar extends StatefulWidget {
 }
 
 class _AdaptiveNavBarState extends State<AdaptiveNavBar> {
-  List<MenuItem> _items = [
-    MenuItem(Icons.dashboard, 'Dashboard'),
-    MenuItem(Icons.account_balance_wallet_rounded, 'Expenses'),
-    MenuItem(Icons.people, 'Shared'),
-  ];
+  List<MenuItem> _items = [];
   int selectedItem = 0;
+
+  @override
+  void didUpdateWidget(covariant AdaptiveNavBar oldWidget) {
+    // TODO: implement didUpdateWidget
+    super.didUpdateWidget(oldWidget);
+    if(oldWidget.items != widget.items) {
+      _items = widget.items;
+    }
+  }
+
 //   final NavbarNotifier _navbarNotifier = NavbarNotifier();
+
+@override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _items = widget.items;
+  }
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
