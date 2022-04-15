@@ -1,14 +1,10 @@
-import 'package:expense_manager/main.dart';
+import 'package:expense_manager/utils/settings.dart';
 import 'package:flutter/material.dart';
 
 class ExpenseTheme {
-  static final Color buttoncolor = Colors.red;
   static final Color bottomSheetBackgroundColor = Colors.grey.shade800;
-  static final Color floatingIconColor = Colors.black;
-  static final Color floatingBackgroundColor = Colors.white;
   static final Color scaffoldBackgroundColor = Colors.grey.shade900;
-  static final Color dismissedRight = Colors.red;
-  static final Color dismissedLeft = Colors.grey.shade700;
+  static final Color navbarBackground = Colors.indigo.shade100;
 
   static TextStyle inputTextStyle = TextStyle(
     fontSize: 25,
@@ -56,9 +52,10 @@ class ExpenseTheme {
     );
   }
 
-  static ColorScheme get colorScheme => appSettings.getTheme == ThemeMode.dark
-      ? darkColorScheme
-      : lightColorScheme;
+  Settings appSettings = Settings();
+
+  static ColorScheme get colorScheme =>
+      Settings.getTheme == ThemeMode.light ? lightColorScheme : darkColorScheme;
 
   static ColorScheme lightColorScheme = ColorScheme.fromSeed(
     seedColor: Color.fromARGB(255, 126, 120, 211),

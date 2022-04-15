@@ -4,13 +4,14 @@ import 'package:expense_manager/utils/settings.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Settings.init();
   runApp(MyApp());
 }
 
-Settings appSettings = Settings();
-
 class MyApp extends StatelessWidget {
+  Settings appSettings = Settings();
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -20,7 +21,7 @@ class MyApp extends StatelessWidget {
             debugShowCheckedModeBanner: kDebugMode,
             theme: ExpenseTheme.lightThemeData,
             darkTheme: ExpenseTheme.darkThemeData,
-            themeMode: appSettings.getTheme,
+            themeMode: Settings.getTheme,
             initialRoute: pages[0],
             routes: {
               pages[0]: (context) => LoginCheck(),

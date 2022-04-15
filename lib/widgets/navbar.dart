@@ -131,7 +131,7 @@ class _ExpNavbarState extends State<ExpNavbar>
               onTap: (x) => widget.onItemTapped(x),
               showUnselectedLabels: true,
               unselectedItemColor: ExpenseTheme.colorScheme.onPrimary,
-              backgroundColor: ExpenseTheme.colorScheme.surface,
+              backgroundColor: ExpenseTheme.colorScheme.background,
               items: widget.menuItems
                   .map((MenuItem menuItem) => BottomNavigationBarItem(
                         icon: Icon(menuItem.iconData),

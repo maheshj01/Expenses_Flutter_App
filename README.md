@@ -22,3 +22,5 @@ An open sourced expense manager.
 [] Add a details page for Expense
 [] Add a privacy policy page
 [] Add a share bottom sheet
+[] Show reminders for a expense by local notification
+[] Implement app update Notifier

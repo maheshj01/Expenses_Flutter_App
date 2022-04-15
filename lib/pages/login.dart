@@ -1,5 +1,5 @@
 import 'package:expense_manager/constants/exports.dart';
-import 'package:expense_manager/main.dart';
+import 'package:expense_manager/utils/settings.dart';
 import 'package:expense_manager/widgets/filter_sheet.dart';
 import 'package:flutter/material.dart';
 
@@ -13,6 +13,7 @@ class _LoginCheckState extends State<LoginCheck> {
   void initState() {
     super.initState();
   }
+// Settings appSettings = Settings();
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +24,7 @@ class _LoginCheckState extends State<LoginCheck> {
           Expanded(
             flex: 2,
             child: Center(
-                child: Image.asset(appSettings.getTheme == ThemeMode.light
+                child: Image.asset(Settings.getTheme == ThemeMode.light
                     ? '$imagesDirectory/logo_dark.png'
                     : '$imagesDirectory/logo_white.png')),
           ),

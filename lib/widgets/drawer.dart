@@ -1,5 +1,6 @@
 import 'package:expense_manager/constants/exports.dart';
-import 'package:expense_manager/main.dart';
+import 'package:expense_manager/model/navbar.dart';
+import 'package:expense_manager/utils/settings.dart';
 import 'package:flutter/material.dart';
 
 class EmDrawer extends StatefulWidget {
@@ -10,7 +11,28 @@ class EmDrawer extends StatefulWidget {
 }
 
 class _EmDrawerState extends State<EmDrawer> {
-  bool isDark = true;
+  late bool isDark;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
+      navBar = NavbarNotifier();
+      navBar.hideBottomNavBar = true;
+      isDark = Settings.getTheme == ThemeMode.dark;
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
+      navBar.hideBottomNavBar = false;
+    });
+    super.dispose();
+  }
+
+  late NavbarNotifier navBar;
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -22,18 +44,18 @@ class _EmDrawerState extends State<EmDrawer> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    // Container(
-                    //   child: CircleAvatar(
-                    //     child: Container(
-                    //       child: Image.network(
-                    //           "https://icon-library.com/images/male-user-icon/male-user-icon-13.jpg"),
-                    //     ),
-                    //   ),
-                    // ),
+                    Container(
+                        child: CircleAvatar(
+                      minRadius: 48,
+                      child: Container(
+                          child: FlutterLogo(
+                        size: 48,
+                      )),
+                    )),
                     Container(
                       child: Text(
-                        "Name",
-                        style: TextStyle(color: Colors.white, fontSize: 18),
+                        "Flutter",
+                        style: ExpenseTheme.textTheme.bodySmall,
                       ),
                       padding: EdgeInsets.only(bottom: 10),
                       alignment: Alignment.bottomCenter,
@@ -84,27 +106,19 @@ class _EmDrawerState extends State<EmDrawer> {
                 alignment: Alignment.centerRight,
                 child: IconButton(
                     onPressed: () {
-                      if (isDark) {
-                        appSettings.setTheme(ThemeMode.dark);
+                      if (!isDark) {
+                        Settings.setTheme(ThemeMode.dark);
                       } else {
-                        appSettings.setTheme(ThemeMode.light);
+                        Settings.setTheme(ThemeMode.light);
                       }
                       isDark = !isDark;
+                      Settings().notify();
                     },
                     icon: Icon(
                       Icons.wb_sunny,
                       color: ExpenseTheme.colorScheme.primary,
                     )),
               ),
-              // Switch(
-              //     value: appSettings.getTheme == ThemeMode.dark,
-              //     onChanged: (isDark) {
-              //       if (isDark) {
-              //         appSettings.setTheme(ThemeMode.dark);
-              //       } else {
-              //         appSettings.setTheme(ThemeMode.light);
-              //       }
-              //     }),
               SizedBox(
                 height: 50,
               )

@@ -2,8 +2,6 @@ import 'dart:math';
 
 import 'package:expense_manager/constants/exports.dart';
 import 'package:expense_manager/model/filter.dart';
-import 'package:expense_manager/model/spend.dart';
-import 'package:expense_manager/widgets/expense_sheet.dart';
 import 'package:expense_manager/widgets/drawer.dart';
 import 'package:expense_manager/widgets/expense_list_tile.dart';
 import 'package:expense_manager/widgets/filter_sheet.dart';

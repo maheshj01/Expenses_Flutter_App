@@ -7,6 +7,13 @@ class MenuItem {
 }
 
 class NavbarNotifier extends ChangeNotifier {
+
+  static final NavbarNotifier _instance = NavbarNotifier._internal();
+
+  factory NavbarNotifier() => _instance;
+
+  NavbarNotifier._internal();
+  
   int _index = 0;
   int _last = 0;
   bool _shouldReload = false;
