@@ -1,4 +1,5 @@
 import 'package:expense_manager/model/currency.dart';
+import 'package:expense_manager/themes/expense_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -28,19 +29,23 @@ class Settings extends ChangeNotifier {
   static void setCurrency(Currency value) {
     _currency = value;
     _prefs.setString(_currencyKey, value.code);
+    _singleton.notify();
   }
 
   static ThemeMode get getTheme => _theme;
 
   static void setTheme(ThemeMode theme) {
     _theme = theme;
-    _prefs.setBool('$_themeModeKey', theme == ThemeMode.dark);
+    bool isDark = theme == ThemeMode.dark;
+    _prefs.setBool('$_themeModeKey', isDark);
+    ExpenseTheme.isDark = isDark;
+    _singleton.notify();
   }
 
   static Future<void> loadTheme() async {
-    _theme = _prefs.getBool('$_themeModeKey') ?? false == true
-        ? ThemeMode.dark
-        : ThemeMode.light;
+    final bool isDark = _prefs.getBool('$_themeModeKey') ?? false;
+    _theme = isDark == true ? ThemeMode.dark : ThemeMode.light;
+    ExpenseTheme.isDark = isDark;
     setTheme(_theme);
   }
 

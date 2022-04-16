@@ -1,12 +1,10 @@
 import 'dart:math';
 
+import 'package:flutter/material.dart';
 import 'package:expense_manager/constants/exports.dart';
 import 'package:expense_manager/model/filter.dart';
 import 'package:expense_manager/utils/settings.dart';
-import 'package:expense_manager/widgets/expense_list_tile.dart';
-import 'package:expense_manager/widgets/filter_sheet.dart';
 import 'package:expense_manager/widgets/widgets.dart';
-import 'package:flutter/material.dart';
 import 'package:expense_manager/blocs/expense_bloc.dart';
 import 'package:expense_manager/model/model.dart';
 
@@ -26,7 +24,6 @@ final TextEditingController labelController = TextEditingController();
 
 class _ExpensesListPageState extends State<ExpensesListPage>
     with TickerProviderStateMixin {
-
   Future<void> _showFilterSheet({Function(FilterModel)? onFilter}) async {
     showEMBottomSheet(context,
         FilterSheet(filter: filter, onFilterChange: (x) => onFilter!(x)));
@@ -87,7 +84,7 @@ class _ExpensesListPageState extends State<ExpensesListPage>
                               gradient: LinearGradient(
                                 end: Alignment.bottomCenter,
                                 begin: Alignment.topCenter,
-                                colors: ExpenseTheme.isDarkTheme(context)
+                                colors: ExpenseTheme.isDark
                                     ? [
                                         ExpenseTheme.darkColorScheme.surface,
                                         ExpenseTheme.darkColorScheme.background,
@@ -254,7 +251,7 @@ class TotalSpentValue extends StatelessWidget {
         RichText(
             text: TextSpan(
                 style: TextStyle(
-                    color: ExpenseTheme.isDarkTheme(context)
+                    color: ExpenseTheme.isDark
                         ? color ?? Colors.white
                         : color ?? Colors.black,
                     fontWeight: FontWeight.w500),
@@ -271,9 +268,7 @@ class TotalSpentValue extends StatelessWidget {
                   "Total Spent",
                   style: TextStyle(
                       fontSize: 18,
-                      color: ExpenseTheme.isDarkTheme(context)
-                          ? Colors.white
-                          : Colors.black),
+                      color: ExpenseTheme.isDark ? Colors.white : Colors.black),
                 ),
               )
             : SizedBox(),

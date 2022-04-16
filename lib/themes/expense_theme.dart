@@ -2,6 +2,14 @@ import 'package:expense_manager/utils/settings.dart';
 import 'package:flutter/material.dart';
 
 class ExpenseTheme {
+  static final ExpenseTheme _singleton = ExpenseTheme._internal();
+
+  factory ExpenseTheme() {
+    return _singleton;
+  }
+
+  ExpenseTheme._internal();
+
   static final Color bottomSheetBackgroundColor = Colors.grey.shade800;
   static final Color scaffoldBackgroundColor = Colors.grey.shade900;
   static final Color navbarBackground = Colors.indigo.shade100;
@@ -13,11 +21,19 @@ class ExpenseTheme {
     fontSize: 18,
   );
 
-  static bool isDarkTheme(BuildContext context) =>
-      Theme.of(context).brightness == Brightness.dark;
+  bool _isDark = false;
+
+  static bool get isDark => _singleton._isDark;
+
+  static set isDark(bool value) {
+    _singleton._isDark = value;
+  }
 
   static const _lightFillColor = Colors.black;
   static const _darkFillColor = Colors.white;
+
+  static Color get themeTextColor => isDark ? _lightFillColor : _darkFillColor;
+
   static final Color _lightFocusColor = Colors.black.withOpacity(0.12);
   static final Color _darkFocusColor = Colors.white.withOpacity(0.12);
 

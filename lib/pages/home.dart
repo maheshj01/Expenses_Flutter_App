@@ -10,7 +10,7 @@ import 'package:expense_manager/widgets/animated_indexed_stack.dart';
 import 'package:expense_manager/widgets/expense_sheet.dart';
 import 'package:expense_manager/widgets/navbar.dart';
 import 'package:expense_manager/pages/profile.dart';
-import 'package:expense_manager/widgets/widgets.dart';
+import 'package:expense_manager/widgets/widgets_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
@@ -127,7 +127,10 @@ class _HomePageState extends State<HomePage> {
                     },
                     tooltip: 'Add Expense',
                     child: Text('${Settings.currency.symbol}',
-                        style: ExpenseTheme.rupeeStyle.copyWith(fontSize: 32))),
+                        style: ExpenseTheme.rupeeStyle.copyWith(
+                            fontSize: Settings.currency.symbol.length > 1
+                                ? 18
+                                : 32))),
               ),
             )
           ]);

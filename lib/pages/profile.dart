@@ -2,6 +2,7 @@ import 'package:expense_manager/constants/exports.dart';
 import 'package:expense_manager/model/currency.dart';
 import 'package:expense_manager/model/navbar.dart';
 import 'package:expense_manager/utils/settings.dart';
+import 'package:expense_manager/widgets/dropdown.dart';
 import 'package:flutter/material.dart';
 
 class EmProfile extends StatefulWidget {
@@ -17,7 +18,6 @@ class _EmProfileState extends State<EmProfile> {
   @override
   void initState() {
     super.initState();
-    currency = Settings.currency;
     WidgetsBinding.instance!.addPostFrameCallback((_) {
       isDark = Settings.getTheme == ThemeMode.dark;
     });
@@ -32,7 +32,6 @@ class _EmProfileState extends State<EmProfile> {
   }
 
   late NavbarNotifier navBar;
-  late Currency currency;
   String dropdownValue = 'One';
   @override
   Widget build(BuildContext context) {
@@ -99,7 +98,6 @@ class _EmProfileState extends State<EmProfile> {
                 onPressed: (int index) {
                   Settings.setTheme(
                       index == 1 ? ThemeMode.dark : ThemeMode.light);
-                  Settings().notify();
                 },
                 isSelected: [
                   Settings.getTheme == ThemeMode.light,
@@ -107,31 +105,22 @@ class _EmProfileState extends State<EmProfile> {
                 ]),
             onTap: () {},
           ),
-          DropdownButton<Currency>(
-            value: currency,
-            icon: const Icon(Icons.arrow_downward),
-            iconSize: 24,
-            elevation: 16,
-            style: const TextStyle(color: Colors.deepPurple),
-            underline: Container(
-              height: 2,
-              color: Colors.deepPurpleAccent,
-            ),
-            onChanged: (Currency? newValue) {
-              Settings.setCurrency(newValue!);
-              setState(() {
-                currency = newValue;
-              });
-              Settings().notify();
-            },
-            items:
-                currencyList.map<DropdownMenuItem<Currency>>((Currency value) {
-              return DropdownMenuItem<Currency>(
-                value: value,
-                child: Text(value.name),
-              );
-            }).toList(),
-          )
+          ListTile(
+              leading: Icon(Icons.currency_bitcoin),
+              title: _subtitle('Currency'),
+              trailing: SizedBox(
+                  width: 160,
+                  child: EmDropdownButton<Currency>(
+                      items: currencyList,
+                      onChanged: (newValue) {
+                        Settings.setCurrency(newValue);
+                      },
+                      dropdownItem: (Currency value) => Text(
+                            '${value.symbol} ${value.name}',
+                            style: ExpenseTheme.textTheme.subtitle2!
+                                .copyWith(fontSize: 15),
+                          ),
+                      value: Settings.currency))),
         ],
       ),
     );

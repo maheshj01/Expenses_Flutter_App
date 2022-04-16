@@ -60,7 +60,7 @@ class _ExpenseListTileState extends State<ExpenseListTile> {
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
-                color: ExpenseTheme.isDarkTheme(context)
+                color: ExpenseTheme.isDark
                     ? ExpenseTheme.darkColorScheme.surface
                     : ExpenseTheme.lightColorScheme.primary,
               ),
