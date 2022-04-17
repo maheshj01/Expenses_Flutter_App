@@ -26,6 +26,8 @@ List<SpendType> expenseTypes = [
   SpendType.monthly
 ];
 
+List<String> expenseBy = ['Daily', 'Weekly', 'Monthly', 'Yearly'];
+
 const String currency = '₹';
 const String expenseListTableName = 'expense';
 const String expenseAmountColumn = 'amount';

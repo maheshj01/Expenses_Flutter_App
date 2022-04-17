@@ -66,26 +66,26 @@ class _EmProfileState extends State<EmProfile> {
               ],
             ),
           ),
-          ListTile(
-            title: _subtitle('Export File'),
-            leading: Icon(Icons.shopping_cart),
-            onTap: () {
-              // Update the state of the app
-              // ...
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => ExpensesListPage()));
-            },
-          ),
-          ListTile(
-            title: _subtitle('Create Alert'),
-            leading: Icon(Icons.add_shopping_cart),
-            onTap: () {},
-          ),
-          ListTile(
-            title: _subtitle("Define budget"),
-            leading: Icon(Icons.account_balance_wallet_outlined),
-            onTap: () {},
-          ),
+          // ListTile(
+          //   title: _subtitle('Export File'),
+          //   leading: Icon(Icons.shopping_cart),
+          //   onTap: () {
+          //     // Update the state of the app
+          //     // ...
+          //     Navigator.push(context,
+          //         MaterialPageRoute(builder: (context) => ExpensesListPage()));
+          //   },
+          // ),
+          // ListTile(
+          //   title: _subtitle('Create Alert'),
+          //   leading: Icon(Icons.add_shopping_cart),
+          //   onTap: () {},
+          // ),
+          // ListTile(
+          //   title: _subtitle("Define budget"),
+          //   leading: Icon(Icons.account_balance_wallet_outlined),
+          //   onTap: () {},
+          // ),
           ListTile(
             title: _subtitle('Theme'),
             leading: Icon(Icons.color_lens),

@@ -24,6 +24,7 @@ class _EmDropdownButtonState<T> extends State<EmDropdownButton<T>> {
   Widget build(BuildContext context) {
     return Container(
       alignment: Alignment.center,
+      height: 52,
       padding: EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
           color: ExpenseTheme.colorScheme.inversePrimary,
@@ -31,7 +32,8 @@ class _EmDropdownButtonState<T> extends State<EmDropdownButton<T>> {
       child: DropdownButton<T>(
         value: widget.value,
         isExpanded: true,
-        icon:  Icon(Icons.keyboard_arrow_down_rounded,color: ExpenseTheme.themeTextColor),
+        icon: Icon(Icons.keyboard_arrow_down_rounded,
+            color: ExpenseTheme.isDark ? Colors.deepPurple : Colors.black),
         iconSize: 32,
         style: ExpenseTheme.textTheme.subtitle2!
             .copyWith(color: Colors.deepPurple, fontSize: 15),

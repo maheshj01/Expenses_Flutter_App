@@ -4,6 +4,7 @@ import 'package:expense_manager/utils/settings.dart';
 import 'package:expense_manager/widgets/filter_sheet.dart';
 import 'package:expense_manager/widgets/input_field.dart';
 import 'package:flutter/material.dart';
+import 'package:searchfield/searchfield.dart';
 
 class ExpenseSheet extends StatefulWidget {
   final Function(Spend) onSubmit;
@@ -71,24 +72,25 @@ class ExpenseSheetState extends State<ExpenseSheet> {
 
   void deleteLabel(String x) {
     labels.remove(x);
-    if (labelController.text.isEmpty) {
-      setState(() {
-        isAddLabel = false;
-      });
-    }
+    // if (labelController.text.isEmpty) {
+    setState(() {});
+    //     isAddLabel = false;
+    // }
   }
 
-  void addLabel(String x) {
-    if (labelController.text.isEmpty) {
+  void addLabel(String x, {bool isTap = false}) {
+    if (labelController.text.isEmpty && !isTap) {
       setState(() {
         isAddLabel = false;
       });
       return;
     }
-    if (!labels.contains(x)) {
+    if (!labels.contains(x.toLowerCase())) {
       setState(() {
         labels.add(x.toLowerCase().trim());
-        isAddLabel = false;
+        if (!isTap) {
+          isAddLabel = false;
+        }
       });
       labelController.clear();
     }
@@ -101,7 +103,6 @@ class ExpenseSheetState extends State<ExpenseSheet> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      // mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -173,28 +174,87 @@ class ExpenseSheetState extends State<ExpenseSheet> {
           ),
         ),
         isAddLabel
-            ? Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0) +
-                    EdgeInsets.only(bottom: 16),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(vertical: 12),
-                        child: EMInputField(
-                            hintText: 'e.g Entertainment',
-                            style: ExpenseTheme.rupeeStyle,
-                            controller: labelController,
-                            onSubmit: (x) => addLabel(x)),
-                      ),
+            ? Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0) +
+                        EdgeInsets.only(bottom: 16),
+                    child: Row(
+                      children: [
+                        Expanded(
+                            child: StreamBuilder<List<String>>(
+                                stream: bloc.labelStream,
+                                builder: (BuildContext context,
+                                    AsyncSnapshot<List<String>> snapshot) {
+                                  final List<String>? labels =
+                                      snapshot.data == null
+                                          ? []
+                                          : snapshot.data;
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12.0),
+                                    child: SearchField<String>(
+                                      suggestions: labels!
+                                          .map((e) =>
+                                              SearchFieldListItem<String>(e,
+                                                  child: Text(e)))
+                                          .toList(),
+                                      searchStyle: ExpenseTheme.rupeeStyle,
+                                      controller: labelController,
+                                      maxSuggestionsInViewPort: 3,
+                                      hasOverlay: false,
+                                      itemHeight: 40,
+                                      onSubmit: (x) {
+                                        if (!labels.contains(x.toLowerCase())) {
+                                          labels.add(x.toLowerCase());
+                                        }
+                                        setState(() {});
+                                        labelController.clear();
+                                      },
+                                      suggestionsDecoration: BoxDecoration(
+                                          color: ExpenseTheme
+                                              .colorScheme.background),
+                                      suggestionItemDecoration: BoxDecoration(
+                                          color: ExpenseTheme
+                                              .colorScheme.background),
+                                      searchInputDecoration: InputDecoration(
+                                        hintText: 'e.g Entertainment',
+                                        hintStyle: ExpenseTheme.rupeeStyle,
+                                        prefixStyle: ExpenseTheme.rupeeStyle,
+                                        counterText: "",
+                                        floatingLabelBehavior:
+                                            FloatingLabelBehavior.never,
+                                        labelStyle: ExpenseTheme.rupeeStyle,
+                                        enabledBorder: inputBorder,
+                                        focusedBorder: inputBorder,
+                                        border: inputBorder,
+                                        filled: true,
+                                        fillColor:
+                                            Colors.black38.withOpacity(0.1),
+                                      ),
+                                    ),
+                                  );
+
+                                  // LabelsFilterWidget(
+                                  //   labels: labels!,
+                                  //   selectedlabels: labels,
+                                  //   color: ExpenseTheme.colorScheme.primary,
+                                  //   onTap: (x) {
+                                  //     addLabel(x, isTap: true);
+                                  //   },
+                                  // );
+                                })),
+                        SizedBox(
+                          width: 20,
+                        ),
+                        EmIcon(Icons.done,
+                            size: 32,
+                            onTap: () =>
+                                addLabel(labelController.text, isTap: false))
+                      ],
                     ),
-                    SizedBox(
-                      width: 20,
-                    ),
-                    EmIcon(Icons.done,
-                        size: 32, onTap: () => addLabel(labelController.text))
-                  ],
-                ),
+                  ),
+                ],
               )
             : SizedBox(),
         Container(

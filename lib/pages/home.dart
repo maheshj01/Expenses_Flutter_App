@@ -73,6 +73,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   late ScrollController _scrollController;
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,12 +88,10 @@ class _HomePageState extends State<HomePage> {
             AnimatedIndexedStack(
               index: _selectedIndex,
               children: [
-                Container(
-                  color: Colors.red,
-                ),
                 ExpensesListPage(
                   scrollController: _scrollController,
                 ),
+                EmDashboard(),
                 Container(
                   color: Colors.blue,
                 ),
@@ -102,8 +105,8 @@ class _HomePageState extends State<HomePage> {
                 child: AdaptiveNavBar(
                   index: _selectedIndex,
                   items: [
-                    MenuItem(Icons.dashboard, 'Dashboard'),
                     MenuItem(Icons.account_balance_wallet_rounded, 'Expenses'),
+                    MenuItem(Icons.dashboard, 'Dashboard'),
                     MenuItem(Icons.people, 'Shared'),
                     MenuItem(Icons.person, 'Profile'),
                   ],
@@ -135,5 +138,21 @@ class _HomePageState extends State<HomePage> {
             )
           ]);
         });
+  }
+}
+
+class EmDashboard extends StatefulWidget {
+  const EmDashboard({Key? key}) : super(key: key);
+
+  @override
+  State<EmDashboard> createState() => EmDashboardState();
+}
+
+class EmDashboardState extends State<EmDashboard> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(children: []),
+    );
   }
 }

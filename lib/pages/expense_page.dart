@@ -43,6 +43,7 @@ class _ExpensesListPageState extends State<ExpensesListPage>
   int totalItems = 6;
   final int totalDuration = 6000;
   FilterModel filter = FilterModel(labels: [], sortByDate: true);
+
   @override
   void initState() {
     super.initState();
@@ -53,8 +54,36 @@ class _ExpensesListPageState extends State<ExpensesListPage>
 
   List<Expense> expenses = [];
 
-  late ScrollController _controller;
+  Future<void> applyFilter(FilterModel x) async {
+    expenses = await bloc.getExpenses();
+    List<Expense> filteredList = [];
+    if (x.labels.isEmpty) {
+      bloc.loadTheExpenses(filteredList: expenses);
+      filteredList = expenses;
+    } else {
+      expenses.forEach((expense) {
+        final expenseLabels = expense.label!.split(',').toList();
+        expenseLabels.forEach((label) {
+          if (x.labels.contains(label) &&
+              !filteredList.containsObject(expense)) {
+            filteredList.add(expense);
+          }
+        });
+      });
+    }
+    if (x.didSortChange) {
+      if (x.sortByDate) {
+        filteredList = filteredList.reversed.toList();
+      }
+    }
+    bloc.loadTheExpenses(filteredList: filteredList);
+    setState(() {
+      filter = x;
+    });
+  }
 
+  late ScrollController _controller;
+  String expenseByDefault = 'Daily';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -124,47 +153,45 @@ class _ExpensesListPageState extends State<ExpensesListPage>
                         toolbarHeight: 0,
                         flexibleSpace: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Expanded(child: SizedBox()),
+                            Flexible(
+                              child: Container(
+                                padding: EdgeInsets.only(left: 16),
+                                width: 140,
+                                child: EmDropdownButton<String>(
+                                    items: expenseBy,
+                                    onChanged: (x) async {
+                                      if (expenseByDefault == x) return;
+                                      setState(() {
+                                        expenseByDefault = x;
+                                      });
+                                      final filterExpenses =
+                                          await bloc.getExpenses();
+                                      final filteredExpenses = showExpenseFor(
+                                          expenseByDefault, filterExpenses);
+                                      bloc.loadTheExpenses(
+                                          filteredList: filteredExpenses);
+                                    },
+                                    dropdownItem: (x) => Text(
+                                          x,
+                                          style: ExpenseTheme
+                                              .textTheme.headline4!
+                                              .copyWith(
+                                                  fontWeight:
+                                                      FontWeight.normal),
+                                        ),
+                                    value: expenseByDefault),
+                              ),
+                            ),
                             Padding(
                               padding: const EdgeInsets.only(right: 8.0),
                               child: IconButton(
                                   icon: Icon(Icons.sort,
                                       color: ExpenseTheme.colorScheme.primary),
                                   onPressed: () {
-                                    _showFilterSheet(onFilter: (x) async {
-                                      expenses = await bloc.getExpenses();
-                                      List<Expense> filteredList = [];
-                                      if (x.labels.isEmpty) {
-                                        bloc.loadTheExpenses(
-                                            filteredList: expenses);
-                                        filteredList = expenses;
-                                      } else {
-                                        expenses.forEach((expense) {
-                                          final expenseLabels = expense.label!
-                                              .split(',')
-                                              .toList();
-                                          expenseLabels.forEach((label) {
-                                            if (x.labels.contains(label) &&
-                                                !filteredList
-                                                    .containsObject(expense)) {
-                                              filteredList.add(expense);
-                                            }
-                                          });
-                                        });
-                                      }
-                                      if (x.didSortChange) {
-                                        if (x.sortByDate) {
-                                          filteredList =
-                                              filteredList.reversed.toList();
-                                        }
-                                      }
-                                      bloc.loadTheExpenses(
-                                          filteredList: filteredList);
-                                      setState(() {
-                                        filter = x;
-                                      });
-                                    });
+                                    _showFilterSheet(
+                                        onFilter: (x) async => applyFilter(x));
                                   }),
                             ),
                           ],

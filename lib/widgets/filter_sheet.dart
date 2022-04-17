@@ -147,12 +147,12 @@ class LabelsFilterWidget extends StatelessWidget {
   const LabelsFilterWidget(
       {Key? key,
       this.onTap,
-      this.color,
+      required this.color,
       required this.labels,
       required this.selectedlabels})
       : super(key: key);
   final Function(String)? onTap;
-  final Color? color;
+  final Color color;
   final List<String> labels;
   final List<String> selectedlabels;
 
@@ -168,8 +168,8 @@ class LabelsFilterWidget extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: Chip(
               backgroundColor: isSelected
-                  ? color!.withOpacity(1.0)
-                  : color!.withOpacity(0.4),
+                  ? color.withOpacity(1.0)
+                  : color.withOpacity(0.4),
               label: Text(
                 label,
                 style: ExpenseTheme.rupeeStyle.copyWith(
