@@ -183,7 +183,7 @@ class ExpenseSheetState extends State<ExpenseSheet> {
                       children: [
                         Expanded(
                             child: StreamBuilder<List<String>>(
-                                stream: bloc.labelStream,
+                                stream: expenseService.labelStream,
                                 builder: (BuildContext context,
                                     AsyncSnapshot<List<String>> snapshot) {
                                   final List<String>? labels =

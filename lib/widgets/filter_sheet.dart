@@ -16,9 +16,7 @@ class _FilterSheetState extends State<FilterSheet> {
   late FilterModel _filter;
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    // _filter = widget.filter;
     _filter = FilterModel(
       sortByDate: widget.filter.sortByDate,
       labels: widget.filter.labels,
@@ -91,7 +89,7 @@ class _FilterSheetState extends State<FilterSheet> {
             Divider(),
             title('Category'),
             StreamBuilder<List<String>>(
-                stream: bloc.labelStream,
+                stream: expenseService.labelStream,
                 builder: (BuildContext context,
                     AsyncSnapshot<List<String>> labelSnapshot) {
                   return labelSnapshot.data == null ||
@@ -167,9 +165,8 @@ class LabelsFilterWidget extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: Chip(
-              backgroundColor: isSelected
-                  ? color.withOpacity(1.0)
-                  : color.withOpacity(0.4),
+              backgroundColor:
+                  isSelected ? color.withOpacity(1.0) : color.withOpacity(0.4),
               label: Text(
                 label,
                 style: ExpenseTheme.rupeeStyle.copyWith(
@@ -225,10 +222,17 @@ class EmIcon extends StatelessWidget {
   }
 }
 
+enum Button { elevated, outlined }
+
 class EmButton extends StatefulWidget {
   final String text;
   final Function onTap;
-  const EmButton({Key? key, required this.onTap, required this.text})
+  final Button type;
+  const EmButton(
+      {Key? key,
+      required this.onTap,
+      required this.text,
+      this.type = Button.elevated})
       : super(key: key);
 
   @override
@@ -239,16 +243,31 @@ class _EmButtonState extends State<EmButton> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        minimumSize: Size(size.width, 48),
-        maximumSize: Size(size.width, 48),
-      ),
-      onPressed: () => widget.onTap(),
-      child: Text(
-        '${widget.text}',
-        style: TextStyle(color: Colors.white),
-      ),
-    );
+    if (widget.type == Button.elevated) {
+      return ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          minimumSize: Size(size.width, 48),
+          maximumSize: Size(size.width, 48),
+        ),
+        onPressed: () => widget.onTap(),
+        child: Text(
+          '${widget.text}',
+          style: TextStyle(color: Colors.white),
+        ),
+      );
+    } else {
+      return OutlinedButton(
+          style: OutlinedButton.styleFrom(
+              minimumSize: Size(size.width, 48),
+              maximumSize: Size(size.width, 48),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              side: BorderSide(
+                color: Colors.red,
+              )),
+          onPressed: () => widget.onTap(),
+          child: Text('${widget.text}'));
+    }
   }
 }

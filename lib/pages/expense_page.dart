@@ -5,7 +5,7 @@ import 'package:expense_manager/constants/exports.dart';
 import 'package:expense_manager/model/filter.dart';
 import 'package:expense_manager/utils/settings.dart';
 import 'package:expense_manager/widgets/widgets.dart';
-import 'package:expense_manager/blocs/expense_bloc.dart';
+import 'package:expense_manager/services/expense.dart';
 import 'package:expense_manager/model/model.dart';
 
 class ExpensesListPage extends StatefulWidget {
@@ -17,7 +17,7 @@ class ExpensesListPage extends StatefulWidget {
   _ExpensesListPageState createState() => _ExpensesListPageState();
 }
 
-final bloc = ExpenseBloc();
+final expenseService = ExpenseService();
 final TextEditingController amountController = new TextEditingController();
 final TextEditingController descriptionController = TextEditingController();
 final TextEditingController labelController = TextEditingController();
@@ -34,7 +34,7 @@ class _ExpensesListPageState extends State<ExpensesListPage>
     _animationController.dispose();
     amountController.dispose();
     descriptionController.dispose();
-    bloc.dispose();
+    expenseService.dispose();
     super.dispose();
   }
 
@@ -43,7 +43,6 @@ class _ExpensesListPageState extends State<ExpensesListPage>
   int totalItems = 6;
   final int totalDuration = 6000;
   FilterModel filter = FilterModel(labels: [], sortByDate: true);
-
   @override
   void initState() {
     super.initState();
@@ -54,11 +53,12 @@ class _ExpensesListPageState extends State<ExpensesListPage>
 
   List<Expense> expenses = [];
 
-  Future<void> applyFilter(FilterModel x) async {
-    expenses = await bloc.getExpenses();
+  Future<void> applyFilter(FilterModel x,
+      {List<Expense>? filteredExpense}) async {
+    expenses = filteredExpense ?? await expenseService.getExpenses();
     List<Expense> filteredList = [];
     if (x.labels.isEmpty) {
-      bloc.loadTheExpenses(filteredList: expenses);
+      expenseService.loadTheExpenses(filteredList: expenses);
       filteredList = expenses;
     } else {
       expenses.forEach((expense) {
@@ -76,7 +76,7 @@ class _ExpensesListPageState extends State<ExpensesListPage>
         filteredList = filteredList.reversed.toList();
       }
     }
-    bloc.loadTheExpenses(filteredList: filteredList);
+    expenseService.loadTheExpenses(filteredList: filteredList);
     setState(() {
       filter = x;
     });
@@ -91,7 +91,7 @@ class _ExpensesListPageState extends State<ExpensesListPage>
         body: Padding(
             padding: EdgeInsets.only(bottom: 10),
             child: StreamBuilder<List<Expense>>(
-              stream: bloc.expenseListStream,
+              stream: expenseService.expenseListStream,
               builder: (BuildContext context,
                   AsyncSnapshot<List<Expense>> expenseSnapshot) {
                 if (expenseSnapshot.data == null)
@@ -133,7 +133,7 @@ class _ExpensesListPageState extends State<ExpensesListPage>
                           title: OverflowBox(
                               maxHeight: 200,
                               child: StreamBuilder(
-                                  stream: bloc.totalExpenseController,
+                                  stream: expenseService.totalExpenseController,
                                   builder: (BuildContext context,
                                       AsyncSnapshot<double> totalSnapshot) {
                                     if (totalSnapshot.data == null) {
@@ -150,51 +150,56 @@ class _ExpensesListPageState extends State<ExpensesListPage>
                         pinned: true,
                         leading: SizedBox(),
                         titleSpacing: 0,
-                        toolbarHeight: 0,
-                        flexibleSpace: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Flexible(
-                              child: Container(
-                                padding: EdgeInsets.only(left: 16),
-                                width: 140,
-                                child: EmDropdownButton<String>(
-                                    items: expenseBy,
-                                    onChanged: (x) async {
-                                      if (expenseByDefault == x) return;
-                                      setState(() {
-                                        expenseByDefault = x;
-                                      });
-                                      final filterExpenses =
-                                          await bloc.getExpenses();
-                                      final filteredExpenses = showExpenseFor(
-                                          expenseByDefault, filterExpenses);
-                                      bloc.loadTheExpenses(
-                                          filteredList: filteredExpenses);
-                                    },
-                                    dropdownItem: (x) => Text(
-                                          x,
-                                          style: ExpenseTheme
-                                              .textTheme.headline4!
-                                              .copyWith(
-                                                  fontWeight:
-                                                      FontWeight.normal),
-                                        ),
-                                    value: expenseByDefault),
+                        toolbarHeight: 18,
+                        flexibleSpace: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Flexible(
+                                child: Container(
+                                  padding: EdgeInsets.only(left: 16),
+                                  width: 140,
+                                  child: EmDropdownButton<String>(
+                                      items: expenseBy,
+                                      onChanged: (x) async {
+                                        if (expenseByDefault == x) return;
+                                        setState(() {
+                                          expenseByDefault = x;
+                                        });
+                                        final filterExpenses =
+                                            await expenseService.getExpenses();
+                                        final filteredExpenses = showExpenseFor(
+                                            expenseByDefault, filterExpenses);
+                                        applyFilter(filter,
+                                            filteredExpense: filteredExpenses);
+                                      },
+                                      dropdownItem: (x) => Text(
+                                            x,
+                                            style: ExpenseTheme
+                                                .textTheme.headline4!
+                                                .copyWith(
+                                                    fontWeight:
+                                                        FontWeight.normal),
+                                          ),
+                                      value: expenseByDefault),
+                                ),
                               ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(right: 8.0),
-                              child: IconButton(
-                                  icon: Icon(Icons.sort,
-                                      color: ExpenseTheme.colorScheme.primary),
-                                  onPressed: () {
-                                    _showFilterSheet(
-                                        onFilter: (x) async => applyFilter(x));
-                                  }),
-                            ),
-                          ],
+                              Padding(
+                                padding: const EdgeInsets.only(right: 8.0),
+                                child: IconButton(
+                                    icon: Icon(Icons.sort,
+                                        color:
+                                            ExpenseTheme.colorScheme.primary),
+                                    onPressed: () {
+                                      _showFilterSheet(onFilter: (x) async {
+                                        return applyFilter(x);
+                                      });
+                                    }),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       if (expenseSnapshot.data!.isEmpty)

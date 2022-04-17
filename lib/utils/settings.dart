@@ -1,3 +1,4 @@
+import 'package:expense_manager/services/expense.dart';
 import 'package:expense_manager/model/currency.dart';
 import 'package:expense_manager/themes/expense_theme.dart';
 import 'package:flutter/material.dart';
@@ -59,6 +60,11 @@ class Settings extends ChangeNotifier {
           orElse: () => Currency.init());
     }
     setCurrency(_currency);
+  }
+
+  static void clear() {
+    final expenseService = ExpenseService();
+    _prefs.clear();
   }
 
   void notify() {

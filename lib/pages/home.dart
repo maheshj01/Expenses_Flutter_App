@@ -60,7 +60,7 @@ class _HomePageState extends State<HomePage> {
     //     false));
     showEMBottomSheet(context, ExpenseSheet(
       onSubmit: (Spend spend) {
-        bloc.expenseModelStreamSink.add(Expense.withFields(
+        expenseService.expenseModelStreamSink.add(Expense.withFields(
             DateTime.now(),
             spend.value,
             spend.description,

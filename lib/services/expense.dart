@@ -1,9 +1,10 @@
 import 'dart:async';
 
 import 'package:expense_manager/model/model.dart';
+import 'package:expense_manager/services/database/database_service.dart';
 import 'package:rxdart/rxdart.dart';
 
-class ExpenseBloc {
+class ExpenseService {
   final totalExpenseController = BehaviorSubject<double>();
   final _expenseListController = BehaviorSubject<List<Expense>>();
   final _expenseModalController = BehaviorSubject<Expense>();
@@ -21,8 +22,7 @@ class ExpenseBloc {
 
   Stream<List<String>> get labelStream => _labelBloc.stream;
   StreamSink<List<String>> get labelStreamSink => _labelBloc.sink;
-
-  ExpenseBloc() {
+  ExpenseService() {
     loadTheExpenses();
     _expenseModalController.stream
         .listen((model) => this.onExpenseAdded(model));
@@ -67,7 +67,7 @@ class ExpenseBloc {
 
   Future<List<Expense>> getExpenses() async {
     try {
-      final expenses = await Expense().select().toList();
+      final expenses = await DataBaseService.getExpenses();
       return expenses;
     } catch (_) {
       print('Exception occured $_');
@@ -101,13 +101,8 @@ class ExpenseBloc {
 
   Future<Expense?> getLastExpenseFromDb() async {
     try {
-      final expenseListInDesc =
-          await Expense().select().orderByDesc('id').toList();
-      if (expenseListInDesc.isEmpty) {
-        return null;
-      } else {
-        return expenseListInDesc[0];
-      }
+      final expenseListInDesc = DataBaseService.getLastExpense();
+      return expenseListInDesc;
     } catch (_) {
       print('Exception occured $_');
       return null;
@@ -116,23 +111,11 @@ class ExpenseBloc {
 
   Future<void> insertDb(Expense model, double total) async {
     // TODO: query to insert a new Expense into Database
-    final expense = Expense(
-        amount: model.amount,
-        description: model.description,
-        total: total,
-        datetime: model.datetime ?? DateTime.now(),
-        type: model.type!,
-        label: model.label,
-        isDeleted: false);
-    await expense.save();
-    if (expense.saveResult!.success)
-      print(expense.saveResult.toString());
-    else
-      print("failed to save to database ${expense.saveResult!.errorMessage}");
-    await Expense().select().toList().then((expenseList) {
-      print("length = " + expenseList.length.toString());
-      print("total = " + expenseList[expenseList.length - 1].total.toString());
-    });
+    try {
+      DataBaseService.insertExpense(model, total);
+    } catch (_) {
+      print('Exception occured $_');
+    }
   }
 
   void removeExpenseItem(Expense removeModel) async {

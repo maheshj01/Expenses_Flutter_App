@@ -2,7 +2,7 @@ import 'package:expense_manager/constants/exports.dart';
 import 'package:expense_manager/model/currency.dart';
 import 'package:expense_manager/model/navbar.dart';
 import 'package:expense_manager/utils/settings.dart';
-import 'package:expense_manager/widgets/dropdown.dart';
+import 'package:expense_manager/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 
 class EmProfile extends StatefulWidget {
@@ -35,92 +35,112 @@ class _EmProfileState extends State<EmProfile> {
   String dropdownValue = 'One';
   @override
   Widget build(BuildContext context) {
-    Widget _subtitle(String subtitle) {
-      return Text(subtitle, style: TextStyle(fontSize: 18));
+    Widget _subtitle(String subtitle, {bool isWarning = false}) {
+      return Text(subtitle,
+          style: TextStyle(fontSize: 18, color: isWarning ? Colors.red : null));
     }
 
     return Material(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: <Widget>[
-          DrawerHeader(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        children: [
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
               children: <Widget>[
-                Container(
-                    child: CircleAvatar(
-                  minRadius: 48,
-                  child: Container(
-                      child: FlutterLogo(
-                    size: 48,
-                  )),
-                )),
-                Container(
-                  child: Text(
-                    "Flutter",
-                    style: ExpenseTheme.textTheme.bodySmall,
+                DrawerHeader(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Container(
+                          child: CircleAvatar(
+                        minRadius: 48,
+                        child: Container(
+                            child: FlutterLogo(
+                          size: 48,
+                        )),
+                      )),
+                      Container(
+                        child: Text(
+                          "Flutter",
+                          style: ExpenseTheme.textTheme.bodySmall,
+                        ),
+                        padding: EdgeInsets.only(bottom: 10),
+                        alignment: Alignment.bottomCenter,
+                      ),
+                    ],
                   ),
-                  padding: EdgeInsets.only(bottom: 10),
-                  alignment: Alignment.bottomCenter,
                 ),
+                // ListTile(
+                //   title: _subtitle('Export File'),
+                //   leading: Icon(Icons.shopping_cart),
+                //   onTap: () {
+                //     // Update the state of the app
+                //     // ...
+                //     Navigator.push(context,
+                //         MaterialPageRoute(builder: (context) => ExpensesListPage()));
+                //   },
+                // ),
+                // ListTile(
+                //   title: _subtitle('Create Alert'),
+                //   leading: Icon(Icons.add_shopping_cart),
+                //   onTap: () {},
+                // ),
+                // ListTile(
+                //   title: _subtitle("Define budget"),
+                //   leading: Icon(Icons.account_balance_wallet_outlined),
+                //   onTap: () {},
+                // ),
+                ListTile(
+                  title: _subtitle('Theme'),
+                  leading: Icon(Icons.color_lens),
+                  trailing: ToggleButtons(
+                      children: const [
+                        Text('Light'),
+                        Text('Dark'),
+                      ],
+                      constraints:
+                          const BoxConstraints(minWidth: 80, minHeight: 40),
+                      onPressed: (int index) {
+                        Settings.setTheme(
+                            index == 1 ? ThemeMode.dark : ThemeMode.light);
+                      },
+                      isSelected: [
+                        Settings.getTheme == ThemeMode.light,
+                        Settings.getTheme == ThemeMode.dark,
+                      ]),
+                  onTap: () {},
+                ),
+                ListTile(
+                    leading: Icon(Icons.currency_bitcoin),
+                    title: _subtitle('Currency'),
+                    trailing: SizedBox(
+                        width: 160,
+                        child: EmDropdownButton<Currency>(
+                            items: currencyList,
+                            onChanged: (newValue) {
+                              Settings.setCurrency(newValue);
+                            },
+                            dropdownItem: (Currency value) => Text(
+                                  '${value.symbol} ${value.name}',
+                                  style: ExpenseTheme.textTheme.subtitle2!
+                                      .copyWith(fontSize: 15),
+                                ),
+                            value: Settings.currency))),
               ],
             ),
           ),
-          // ListTile(
-          //   title: _subtitle('Export File'),
-          //   leading: Icon(Icons.shopping_cart),
-          //   onTap: () {
-          //     // Update the state of the app
-          //     // ...
-          //     Navigator.push(context,
-          //         MaterialPageRoute(builder: (context) => ExpensesListPage()));
-          //   },
-          // ),
-          // ListTile(
-          //   title: _subtitle('Create Alert'),
-          //   leading: Icon(Icons.add_shopping_cart),
-          //   onTap: () {},
-          // ),
-          // ListTile(
-          //   title: _subtitle("Define budget"),
-          //   leading: Icon(Icons.account_balance_wallet_outlined),
-          //   onTap: () {},
-          // ),
-          ListTile(
-            title: _subtitle('Theme'),
-            leading: Icon(Icons.color_lens),
-            trailing: ToggleButtons(
-                children: const [
-                  Text('Light'),
-                  Text('Dark'),
-                ],
-                constraints: const BoxConstraints(minWidth: 80, minHeight: 40),
-                onPressed: (int index) {
-                  Settings.setTheme(
-                      index == 1 ? ThemeMode.dark : ThemeMode.light);
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: EmButton(
+                onTap: () {
+                  Settings.clear();
                 },
-                isSelected: [
-                  Settings.getTheme == ThemeMode.light,
-                  Settings.getTheme == ThemeMode.dark,
-                ]),
-            onTap: () {},
+                type: Button.outlined,
+                text: 'Start over'),
           ),
-          ListTile(
-              leading: Icon(Icons.currency_bitcoin),
-              title: _subtitle('Currency'),
-              trailing: SizedBox(
-                  width: 160,
-                  child: EmDropdownButton<Currency>(
-                      items: currencyList,
-                      onChanged: (newValue) {
-                        Settings.setCurrency(newValue);
-                      },
-                      dropdownItem: (Currency value) => Text(
-                            '${value.symbol} ${value.name}',
-                            style: ExpenseTheme.textTheme.subtitle2!
-                                .copyWith(fontSize: 15),
-                          ),
-                      value: Settings.currency))),
+          SizedBox(
+            height: 100,
+          )
         ],
       ),
     );
