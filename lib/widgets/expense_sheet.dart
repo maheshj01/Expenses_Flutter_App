@@ -3,8 +3,8 @@ import 'package:expense_manager/model/spend.dart';
 import 'package:expense_manager/utils/settings.dart';
 import 'package:expense_manager/widgets/filter_sheet.dart';
 import 'package:expense_manager/widgets/input_field.dart';
+import 'package:expense_manager/widgets/widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:searchfield/searchfield.dart';
 
 class ExpenseSheet extends StatefulWidget {
   final Function(Spend) onSubmit;
@@ -56,7 +56,7 @@ class ExpenseSheetState extends State<ExpenseSheet> {
       return;
     }
     var amount = double.parse(amountController.text);
-    var label = labels.join(',');
+    var label = _selectedLabels.join(',');
 
     /// TODO: WorK on custom scrollview
     final spentValue = spend.copyWith(
@@ -71,7 +71,7 @@ class ExpenseSheetState extends State<ExpenseSheet> {
   }
 
   void deleteLabel(String x) {
-    labels.remove(x);
+    _selectedLabels.remove(x);
     // if (labelController.text.isEmpty) {
     setState(() {});
     //     isAddLabel = false;
@@ -85,9 +85,9 @@ class ExpenseSheetState extends State<ExpenseSheet> {
       });
       return;
     }
-    if (!labels.contains(x.toLowerCase())) {
+    if (!_selectedLabels.contains(x.toLowerCase())) {
       setState(() {
-        labels.add(x.toLowerCase().trim());
+        _selectedLabels.add(x.toLowerCase().trim());
         if (!isTap) {
           isAddLabel = false;
         }
@@ -99,11 +99,14 @@ class ExpenseSheetState extends State<ExpenseSheet> {
   Spend spend = Spend(value: 0, type: SpendType.once, description: '');
   int selectedIndex = 0;
   bool isAddLabel = false;
-  List<String> labels = [];
+  List<String> _selectedLabels = [];
   @override
   Widget build(BuildContext context) {
     return Column(
       children: <Widget>[
+        SizedBox(
+          height: 16,
+        ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
@@ -137,126 +140,97 @@ class ExpenseSheetState extends State<ExpenseSheet> {
             isSelected: [for (int i = 0; i < 3; i++) selectedIndex == i],
           ),
         ),
+        title('Category'),
         SizedBox(
-          height: labels.isEmpty ? 0 : 40,
+          height: _selectedLabels.isEmpty ? 0 : 40,
           child: ListView(
             scrollDirection: Axis.horizontal,
             children: [
-              for (int i = 0; i < labels.length; i++)
+              for (int i = 0; i < _selectedLabels.length; i++)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
                   child: Chip(
-                      onDeleted: () => deleteLabel(labels[i]),
+                      onDeleted: () => deleteLabel(_selectedLabels[i]),
                       label: Text(
-                        '${labels[i]}',
+                        '${_selectedLabels[i]}',
                         style: ExpenseTheme.rupeeStyle,
                       )),
                 ),
             ],
           ),
         ),
-        InkWell(
-          onTap: () {
-            setState(() {
-              isAddLabel = true;
-            });
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0) +
-                EdgeInsets.only(top: 8, bottom: 16),
-            child: Row(children: [
-              Icon(Icons.add, size: 30),
-              Text(
-                'Add Label',
-                style: ExpenseTheme.rupeeStyle,
-              )
-            ]),
-          ),
+        SizedBox(
+          height: 16,
         ),
-        isAddLabel
-            ? Column(
+        StreamBuilder<List<String>>(
+            stream: expenseService.labelStream,
+            builder:
+                (BuildContext context, AsyncSnapshot<List<String>> snapshot) {
+              final List<String>? allLabels =
+                  snapshot.data == null ? [] : snapshot.data;
+              return Column(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0) +
-                        EdgeInsets.only(bottom: 16),
-                    child: Row(
-                      children: [
-                        Expanded(
-                            child: StreamBuilder<List<String>>(
-                                stream: expenseService.labelStream,
-                                builder: (BuildContext context,
-                                    AsyncSnapshot<List<String>> snapshot) {
-                                  final List<String>? labels =
-                                      snapshot.data == null
-                                          ? []
-                                          : snapshot.data;
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 12.0),
-                                    child: SearchField<String>(
-                                      suggestions: labels!
-                                          .map((e) =>
-                                              SearchFieldListItem<String>(e,
-                                                  child: Text(e)))
-                                          .toList(),
-                                      searchStyle: ExpenseTheme.rupeeStyle,
-                                      controller: labelController,
-                                      maxSuggestionsInViewPort: 3,
-                                      hasOverlay: false,
-                                      itemHeight: 40,
-                                      onSubmit: (x) {
-                                        if (!labels.contains(x.toLowerCase())) {
-                                          labels.add(x.toLowerCase());
-                                        }
-                                        setState(() {});
-                                        labelController.clear();
-                                      },
-                                      suggestionsDecoration: BoxDecoration(
-                                          color: ExpenseTheme
-                                              .colorScheme.background),
-                                      suggestionItemDecoration: BoxDecoration(
-                                          color: ExpenseTheme
-                                              .colorScheme.background),
-                                      searchInputDecoration: InputDecoration(
-                                        hintText: 'e.g Entertainment',
-                                        hintStyle: ExpenseTheme.rupeeStyle,
-                                        prefixStyle: ExpenseTheme.rupeeStyle,
-                                        counterText: "",
-                                        floatingLabelBehavior:
-                                            FloatingLabelBehavior.never,
-                                        labelStyle: ExpenseTheme.rupeeStyle,
-                                        enabledBorder: inputBorder,
-                                        focusedBorder: inputBorder,
-                                        border: inputBorder,
-                                        filled: true,
-                                        fillColor:
-                                            Colors.black38.withOpacity(0.1),
-                                      ),
-                                    ),
-                                  );
-
-                                  // LabelsFilterWidget(
-                                  //   labels: labels!,
-                                  //   selectedlabels: labels,
-                                  //   color: ExpenseTheme.colorScheme.primary,
-                                  //   onTap: (x) {
-                                  //     addLabel(x, isTap: true);
-                                  //   },
-                                  // );
-                                })),
-                        SizedBox(
-                          width: 20,
-                        ),
-                        EmIcon(Icons.done,
-                            size: 32,
-                            onTap: () =>
-                                addLabel(labelController.text, isTap: false))
-                      ],
+                  LabelsFilterWidget(
+                    labels: allLabels!,
+                    selectedlabels: _selectedLabels,
+                    color: ExpenseTheme.colorScheme.primary,
+                    onTap: (x) {
+                      if (x.isEmpty) {}
+                      addLabel(x, isTap: true);
+                    },
+                    trailing: InkWell(
+                      onTap: () {
+                        setState(() {
+                          isAddLabel = true;
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0) +
+                            EdgeInsets.only(top: 8, bottom: 16),
+                        child: Row(children: [
+                          Icon(Icons.add, size: 30),
+                          Text(
+                            'Add Label',
+                            style: ExpenseTheme.rupeeStyle,
+                          )
+                        ]),
+                      ),
                     ),
                   ),
+                  isAddLabel
+                      ? Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0) +
+                              EdgeInsets.only(bottom: 16),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  margin:
+                                      const EdgeInsets.symmetric(vertical: 12),
+                                  child: SizedBox(
+                                    width: 10,
+                                    child: EMInputField(
+                                        hintText: 'e.g Entertainment',
+                                        style: ExpenseTheme.rupeeStyle,
+                                        controller: labelController,
+                                        onSubmit: (x) => addLabel(x)),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: 20,
+                              ),
+                              EmIcon(Icons.done,
+                                  size: 32,
+                                  onTap: () => addLabel(labelController.text,
+                                      isTap: false))
+                            ],
+                          ),
+                        )
+                      : SizedBox(),
                 ],
-              )
-            : SizedBox(),
+              );
+            }),
         Container(
           margin: EdgeInsets.symmetric(horizontal: 10),
           child: _expenseDescriptionField(),

@@ -1,5 +1,7 @@
 import 'package:expense_manager/constants/exports.dart';
 import 'package:expense_manager/model/filter.dart';
+import 'package:expense_manager/widgets/button.dart';
+import 'package:expense_manager/widgets/widgets_helper.dart';
 import 'package:flutter/material.dart';
 
 class FilterSheet extends StatefulWidget {
@@ -25,6 +27,7 @@ class _FilterSheetState extends State<FilterSheet> {
   }
 
   Future<void> onLabelTap(String x) async {
+    if (x.isEmpty) return;
     if (!_filter.labels.contains(x)) {
       setState(() {
         _filter.labels.add(x);
@@ -63,16 +66,6 @@ class _FilterSheetState extends State<FilterSheet> {
                   : SizedBox()
             ],
           ));
-    }
-
-    Widget title(String title) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Text(
-          '$title',
-          style: ExpenseTheme.textTheme.headline4,
-        ),
-      );
     }
 
     return Padding(
@@ -147,17 +140,23 @@ class LabelsFilterWidget extends StatelessWidget {
       this.onTap,
       required this.color,
       required this.labels,
+      this.trailing,
       required this.selectedlabels})
       : super(key: key);
   final Function(String)? onTap;
   final Color color;
   final List<String> labels;
+  final Widget? trailing;
   final List<String> selectedlabels;
 
   @override
   Widget build(BuildContext context) {
+    final int length = trailing != null ? labels.length + 1 : labels.length;
     return Wrap(
-        children: List.generate(labels.length, (index) {
+        children: List.generate(length, (index) {
+      if (trailing != null && index == length - 1) {
+        return trailing!;
+      }
       final label = labels[index];
       bool isSelected = selectedlabels.contains(label);
       return GestureDetector(
@@ -219,55 +218,5 @@ class EmIcon extends StatelessWidget {
           color: Colors.white,
           onPressed: () => onTap()),
     );
-  }
-}
-
-enum Button { elevated, outlined }
-
-class EmButton extends StatefulWidget {
-  final String text;
-  final Function onTap;
-  final Button type;
-  const EmButton(
-      {Key? key,
-      required this.onTap,
-      required this.text,
-      this.type = Button.elevated})
-      : super(key: key);
-
-  @override
-  State<EmButton> createState() => _EmButtonState();
-}
-
-class _EmButtonState extends State<EmButton> {
-  @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    if (widget.type == Button.elevated) {
-      return ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          minimumSize: Size(size.width, 48),
-          maximumSize: Size(size.width, 48),
-        ),
-        onPressed: () => widget.onTap(),
-        child: Text(
-          '${widget.text}',
-          style: TextStyle(color: Colors.white),
-        ),
-      );
-    } else {
-      return OutlinedButton(
-          style: OutlinedButton.styleFrom(
-              minimumSize: Size(size.width, 48),
-              maximumSize: Size(size.width, 48),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              side: BorderSide(
-                color: Colors.red,
-              )),
-          onPressed: () => widget.onTap(),
-          child: Text('${widget.text}'));
-    }
   }
 }

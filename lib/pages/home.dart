@@ -1,4 +1,3 @@
-import 'package:expense_manager/constants/strings.dart';
 import 'package:expense_manager/model/model.dart';
 import 'package:expense_manager/model/navbar.dart';
 import 'package:expense_manager/model/spend.dart';

@@ -1,4 +1,5 @@
 import 'package:expense_manager/constants/exports.dart';
+import 'package:expense_manager/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 
 class EmDropdownButton<T> extends StatefulWidget {
@@ -22,21 +23,24 @@ class EmDropdownButton<T> extends StatefulWidget {
 class _EmDropdownButtonState<T> extends State<EmDropdownButton<T>> {
   @override
   Widget build(BuildContext context) {
+    final primary = ExpenseTheme.colorScheme.primary;
     return Container(
       alignment: Alignment.center,
       height: 52,
       padding: EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
-          color: ExpenseTheme.colorScheme.inversePrimary,
-          borderRadius: BorderRadius.circular(10)),
+          border: Border.all(color: primary, width: 2),
+          color: primary.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(
+            10,
+          )),
       child: DropdownButton<T>(
         value: widget.value,
         isExpanded: true,
-        icon: Icon(Icons.keyboard_arrow_down_rounded,
-            color: ExpenseTheme.isDark ? Colors.deepPurple : Colors.black),
+        icon: Icon(Icons.keyboard_arrow_down_rounded, color: primary),
         iconSize: 32,
         style: ExpenseTheme.textTheme.subtitle2!
-            .copyWith(color: Colors.deepPurple, fontSize: 15),
+            .copyWith(color: primary, fontSize: 15),
         underline: SizedBox(),
         onChanged: (T? newValue) => widget.onChanged(newValue!),
         menuMaxHeight: 200,

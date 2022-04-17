@@ -1,3 +1,4 @@
+import 'package:expense_manager/themes/expense_theme.dart';
 import 'package:flutter/material.dart';
 
 Future<void> showEMBottomSheet(BuildContext context, Widget child) {
@@ -18,3 +19,13 @@ Future<void> showEMBottomSheet(BuildContext context, Widget child) {
                       topRight: Radius.circular(20))),
               child: child)));
 }
+
+Widget title(String title) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Text(
+          '$title',
+          style: ExpenseTheme.textTheme.headline4,
+        ),
+      );
+    }

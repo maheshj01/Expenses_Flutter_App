@@ -66,58 +66,59 @@ class _ExpenseListTileState extends State<ExpenseListTile> {
               ),
               height: 120,
               margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: Row(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Container(
-                            alignment: Alignment.centerLeft,
-                            padding:
-                                EdgeInsets.only(left: 10, right: 5, top: 8),
-                            child: Text(
-                              widget.model.description!,
-                              textAlign: TextAlign.justify,
-                              style: TextStyle(
-                                color: Colors.white,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 2,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Flexible(
+                        child: Container(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            widget.model.description!,
+                            textAlign: TextAlign.justify,
+                            style: TextStyle(
+                              color: Colors.white,
                             ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
                           ),
                         ),
-                        labels.isEmpty
-                            ? SizedBox()
-                            : Padding(
-                                padding: const EdgeInsets.only(top: 8.0),
-                                child: Row(
-                                  children: [
-                                    for (int i = 0; i < labels.length; i++)
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 4.0),
-                                        child:
-                                            Chip(label: Text('${labels[i]}')),
-                                      )
-                                  ],
-                                ),
-                              )
-                      ],
-                    ),
+                      ),
+                      SizedBox(
+                        width: 8,
+                      ),
+                      Container(
+                        alignment: Alignment.bottomCenter,
+                        padding: EdgeInsets.only(top: 24),
+                        child: TotalSpentValue(
+                          currency: Settings.currency.symbol,
+                          value: widget.model.amount!,
+                          hasLabel: false,
+                          color: ExpenseTheme.darkColorScheme.primary,
+                        ),
+                      )
+                    ],
                   ),
-                  SizedBox(
-                    width: 8,
-                  ),
-                  TotalSpentValue(
-                    currency: Settings.currency.symbol,
-                    value: widget.model.amount!,
-                    hasLabel: false,
-                    color: ExpenseTheme.darkColorScheme.primary,
-                  )
+                  labels.isEmpty
+                      ? SizedBox()
+                      : Container(
+                          height: 50,
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            children: [
+                              for (int i = 0; i < labels.length; i++)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 4.0),
+                                  child: Chip(label: Text('${labels[i]}')),
+                                )
+                            ],
+                          ),
+                        )
                 ],
               ),
             ),

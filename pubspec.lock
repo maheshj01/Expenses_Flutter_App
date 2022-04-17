@@ -506,13 +506,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.27.3"
-  searchfield:
-    dependency: "direct main"
-    description:
-      name: searchfield
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.6.3"
   shared_preferences:
     dependency: "direct main"
     description:

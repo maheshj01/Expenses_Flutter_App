@@ -160,7 +160,7 @@ class _ExpensesListPageState extends State<ExpensesListPage>
                               Flexible(
                                 child: Container(
                                   padding: EdgeInsets.only(left: 16),
-                                  width: 140,
+                                  width: 150,
                                   child: EmDropdownButton<String>(
                                       items: expenseBy,
                                       onChanged: (x) async {
