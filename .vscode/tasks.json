@@ -1,0 +1,57 @@
+{
+       "version": "2.0.0", 
+    "tasks": [
+        {
+            "type": "flutter",
+            "command": "flutter",
+            "args": [
+                "clean",
+            ],
+            "group": "none",
+            "dependsOrder": "sequence",
+            "label": "flutter clean",
+            "detail": "Clean up",
+            "runOptions": {
+                "runOn": "folderOpen"
+            }
+        },
+        {
+            "type": "flutter",
+            "command": "flutter",
+            "args": [
+                "pub",
+                "get"
+            ],
+            "dependsOrder": "sequence",
+            "dependsOn":"flutter clean",
+            "group": "none",
+            "label": "flutter pub get",
+            "detail": "get flutter pub packages",
+            "runOptions": {
+                "runOn": "folderOpen"
+            }
+        },
+        {
+            "type": "flutter",
+            "command": "flutter",
+            "dependsOrder": "sequence",
+            "dependsOn":"flutter pub get",
+            "args": [
+                "pub",
+                "run",
+                "build_runner",
+                "build",
+                "--delete-conflicting-outputs"
+            ],
+            "problemMatcher": [
+                "$dart-build_runner"
+            ],
+            "group": "build",
+            "label": "flutter: flutter pub run build_runner build",
+            "detail": "Generate files",
+            "runOptions": {
+                "runOn": "folderOpen"
+            }
+        }
+    ]
+}

@@ -3,6 +3,7 @@
     "files.exclude": {
        "build":true,
        "test":true,
+       ".vscode":false,
        ".*":true,
        "web":true,
        "android":false,
@@ -10,4 +11,5 @@
        "windows":true,
        "macos":true,
     }
+
 }
