@@ -1,10 +1,8 @@
-import 'package:expense_manager/model/model.dart';
+import 'package:expense_manager/model/expense.dart';
 import 'package:expense_manager/model/navbar.dart';
-import 'package:expense_manager/model/spend.dart';
 import 'package:expense_manager/pages/expense_page.dart';
 import 'package:expense_manager/themes/expense_theme.dart';
 import 'package:expense_manager/utils/settings.dart';
-import 'package:expense_manager/utils/utils.dart';
 import 'package:expense_manager/widgets/animated_indexed_stack.dart';
 import 'package:expense_manager/widgets/expense_sheet.dart';
 import 'package:expense_manager/widgets/navbar.dart';
@@ -58,15 +56,14 @@ class _HomePageState extends State<HomePage> {
     //     value,
     //     false));
     showEMBottomSheet(context, ExpenseSheet(
-      onSubmit: (Spend spend) {
-        expenseService.expenseModelStreamSink.add(Expense.withFields(
-            DateTime.now(),
-            spend.value,
-            spend.description,
-            spend.type.name.capitalize(),
-            spend.label,
-            0.0,
-            false));
+      onSubmit: (Expense spend) {
+        expenseService.expenseModelStreamSink.add(Expense(
+          amount: spend.amount,
+          description: spend.description,
+          type: spend.type,
+          labels: spend.labels,
+          dateTime: DateTime.now(),
+        ));
       },
     ));
   }

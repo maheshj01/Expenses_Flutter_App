@@ -1,4 +1,5 @@
-import 'package:expense_manager/model/model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:expense_manager/model/expense.dart';
 
 class DataBaseService {
   static final DataBaseService _singleton = DataBaseService._internal();
@@ -8,32 +9,33 @@ class DataBaseService {
   }
 
   DataBaseService._internal();
-
-  static Future<int> insertExpense(Expense model, double total) async {
+  static FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  static final expensesRef = _firestore
+      .collection('users')
+      .doc('elon@spacex.com')
+      .collection('expenses');
+      
+  static Future<String> insertExpense(Expense model) async {
     // TODO: query to insert a new Expense into Database
     final expense = Expense(
         amount: model.amount,
         description: model.description,
-        total: total,
-        datetime: model.datetime ?? DateTime.now(),
-        type: model.type!,
-        label: model.label,
-        isDeleted: false);
-    final saved = await expense.save();
-    if (expense.saveResult!.success)
-      print(expense.saveResult.toString());
-    else
-      print("failed to save to database ${expense.saveResult!.errorMessage}");
-    await getExpenses().then((expenseList) {
-      print("length = " + expenseList.length.toString());
-      print("total = " + expenseList[expenseList.length - 1].total.toString());
-    });
-    return saved!;
+        dateTime: model.dateTime,
+        type: model.type,
+        labels: model.labels);
+    final json = expense.toJson();
+    final ref = await expensesRef.add(json);
+    return ref.id;
   }
 
   static Future<List<Expense>> getExpenses() async {
     try {
-      final expenses = await Expense().select().toList();
+      List<Expense> expenses = [];
+      final querySnapshot = await expensesRef.get();
+      querySnapshot.docs.forEach((doc) {
+        final expense = Expense.fromJson(doc.data());
+        expenses.add(expense);
+      });
       return expenses;
     } catch (_) {
       print('Exception occured $_');
@@ -44,15 +46,21 @@ class DataBaseService {
   static Future<Expense?> getLastExpense() async {
     try {
       final expenseListInDesc =
-          await Expense().select().orderByDesc('id').toList();
-      if (expenseListInDesc.isEmpty) {
+          await expensesRef.orderBy('date', descending: true).get();
+      final docs = expenseListInDesc.docs;
+      if (docs.isEmpty) {
         return null;
       } else {
-        return expenseListInDesc[0];
+        final expenseMap = docs.first.data();
+        return Expense.fromJson(expenseMap);
       }
     } catch (_) {
       print('Exception occured $_');
       return null;
     }
+  }
+
+  static Future<void> removeExpense(String docId) async {
+    await expensesRef.doc(docId).delete();
   }
 }

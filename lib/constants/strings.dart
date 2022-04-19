@@ -1,4 +1,3 @@
-import 'package:expense_manager/model/spend.dart';
 import 'package:flutter/material.dart';
 
 const pages = ["LoginPage", "ExpensePage", "HomePage", "SettingsPage"];
@@ -19,6 +18,8 @@ const emptyListMessage = [
 ];
 
 const String dateFormatter = 'MMMM dd, y';
+
+enum SpendType { once, monthly, weekly }
 
 List<SpendType> expenseTypes = [
   SpendType.once,

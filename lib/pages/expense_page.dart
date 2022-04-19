@@ -1,12 +1,13 @@
 import 'dart:math';
 
+import 'package:expense_manager/model/expense.dart';
+import 'package:expense_manager/utils/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:expense_manager/constants/exports.dart';
 import 'package:expense_manager/model/filter.dart';
 import 'package:expense_manager/utils/settings.dart';
 import 'package:expense_manager/widgets/widgets.dart';
 import 'package:expense_manager/services/expense.dart';
-import 'package:expense_manager/model/model.dart';
 
 class ExpensesListPage extends StatefulWidget {
   final ScrollController? scrollController;
@@ -62,7 +63,7 @@ class _ExpensesListPageState extends State<ExpensesListPage>
       filteredList = expenses;
     } else {
       expenses.forEach((expense) {
-        final expenseLabels = expense.label!.split(',').toList();
+        final expenseLabels = expense.labels;
         expenseLabels.forEach((label) {
           if (x.labels.contains(label) &&
               !filteredList.containsObject(expense)) {
@@ -225,7 +226,7 @@ class _ExpensesListPageState extends State<ExpensesListPage>
                             } else {
                               final prevItem = list[index - 1];
                               isSameDate =
-                                  item.datetime!.isSameDate(prevItem.datetime!);
+                                  item.dateTime!.isSameDate(prevItem.dateTime!);
                             }
                             if (index == 0 || !(isSameDate)) {
                               return Column(
@@ -233,7 +234,7 @@ class _ExpensesListPageState extends State<ExpensesListPage>
                                   SizedBox(
                                     height: 12,
                                   ),
-                                  Text(item.datetime!.formatDate()),
+                                  Text(item.dateTime!.formatDate()),
                                   ExpenseListTile(
                                     model: list[index],
                                     controller: _animationController,

@@ -1,13 +1,12 @@
 import 'package:expense_manager/constants/exports.dart';
-import 'package:expense_manager/model/spend.dart';
+import 'package:expense_manager/model/expense.dart';
+import 'package:expense_manager/utils/extensions.dart';
 import 'package:expense_manager/utils/settings.dart';
-import 'package:expense_manager/widgets/filter_sheet.dart';
-import 'package:expense_manager/widgets/input_field.dart';
 import 'package:expense_manager/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 
 class ExpenseSheet extends StatefulWidget {
-  final Function(Spend) onSubmit;
+  final Function(Expense) onSubmit;
   const ExpenseSheet({Key? key, required this.onSubmit}) : super(key: key);
 
   @override
@@ -60,9 +59,9 @@ class ExpenseSheetState extends State<ExpenseSheet> {
 
     /// TODO: WorK on custom scrollview
     final spentValue = spend.copyWith(
-        value: amount,
+        amount: amount,
         description: description,
-        label: label,
+        labels: _selectedLabels,
         type: expenseTypes[selectedIndex]);
     amountController.clear();
     descriptionController.clear();
@@ -96,7 +95,7 @@ class ExpenseSheetState extends State<ExpenseSheet> {
     }
   }
 
-  Spend spend = Spend(value: 0, type: SpendType.once, description: '');
+  Expense spend = Expense(amount: 0, type: SpendType.once, description: '');
   int selectedIndex = 0;
   bool isAddLabel = false;
   List<String> _selectedLabels = [];

@@ -1,5 +1,5 @@
 import 'package:expense_manager/constants/exports.dart';
-import 'package:expense_manager/model/model.dart';
+import 'package:expense_manager/model/expense.dart';
 import 'package:expense_manager/utils/settings.dart';
 import 'package:flutter/material.dart';
 
@@ -27,7 +27,6 @@ class _ExpenseListTileState extends State<ExpenseListTile> {
   late double end;
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     start = (widget.durationInMilliSeconds * widget.index).toDouble() * 0.2;
     end = start + widget.durationInMilliSeconds;
@@ -52,8 +51,8 @@ class _ExpenseListTileState extends State<ExpenseListTile> {
         animation: _animation,
         builder: (context, snapshot) {
           List<String> labels = [];
-          if (!widget.model.label!.isEmpty) {
-            labels = widget.model.label!.split(',').toList();
+          if (widget.model.labels.isNotEmpty) {
+            labels = widget.model.labels;
           }
           return SlideTransition(
             position: _animation,
@@ -77,7 +76,7 @@ class _ExpenseListTileState extends State<ExpenseListTile> {
                         child: Container(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            widget.model.description!,
+                            widget.model.description,
                             textAlign: TextAlign.justify,
                             style: TextStyle(
                               color: Colors.white,
@@ -95,7 +94,7 @@ class _ExpenseListTileState extends State<ExpenseListTile> {
                         padding: EdgeInsets.only(top: 24),
                         child: TotalSpentValue(
                           currency: Settings.currency.symbol,
-                          value: widget.model.amount!,
+                          value: widget.model.amount,
                           hasLabel: false,
                           color: ExpenseTheme.darkColorScheme.primary,
                         ),

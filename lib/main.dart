@@ -1,12 +1,17 @@
 import 'package:expense_manager/constants/exports.dart';
+import 'package:expense_manager/firebase_options.dart';
 import 'package:expense_manager/pages/home.dart';
 import 'package:expense_manager/utils/settings.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Settings.init();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(MyApp());
 }
 

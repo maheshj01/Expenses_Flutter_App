@@ -1,8 +1,9 @@
 import 'dart:async';
 
-import 'package:expense_manager/model/model.dart';
+import 'package:expense_manager/model/expense.dart';
 import 'package:expense_manager/services/database/database_service.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ExpenseService {
   final totalExpenseController = BehaviorSubject<double>();
@@ -39,8 +40,8 @@ class ExpenseService {
       if (expenseList.length > 0) {
         expenseList.forEach((element) {
           /// label is a commas separated string
-          if (element.label!.isNotEmpty) {
-            final expenseLabels = element.label!.split(',').toList();
+          if (element.labels.isNotEmpty) {
+            final expenseLabels = element.labels;
             expenseLabels.forEach((label) {
               if (!labels.contains(label)) {
                 labels.add(label);
@@ -63,6 +64,20 @@ class ExpenseService {
     } catch (error) {
       print("error fetching expenses=>" + error.toString());
     }
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc('elon@spacex.com')
+        .collection('expenses')
+        .get()
+        .then((QuerySnapshot value) {
+      if (value.docs.length > 0) {
+        value.docs.forEach((doc) {
+          print(doc["amount"]);
+        });
+      } else {
+        print('Document does not exist on the database');
+      }
+    });
   }
 
   Future<List<Expense>> getExpenses() async {
@@ -81,7 +96,7 @@ class ExpenseService {
     }
     double totalExpenses = 0.0;
     expenses.forEach((element) {
-      totalExpenses += element.amount!;
+      totalExpenses += element.amount;
     });
     totalExpenseStreamSink.add(totalExpenses);
   }
@@ -93,7 +108,7 @@ class ExpenseService {
   Future<void> onExpenseAdded(Expense modal) async {
     final lastExpense = await getLastExpenseFromDb();
     final lastAmount = lastExpense == null ? 0.0 : lastExpense.amount;
-    final totalExpense = lastAmount! + modal.amount!;
+    final totalExpense = lastAmount + modal.amount;
     totalExpenseStreamSink.add(totalExpense);
     await insertDb(modal, totalExpense);
     loadTheExpenses();
@@ -112,15 +127,15 @@ class ExpenseService {
   Future<void> insertDb(Expense model, double total) async {
     // TODO: query to insert a new Expense into Database
     try {
-      DataBaseService.insertExpense(model, total);
+      final id = await DataBaseService.insertExpense(model);
+      print('Expense inserted with id $id');
     } catch (_) {
       print('Exception occured $_');
     }
   }
 
-  void removeExpenseItem(Expense removeModel) async {
-    var result = Expense().select().id.equals(removeModel.id).delete();
-    loadTheExpenses();
+  void removeExpenseItem(String docId) async {
+    await DataBaseService.removeExpense(docId);
   }
 
   void dispose() {
