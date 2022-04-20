@@ -101,164 +101,174 @@ class _ExpensesListPageState extends State<ExpensesListPage>
                   totalItems = expenseSnapshot.data!.length;
                   animationDuration = totalItems / 100; // in seconds
                   _animationController.forward();
-                  return CustomScrollView(
+                  return NestedScrollView(
                     controller: _controller,
-                    slivers: <Widget>[
+                    headerSliverBuilder: (context, bool) => <Widget>[
                       SliverAppBar(
                         pinned: true,
                         floating: true,
-                        expandedHeight: 160.0,
+                        expandedHeight: 200.0,
                         flexibleSpace: FlexibleSpaceBar(
-                          background: Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                end: Alignment.bottomCenter,
-                                begin: Alignment.topCenter,
-                                colors: ExpenseTheme.isDark
-                                    ? [
-                                        ExpenseTheme.darkColorScheme.surface,
-                                        ExpenseTheme.darkColorScheme.background,
-                                      ]
-                                    : [
-                                        ExpenseTheme.lightColorScheme.surface,
-                                        ExpenseTheme
-                                            .lightColorScheme.background,
-                                      ],
-                              ),
-                            ),
-                          ),
-                          expandedTitleScale: 1.2,
-                          titlePadding: EdgeInsets.only(
-                            top: kToolbarHeight * 1.5,
-                          ),
-                          title: OverflowBox(
-                              maxHeight: 200,
-                              child: StreamBuilder(
-                                  stream: expenseService.totalExpenseController,
-                                  builder: (BuildContext context,
-                                      AsyncSnapshot<double> totalSnapshot) {
-                                    if (totalSnapshot.data == null) {
-                                      return SizedBox();
-                                    }
-                                    return TotalSpentValue(
-                                      currency: Settings.currency.symbol,
-                                      value: totalSnapshot.data!,
-                                    );
-                                  })),
-                        ),
-                      ),
-                      SliverAppBar(
-                        pinned: true,
-                        leading: SizedBox(),
-                        titleSpacing: 0,
-                        toolbarHeight: 18,
-                        flexibleSpace: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Flexible(
-                                child: Container(
-                                  padding: EdgeInsets.only(left: 16),
-                                  width: 150,
-                                  child: EmDropdownButton<String>(
-                                      items: expenseBy,
-                                      onChanged: (x) async {
-                                        if (expenseByDefault == x) return;
-                                        setState(() {
-                                          expenseByDefault = x;
-                                        });
-                                        final filterExpenses =
-                                            await expenseService.getExpenses();
-                                        final filteredExpenses = showExpenseFor(
-                                            expenseByDefault, filterExpenses);
-                                        applyFilter(filter,
-                                            filteredExpense: filteredExpenses);
-                                      },
-                                      dropdownItem: (x) => Text(
-                                            x,
-                                            style: ExpenseTheme
-                                                .textTheme.headline4!
-                                                .copyWith(
-                                                    fontWeight:
-                                                        FontWeight.normal),
-                                          ),
-                                      value: expenseByDefault),
+                            background: Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    end: Alignment.bottomCenter,
+                                    begin: Alignment.topCenter,
+                                    colors: ExpenseTheme.isDark
+                                        ? [
+                                            ExpenseTheme
+                                                .darkColorScheme.surface,
+                                            ExpenseTheme
+                                                .darkColorScheme.background,
+                                          ]
+                                        : [
+                                            ExpenseTheme
+                                                .lightColorScheme.surface,
+                                            ExpenseTheme
+                                                .lightColorScheme.background,
+                                          ],
+                                  ),
                                 ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(right: 8.0),
-                                child: IconButton(
-                                    icon: Icon(Icons.sort,
-                                        color:
-                                            ExpenseTheme.colorScheme.primary),
-                                    onPressed: () {
-                                      _showFilterSheet(onFilter: (x) async {
-                                        return applyFilter(x);
-                                      });
-                                    }),
-                              ),
-                            ],
-                          ),
-                        ),
+                                child: StreamBuilder(
+                                    stream:
+                                        expenseService.totalExpenseController,
+                                    builder: (BuildContext context,
+                                        AsyncSnapshot<double> totalSnapshot) {
+                                      if (totalSnapshot.data == null) {
+                                        return SizedBox();
+                                      }
+                                      return TotalSpentValue(
+                                        currency: Settings.currency.symbol,
+                                        value: totalSnapshot.data!,
+                                      );
+                                    })),
+                            expandedTitleScale: 1.1,
+                            centerTitle: true,
+                            collapseMode: CollapseMode.parallax,
+                            titlePadding:
+                                EdgeInsets.only(top: kToolbarHeight, bottom: 4),
+                            title: SliverTitleWidget(
+                                dropDownValue: expenseByDefault,
+                                onDropdownTap: (x) async {
+                                  if (expenseByDefault == x) return;
+                                  setState(() {
+                                    expenseByDefault = x;
+                                  });
+                                  final filterExpenses =
+                                      await expenseService.getExpenses();
+                                  final filteredExpenses = showExpenseFor(
+                                      expenseByDefault, filterExpenses);
+                                  applyFilter(filter,
+                                      filteredExpense: filteredExpenses);
+                                },
+                                onFilterTap: () {
+                                  _showFilterSheet(onFilter: (x) async {
+                                    return applyFilter(x);
+                                  });
+                                })),
                       ),
-                      if (expenseSnapshot.data!.isEmpty)
-                        SliverToBoxAdapter(
-                          child: Center(
-                              child: Text(
-                                  emptyListMessage[Random()
-                                      .nextInt(emptyListMessage.length)],
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 16))),
-                        )
-                      else
-                        SliverList(
-                            delegate: SliverChildBuilderDelegate(
-                          (BuildContext context, int index) {
-                            bool isSameDate = true;
-                            final list =
-                                expenseSnapshot.data!.reversed.toList();
-                            final item = list[index];
-                            if (index == 0) {
-                              isSameDate = false;
-                            } else {
-                              final prevItem = list[index - 1];
-                              isSameDate =
-                                  item.dateTime!.isSameDate(prevItem.dateTime!);
-                            }
-                            if (index == 0 || !(isSameDate)) {
-                              return Column(
-                                children: [
-                                  SizedBox(
-                                    height: 12,
-                                  ),
-                                  Text(item.dateTime!.formatDate()),
-                                  ExpenseListTile(
-                                    model: list[index],
-                                    controller: _animationController,
-                                    durationInMilliSeconds: animationDuration,
-                                    index: index,
-                                  ),
-                                ],
-                              );
-                            } else {
-                              return ExpenseListTile(
-                                model: list[index],
-                                controller: _animationController,
-                                durationInMilliSeconds: animationDuration,
-                                index: index,
-                              );
-                            }
-                          },
-                          childCount: expenseSnapshot.data!.length,
-                        ))
                     ],
+                    body: expenseSnapshot.data!.isEmpty
+                        ? Center(
+                            child: Text(
+                                emptyListMessage[
+                                    Random().nextInt(emptyListMessage.length)],
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 16)))
+                        : ListView.builder(
+                            padding: EdgeInsets.only(
+                                bottom: kBottomNavigationBarHeight),
+                            itemBuilder: (BuildContext context, int index) {
+                              bool isSameDate = true;
+                              final list =
+                                  expenseSnapshot.data!.reversed.toList();
+                              final item = list[index];
+                              if (index == 0) {
+                                isSameDate = false;
+                              } else {
+                                final prevItem = list[index - 1];
+                                isSameDate = item.dateTime!
+                                    .isSameDate(prevItem.dateTime!);
+                              }
+                              if (index == 0 || !(isSameDate)) {
+                                return Column(
+                                  children: [
+                                    SizedBox(
+                                      height: 12,
+                                    ),
+                                    Text(item.dateTime!.formatDate()),
+                                    ExpenseListTile(
+                                      model: list[index],
+                                      controller: _animationController,
+                                      durationInMilliSeconds: animationDuration,
+                                      index: index,
+                                    ),
+                                  ],
+                                );
+                              } else {
+                                return ExpenseListTile(
+                                  model: list[index],
+                                  controller: _animationController,
+                                  durationInMilliSeconds: animationDuration,
+                                  index: index,
+                                );
+                              }
+                            },
+                            itemCount: expenseSnapshot.data!.length,
+                          ),
                   );
                 }
               },
             )));
+  }
+}
+
+class SliverTitleWidget extends StatefulWidget {
+  final Function(String) onDropdownTap;
+  final Function onFilterTap;
+  final String dropDownValue;
+  const SliverTitleWidget(
+      {Key? key,
+      required this.onDropdownTap,
+      required this.onFilterTap,
+      required this.dropDownValue})
+      : super(key: key);
+
+  @override
+  State<SliverTitleWidget> createState() => _SliverTitleWidgetState();
+}
+
+class _SliverTitleWidgetState extends State<SliverTitleWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Flexible(
+          child: Container(
+            padding: EdgeInsets.only(left: 16),
+            width: 150,
+            child: EmDropdownButton<String>(
+                items: expenseBy,
+                onChanged: (x) async => await widget.onDropdownTap(x),
+                dropdownItem: (x) => Text(
+                      x,
+                      style: ExpenseTheme.textTheme.headline4!
+                          .copyWith(fontWeight: FontWeight.normal),
+                    ),
+                value: widget.dropDownValue),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(right: 8.0),
+          child: IconButton(
+              icon: Icon(Icons.sort, color: ExpenseTheme.colorScheme.primary),
+              onPressed: () => widget.onFilterTap()),
+        ),
+      ],
+    );
   }
 }
 
