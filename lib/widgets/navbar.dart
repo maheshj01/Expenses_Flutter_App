@@ -11,7 +11,7 @@ class AdaptiveNavBar extends StatefulWidget {
   /// For Desktop platforms navbar is always visible
   final bool isHidden;
   final Function(int index)? onChanged;
-  final List<MenuItem> items;
+  final List<Menu> items;
   const AdaptiveNavBar(
       {Key? key,
       required this.index,
@@ -26,26 +26,27 @@ class AdaptiveNavBar extends StatefulWidget {
 }
 
 class _AdaptiveNavBarState extends State<AdaptiveNavBar> {
-  List<MenuItem> _items = [];
+  List<Menu> _items = [];
   int selectedItem = 0;
 
   @override
   void didUpdateWidget(covariant AdaptiveNavBar oldWidget) {
     // TODO: implement didUpdateWidget
     super.didUpdateWidget(oldWidget);
-    if(oldWidget.items != widget.items) {
+    if (oldWidget.items != widget.items) {
       _items = widget.items;
     }
   }
 
 //   final NavbarNotifier _navbarNotifier = NavbarNotifier();
 
-@override
+  @override
   void initState() {
     // TODO: implement initState
     super.initState();
     _items = widget.items;
   }
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
@@ -77,13 +78,13 @@ class _AdaptiveNavBarState extends State<AdaptiveNavBar> {
 
 /// Bottom navigation bar for mobile/tablets
 class ExpNavbar extends StatefulWidget {
-  const ExpNavbar(this.menuItems,
+  const ExpNavbar(this.menus,
       {Key? key,
       required this.onItemTapped,
       required this.index,
       this.isHidden = false})
       : super(key: key);
-  final List<MenuItem> menuItems;
+  final List<Menu> menus;
   final bool isHidden;
   final int index;
   final Function(int) onItemTapped;
@@ -146,10 +147,10 @@ class _ExpNavbarState extends State<ExpNavbar>
               showUnselectedLabels: true,
               unselectedItemColor: ExpenseTheme.colorScheme.onPrimary,
               backgroundColor: ExpenseTheme.colorScheme.background,
-              items: widget.menuItems
-                  .map((MenuItem menuItem) => BottomNavigationBarItem(
-                        icon: Icon(menuItem.iconData),
-                        label: menuItem.text,
+              items: widget.menus
+                  .map((Menu menu) => BottomNavigationBarItem(
+                        icon: Icon(menu.iconData),
+                        label: menu.text,
                       ))
                   .toList(),
             ),

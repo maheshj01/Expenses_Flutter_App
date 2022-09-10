@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-class MenuItem {
+class Menu {
   final IconData iconData;
   final String text;
-  MenuItem(this.iconData, this.text);
+  Menu(this.iconData, this.text);
 }
 
 class NavbarNotifier extends ChangeNotifier {
