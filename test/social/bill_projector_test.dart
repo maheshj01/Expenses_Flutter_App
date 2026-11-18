@@ -46,7 +46,9 @@ void main() {
   });
 
   test('ignores bills from strangers', () async {
-    await apply([bill('a', by: 'stranger', members: [me, 'stranger'])]);
+    await apply([
+      bill('a', by: 'stranger', members: [me, 'stranger']),
+    ]);
     expect(await ledger(), isEmpty);
   });
 
@@ -81,7 +83,9 @@ void main() {
 
   test('flagging removes my share and withdrawing brings it back', () async {
     await apply([bill('a', by: sam)]);
-    await apply([bill('a', by: sam, flags: {me: flag})]);
+    await apply([
+      bill('a', by: sam, flags: {me: flag}),
+    ]);
     expect(await ledger(), isEmpty);
     await apply([bill('a', by: sam)]);
     expect(await ledger(), hasLength(1));

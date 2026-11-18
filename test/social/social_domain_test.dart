@@ -23,9 +23,7 @@ SharedBill bill(
   id: id,
   createdBy: by,
   members: members,
-  people: {
-    for (final m in members) m: Profile(uid: m, handle: m, name: m.toUpperCase()),
-  },
+  people: {for (final m in members) m: Profile(uid: m, handle: m, name: m.toUpperCase())},
   guests: guests,
   amountCents: cents,
   currencyCode: 'USD',
@@ -104,7 +102,9 @@ void main() {
     });
 
     test('bills between other people do not affect me', () {
-      final balances = Balances.of(me, [bill('a', by: sam, members: [sam, ana])], const []);
+      final balances = Balances.of(me, [
+        bill('a', by: sam, members: [sam, ana]),
+      ], const []);
       expect(balances.people, isEmpty);
     });
   });
@@ -145,7 +145,11 @@ void main() {
     test('collects requests, flags, new bills and payments, newest first', () {
       final inbox = Inbox.build(
         me: me,
-        connections: [conn(sam), conn(ana, accepted: false), conn('zoe', accepted: false, mine: true)],
+        connections: [
+          conn(sam),
+          conn(ana, accepted: false),
+          conn('zoe', accepted: false, mine: true),
+        ],
         bills: [
           bill('mine', flags: {sam: flag}),
           bill('new', by: sam, created: DateTime(2026, 11, 13)),
