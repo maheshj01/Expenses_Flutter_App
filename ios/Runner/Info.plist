@@ -37,7 +37,6 @@
 			<string>com.wml.threebucks.google-sign-in</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<!-- Firebase "Encoded App ID": GOOGLE_APP_ID with ':' replaced by '-'. -->
 				<string>app-1-732922541900-ios-2fd308a7d11d96fe2481e9</string>
 			</array>
 		</dict>
@@ -76,15 +75,13 @@
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
 </dict>
 </plist>
