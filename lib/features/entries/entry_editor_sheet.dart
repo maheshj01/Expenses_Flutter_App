@@ -9,6 +9,7 @@ import '../../core/day.dart';
 import '../../core/ids.dart';
 import '../../domain/entities/ledger_entry.dart';
 import '../../domain/services/quick_entry_parser.dart';
+import '../categories/category_editor_sheet.dart';
 
 /// Opens the add / edit sheet. Returns true when something was saved or
 /// deleted.
@@ -98,6 +99,16 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
         _amount = _amount == '0' ? k : _amount + k;
       }
     });
+  }
+
+  Future<void> _newCategory() async {
+    final created = await showCategoryEditor(context);
+    if (created != null && mounted) {
+      setState(() {
+        _categoryId = created.id;
+        _categoryPickedByUser = true;
+      });
+    }
   }
 
   Future<void> _pickDate() async {
@@ -247,6 +258,11 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
                       _categoryPickedByUser = true;
                     }),
                   ),
+                ActionChip(
+                  avatar: const Icon(Icons.add_rounded, size: 18),
+                  label: const Text('New'),
+                  onPressed: _newCategory,
+                ),
               ],
             ),
             const SizedBox(height: 12),
