@@ -3,12 +3,15 @@
 part of 'app_database.dart';
 
 // ignore_for_file: type=lint
-class $CategoriesTable extends Categories with TableInfo<$CategoriesTable, CategoryRow> {
+class $CategoriesTable extends Categories
+    with TableInfo<$CategoriesTable, CategoryRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $CategoriesTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _updatedAtMeta = const VerificationMeta('updatedAt');
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
   @override
   late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
     'updated_at',
@@ -17,7 +20,9 @@ class $CategoriesTable extends Categories with TableInfo<$CategoriesTable, Categ
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _deletedMeta = const VerificationMeta('deleted');
+  static const VerificationMeta _deletedMeta = const VerificationMeta(
+    'deleted',
+  );
   @override
   late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
     'deleted',
@@ -25,7 +30,9 @@ class $CategoriesTable extends Categories with TableInfo<$CategoriesTable, Categ
     false,
     type: DriftSqlType.bool,
     requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways('CHECK ("deleted" IN (0, 1))'),
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("deleted" IN (0, 1))',
+    ),
     defaultValue: const Constant(false),
   );
   static const VerificationMeta _dirtyMeta = const VerificationMeta('dirty');
@@ -36,7 +43,9 @@ class $CategoriesTable extends Categories with TableInfo<$CategoriesTable, Categ
     false,
     type: DriftSqlType.bool,
     requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways('CHECK ("dirty" IN (0, 1))'),
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("dirty" IN (0, 1))',
+    ),
     defaultValue: const Constant(true),
   );
   static const VerificationMeta _idMeta = const VerificationMeta('id');
@@ -84,7 +93,9 @@ class $CategoriesTable extends Categories with TableInfo<$CategoriesTable, Categ
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _sortOrderMeta = const VerificationMeta('sortOrder');
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta(
+    'sortOrder',
+  );
   @override
   late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
     'sort_order',
@@ -94,7 +105,9 @@ class $CategoriesTable extends Categories with TableInfo<$CategoriesTable, Categ
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
-  static const VerificationMeta _archivedMeta = const VerificationMeta('archived');
+  static const VerificationMeta _archivedMeta = const VerificationMeta(
+    'archived',
+  );
   @override
   late final GeneratedColumn<bool> archived = GeneratedColumn<bool>(
     'archived',
@@ -102,7 +115,9 @@ class $CategoriesTable extends Categories with TableInfo<$CategoriesTable, Categ
     false,
     type: DriftSqlType.bool,
     requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways('CHECK ("archived" IN (0, 1))'),
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("archived" IN (0, 1))',
+    ),
     defaultValue: const Constant(false),
   );
   @override
@@ -139,10 +154,16 @@ class $CategoriesTable extends Categories with TableInfo<$CategoriesTable, Categ
       context.missing(_updatedAtMeta);
     }
     if (data.containsKey('deleted')) {
-      context.handle(_deletedMeta, deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta));
+      context.handle(
+        _deletedMeta,
+        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
+      );
     }
     if (data.containsKey('dirty')) {
-      context.handle(_dirtyMeta, dirty.isAcceptableOrUnknown(data['dirty']!, _dirtyMeta));
+      context.handle(
+        _dirtyMeta,
+        dirty.isAcceptableOrUnknown(data['dirty']!, _dirtyMeta),
+      );
     }
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
@@ -150,22 +171,34 @@ class $CategoriesTable extends Categories with TableInfo<$CategoriesTable, Categ
       context.missing(_idMeta);
     }
     if (data.containsKey('name')) {
-      context.handle(_nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
     if (data.containsKey('emoji')) {
-      context.handle(_emojiMeta, emoji.isAcceptableOrUnknown(data['emoji']!, _emojiMeta));
+      context.handle(
+        _emojiMeta,
+        emoji.isAcceptableOrUnknown(data['emoji']!, _emojiMeta),
+      );
     } else if (isInserting) {
       context.missing(_emojiMeta);
     }
     if (data.containsKey('color')) {
-      context.handle(_colorMeta, color.isAcceptableOrUnknown(data['color']!, _colorMeta));
+      context.handle(
+        _colorMeta,
+        color.isAcceptableOrUnknown(data['color']!, _colorMeta),
+      );
     } else if (isInserting) {
       context.missing(_colorMeta);
     }
     if (data.containsKey('kind')) {
-      context.handle(_kindMeta, kind.isAcceptableOrUnknown(data['kind']!, _kindMeta));
+      context.handle(
+        _kindMeta,
+        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
+      );
     } else if (isInserting) {
       context.missing(_kindMeta);
     }
@@ -198,15 +231,30 @@ class $CategoriesTable extends Categories with TableInfo<$CategoriesTable, Categ
         DriftSqlType.bool,
         data['${effectivePrefix}deleted'],
       )!,
-      dirty: attachedDatabase.typeMapping.read(DriftSqlType.bool, data['${effectivePrefix}dirty'])!,
-      id: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}id'])!,
-      name: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      dirty: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}dirty'],
+      )!,
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
       emoji: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}emoji'],
       )!,
-      color: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}color'])!,
-      kind: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}kind'])!,
+      color: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}color'],
+      )!,
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kind'],
+      )!,
       sortOrder: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}sort_order'],
@@ -283,7 +331,10 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     );
   }
 
-  factory CategoryRow.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
+  factory CategoryRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return CategoryRow(
       updatedAt: serializer.fromJson<int>(json['updatedAt']),
@@ -371,8 +422,18 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(updatedAt, deleted, dirty, id, name, emoji, color, kind, sortOrder, archived);
+  int get hashCode => Object.hash(
+    updatedAt,
+    deleted,
+    dirty,
+    id,
+    name,
+    emoji,
+    color,
+    kind,
+    sortOrder,
+    archived,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -551,7 +612,9 @@ class $EntriesTable extends Entries with TableInfo<$EntriesTable, EntryRow> {
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $EntriesTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _updatedAtMeta = const VerificationMeta('updatedAt');
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
   @override
   late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
     'updated_at',
@@ -560,7 +623,9 @@ class $EntriesTable extends Entries with TableInfo<$EntriesTable, EntryRow> {
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _deletedMeta = const VerificationMeta('deleted');
+  static const VerificationMeta _deletedMeta = const VerificationMeta(
+    'deleted',
+  );
   @override
   late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
     'deleted',
@@ -568,7 +633,9 @@ class $EntriesTable extends Entries with TableInfo<$EntriesTable, EntryRow> {
     false,
     type: DriftSqlType.bool,
     requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways('CHECK ("deleted" IN (0, 1))'),
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("deleted" IN (0, 1))',
+    ),
     defaultValue: const Constant(false),
   );
   static const VerificationMeta _dirtyMeta = const VerificationMeta('dirty');
@@ -579,7 +646,9 @@ class $EntriesTable extends Entries with TableInfo<$EntriesTable, EntryRow> {
     false,
     type: DriftSqlType.bool,
     requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways('CHECK ("dirty" IN (0, 1))'),
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("dirty" IN (0, 1))',
+    ),
     defaultValue: const Constant(true),
   );
   static const VerificationMeta _idMeta = const VerificationMeta('id');
@@ -591,7 +660,9 @@ class $EntriesTable extends Entries with TableInfo<$EntriesTable, EntryRow> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _amountCentsMeta = const VerificationMeta('amountCents');
+  static const VerificationMeta _amountCentsMeta = const VerificationMeta(
+    'amountCents',
+  );
   @override
   late final GeneratedColumn<int> amountCents = GeneratedColumn<int>(
     'amount_cents',
@@ -600,7 +671,9 @@ class $EntriesTable extends Entries with TableInfo<$EntriesTable, EntryRow> {
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _categoryIdMeta = const VerificationMeta('categoryId');
+  static const VerificationMeta _categoryIdMeta = const VerificationMeta(
+    'categoryId',
+  );
   @override
   late final GeneratedColumn<String> categoryId = GeneratedColumn<String>(
     'category_id',
@@ -628,7 +701,9 @@ class $EntriesTable extends Entries with TableInfo<$EntriesTable, EntryRow> {
     requiredDuringInsert: false,
     defaultValue: const Constant(''),
   );
-  static const VerificationMeta _splitWaysMeta = const VerificationMeta('splitWays');
+  static const VerificationMeta _splitWaysMeta = const VerificationMeta(
+    'splitWays',
+  );
   @override
   late final GeneratedColumn<int> splitWays = GeneratedColumn<int>(
     'split_ways',
@@ -638,7 +713,9 @@ class $EntriesTable extends Entries with TableInfo<$EntriesTable, EntryRow> {
     requiredDuringInsert: false,
     defaultValue: const Constant(1),
   );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta('createdAt');
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
   @override
   late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
     'created_at',
@@ -666,7 +743,10 @@ class $EntriesTable extends Entries with TableInfo<$EntriesTable, EntryRow> {
   String get actualTableName => $name;
   static const String $name = 'entries';
   @override
-  VerificationContext validateIntegrity(Insertable<EntryRow> instance, {bool isInserting = false}) {
+  VerificationContext validateIntegrity(
+    Insertable<EntryRow> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('updated_at')) {
@@ -678,10 +758,16 @@ class $EntriesTable extends Entries with TableInfo<$EntriesTable, EntryRow> {
       context.missing(_updatedAtMeta);
     }
     if (data.containsKey('deleted')) {
-      context.handle(_deletedMeta, deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta));
+      context.handle(
+        _deletedMeta,
+        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
+      );
     }
     if (data.containsKey('dirty')) {
-      context.handle(_dirtyMeta, dirty.isAcceptableOrUnknown(data['dirty']!, _dirtyMeta));
+      context.handle(
+        _dirtyMeta,
+        dirty.isAcceptableOrUnknown(data['dirty']!, _dirtyMeta),
+      );
     }
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
@@ -691,7 +777,10 @@ class $EntriesTable extends Entries with TableInfo<$EntriesTable, EntryRow> {
     if (data.containsKey('amount_cents')) {
       context.handle(
         _amountCentsMeta,
-        amountCents.isAcceptableOrUnknown(data['amount_cents']!, _amountCentsMeta),
+        amountCents.isAcceptableOrUnknown(
+          data['amount_cents']!,
+          _amountCentsMeta,
+        ),
       );
     } else if (isInserting) {
       context.missing(_amountCentsMeta);
@@ -705,12 +794,18 @@ class $EntriesTable extends Entries with TableInfo<$EntriesTable, EntryRow> {
       context.missing(_categoryIdMeta);
     }
     if (data.containsKey('day')) {
-      context.handle(_dayMeta, day.isAcceptableOrUnknown(data['day']!, _dayMeta));
+      context.handle(
+        _dayMeta,
+        day.isAcceptableOrUnknown(data['day']!, _dayMeta),
+      );
     } else if (isInserting) {
       context.missing(_dayMeta);
     }
     if (data.containsKey('note')) {
-      context.handle(_noteMeta, note.isAcceptableOrUnknown(data['note']!, _noteMeta));
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
     }
     if (data.containsKey('split_ways')) {
       context.handle(
@@ -743,8 +838,14 @@ class $EntriesTable extends Entries with TableInfo<$EntriesTable, EntryRow> {
         DriftSqlType.bool,
         data['${effectivePrefix}deleted'],
       )!,
-      dirty: attachedDatabase.typeMapping.read(DriftSqlType.bool, data['${effectivePrefix}dirty'])!,
-      id: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      dirty: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}dirty'],
+      )!,
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
       amountCents: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}amount_cents'],
@@ -753,8 +854,14 @@ class $EntriesTable extends Entries with TableInfo<$EntriesTable, EntryRow> {
         DriftSqlType.string,
         data['${effectivePrefix}category_id'],
       )!,
-      day: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}day'])!,
-      note: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}note'])!,
+      day: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}day'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      )!,
       splitWays: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}split_ways'],
@@ -833,7 +940,10 @@ class EntryRow extends DataClass implements Insertable<EntryRow> {
     );
   }
 
-  factory EntryRow.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
+  factory EntryRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return EntryRow(
       updatedAt: serializer.fromJson<int>(json['updatedAt']),
@@ -894,8 +1004,12 @@ class EntryRow extends DataClass implements Insertable<EntryRow> {
       deleted: data.deleted.present ? data.deleted.value : this.deleted,
       dirty: data.dirty.present ? data.dirty.value : this.dirty,
       id: data.id.present ? data.id.value : this.id,
-      amountCents: data.amountCents.present ? data.amountCents.value : this.amountCents,
-      categoryId: data.categoryId.present ? data.categoryId.value : this.categoryId,
+      amountCents: data.amountCents.present
+          ? data.amountCents.value
+          : this.amountCents,
+      categoryId: data.categoryId.present
+          ? data.categoryId.value
+          : this.categoryId,
       day: data.day.present ? data.day.value : this.day,
       note: data.note.present ? data.note.value : this.note,
       splitWays: data.splitWays.present ? data.splitWays.value : this.splitWays,
@@ -1106,12 +1220,15 @@ class EntriesCompanion extends UpdateCompanion<EntryRow> {
   }
 }
 
-class $SyncCursorsTable extends SyncCursors with TableInfo<$SyncCursorsTable, SyncCursorRow> {
+class $SyncCursorsTable extends SyncCursors
+    with TableInfo<$SyncCursorsTable, SyncCursorRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $SyncCursorsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _collectionMeta = const VerificationMeta('collection');
+  static const VerificationMeta _collectionMeta = const VerificationMeta(
+    'collection',
+  );
   @override
   late final GeneratedColumn<String> collection = GeneratedColumn<String>(
     'collection',
@@ -1152,7 +1269,10 @@ class $SyncCursorsTable extends SyncCursors with TableInfo<$SyncCursorsTable, Sy
       context.missing(_collectionMeta);
     }
     if (data.containsKey('cursor')) {
-      context.handle(_cursorMeta, cursor.isAcceptableOrUnknown(data['cursor']!, _cursorMeta));
+      context.handle(
+        _cursorMeta,
+        cursor.isAcceptableOrUnknown(data['cursor']!, _cursorMeta),
+      );
     }
     return context;
   }
@@ -1197,11 +1317,16 @@ class SyncCursorRow extends DataClass implements Insertable<SyncCursorRow> {
   SyncCursorsCompanion toCompanion(bool nullToAbsent) {
     return SyncCursorsCompanion(
       collection: Value(collection),
-      cursor: cursor == null && nullToAbsent ? const Value.absent() : Value(cursor),
+      cursor: cursor == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cursor),
     );
   }
 
-  factory SyncCursorRow.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
+  factory SyncCursorRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return SyncCursorRow(
       collection: serializer.fromJson<String>(json['collection']),
@@ -1217,14 +1342,18 @@ class SyncCursorRow extends DataClass implements Insertable<SyncCursorRow> {
     };
   }
 
-  SyncCursorRow copyWith({String? collection, Value<String?> cursor = const Value.absent()}) =>
-      SyncCursorRow(
-        collection: collection ?? this.collection,
-        cursor: cursor.present ? cursor.value : this.cursor,
-      );
+  SyncCursorRow copyWith({
+    String? collection,
+    Value<String?> cursor = const Value.absent(),
+  }) => SyncCursorRow(
+    collection: collection ?? this.collection,
+    cursor: cursor.present ? cursor.value : this.cursor,
+  );
   SyncCursorRow copyWithCompanion(SyncCursorsCompanion data) {
     return SyncCursorRow(
-      collection: data.collection.present ? data.collection.value : this.collection,
+      collection: data.collection.present
+          ? data.collection.value
+          : this.collection,
       cursor: data.cursor.present ? data.cursor.value : this.cursor,
     );
   }
@@ -1318,7 +1447,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CategoriesTable categories = $CategoriesTable(this);
   late final $EntriesTable entries = $EntriesTable(this);
   late final $SyncCursorsTable syncCursors = $SyncCursorsTable(this);
-  late final Index entriesDay = Index('entries_day', 'CREATE INDEX entries_day ON entries (day)');
+  late final Index entriesDay = Index(
+    'entries_day',
+    'CREATE INDEX entries_day ON entries (day)',
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1358,7 +1490,8 @@ typedef $$CategoriesTableUpdateCompanionBuilder = CategoriesCompanion Function({
   Value<int> rowid,
 });
 
-class $$CategoriesTableFilterComposer extends Composer<_$AppDatabase, $CategoriesTable> {
+class $$CategoriesTableFilterComposer
+    extends Composer<_$AppDatabase, $CategoriesTable> {
   $$CategoriesTableFilterComposer({
     required super.$db,
     required super.$table,
@@ -1366,38 +1499,59 @@ class $$CategoriesTableFilterComposer extends Composer<_$AppDatabase, $Categorie
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get updatedAt =>
-      $composableBuilder(column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+  ColumnFilters<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<bool> get deleted =>
-      $composableBuilder(column: $table.deleted, builder: (column) => ColumnFilters(column));
+  ColumnFilters<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<bool> get dirty =>
-      $composableBuilder(column: $table.dirty, builder: (column) => ColumnFilters(column));
+  ColumnFilters<bool> get dirty => $composableBuilder(
+    column: $table.dirty,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<String> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<String> get name =>
-      $composableBuilder(column: $table.name, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<String> get emoji =>
-      $composableBuilder(column: $table.emoji, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get emoji => $composableBuilder(
+    column: $table.emoji,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<int> get color =>
-      $composableBuilder(column: $table.color, builder: (column) => ColumnFilters(column));
+  ColumnFilters<int> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<String> get kind =>
-      $composableBuilder(column: $table.kind, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<int> get sortOrder =>
-      $composableBuilder(column: $table.sortOrder, builder: (column) => ColumnFilters(column));
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<bool> get archived =>
-      $composableBuilder(column: $table.archived, builder: (column) => ColumnFilters(column));
+  ColumnFilters<bool> get archived => $composableBuilder(
+    column: $table.archived,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
-class $$CategoriesTableOrderingComposer extends Composer<_$AppDatabase, $CategoriesTable> {
+class $$CategoriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $CategoriesTable> {
   $$CategoriesTableOrderingComposer({
     required super.$db,
     required super.$table,
@@ -1405,38 +1559,59 @@ class $$CategoriesTableOrderingComposer extends Composer<_$AppDatabase, $Categor
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get updatedAt =>
-      $composableBuilder(column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<bool> get deleted =>
-      $composableBuilder(column: $table.deleted, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<bool> get dirty =>
-      $composableBuilder(column: $table.dirty, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<bool> get dirty => $composableBuilder(
+    column: $table.dirty,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<String> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<String> get name =>
-      $composableBuilder(column: $table.name, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<String> get emoji =>
-      $composableBuilder(column: $table.emoji, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get emoji => $composableBuilder(
+    column: $table.emoji,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<int> get color =>
-      $composableBuilder(column: $table.color, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<int> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<String> get kind =>
-      $composableBuilder(column: $table.kind, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<int> get sortOrder =>
-      $composableBuilder(column: $table.sortOrder, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<bool> get archived =>
-      $composableBuilder(column: $table.archived, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<bool> get archived => $composableBuilder(
+    column: $table.archived,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
-class $$CategoriesTableAnnotationComposer extends Composer<_$AppDatabase, $CategoriesTable> {
+class $$CategoriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CategoriesTable> {
   $$CategoriesTableAnnotationComposer({
     required super.$db,
     required super.$table,
@@ -1486,7 +1661,10 @@ class $$CategoriesTableTableManager
           $$CategoriesTableAnnotationComposer,
           $$CategoriesTableCreateCompanionBuilder,
           $$CategoriesTableUpdateCompanionBuilder,
-          (CategoryRow, BaseReferences<_$AppDatabase, $CategoriesTable, CategoryRow>),
+          (
+            CategoryRow,
+            BaseReferences<_$AppDatabase, $CategoriesTable, CategoryRow>,
+          ),
           CategoryRow,
           PrefetchHooks Function()
         > {
@@ -1495,8 +1673,10 @@ class $$CategoriesTableTableManager
         TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer: () => $$CategoriesTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () => $$CategoriesTableOrderingComposer($db: db, $table: table),
+          createFilteringComposer: () =>
+              $$CategoriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CategoriesTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$CategoriesTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
@@ -1555,7 +1735,11 @@ class $$CategoriesTableTableManager
               .map(
                 (e) => (
                   e.readTable<$CategoriesTable, CategoryRow>(table),
-                  BaseReferences<_$AppDatabase, $CategoriesTable, CategoryRow>(db, table, e),
+                  BaseReferences<_$AppDatabase, $CategoriesTable, CategoryRow>(
+                    db,
+                    table,
+                    e,
+                  ),
                 ),
               )
               .toList(),
@@ -1574,7 +1758,10 @@ typedef $$CategoriesTableProcessedTableManager =
       $$CategoriesTableAnnotationComposer,
       $$CategoriesTableCreateCompanionBuilder,
       $$CategoriesTableUpdateCompanionBuilder,
-      (CategoryRow, BaseReferences<_$AppDatabase, $CategoriesTable, CategoryRow>),
+      (
+        CategoryRow,
+        BaseReferences<_$AppDatabase, $CategoriesTable, CategoryRow>,
+      ),
       CategoryRow,
       PrefetchHooks Function()
     >;
@@ -1605,7 +1792,8 @@ typedef $$EntriesTableUpdateCompanionBuilder = EntriesCompanion Function({
   Value<int> rowid,
 });
 
-class $$EntriesTableFilterComposer extends Composer<_$AppDatabase, $EntriesTable> {
+class $$EntriesTableFilterComposer
+    extends Composer<_$AppDatabase, $EntriesTable> {
   $$EntriesTableFilterComposer({
     required super.$db,
     required super.$table,
@@ -1613,38 +1801,59 @@ class $$EntriesTableFilterComposer extends Composer<_$AppDatabase, $EntriesTable
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get updatedAt =>
-      $composableBuilder(column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+  ColumnFilters<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<bool> get deleted =>
-      $composableBuilder(column: $table.deleted, builder: (column) => ColumnFilters(column));
+  ColumnFilters<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<bool> get dirty =>
-      $composableBuilder(column: $table.dirty, builder: (column) => ColumnFilters(column));
+  ColumnFilters<bool> get dirty => $composableBuilder(
+    column: $table.dirty,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<String> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<int> get amountCents =>
-      $composableBuilder(column: $table.amountCents, builder: (column) => ColumnFilters(column));
+  ColumnFilters<int> get amountCents => $composableBuilder(
+    column: $table.amountCents,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<String> get categoryId =>
-      $composableBuilder(column: $table.categoryId, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get categoryId => $composableBuilder(
+    column: $table.categoryId,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<int> get day =>
-      $composableBuilder(column: $table.day, builder: (column) => ColumnFilters(column));
+  ColumnFilters<int> get day => $composableBuilder(
+    column: $table.day,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<String> get note =>
-      $composableBuilder(column: $table.note, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<int> get splitWays =>
-      $composableBuilder(column: $table.splitWays, builder: (column) => ColumnFilters(column));
+  ColumnFilters<int> get splitWays => $composableBuilder(
+    column: $table.splitWays,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<int> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => ColumnFilters(column));
+  ColumnFilters<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
-class $$EntriesTableOrderingComposer extends Composer<_$AppDatabase, $EntriesTable> {
+class $$EntriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $EntriesTable> {
   $$EntriesTableOrderingComposer({
     required super.$db,
     required super.$table,
@@ -1652,38 +1861,59 @@ class $$EntriesTableOrderingComposer extends Composer<_$AppDatabase, $EntriesTab
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get updatedAt =>
-      $composableBuilder(column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<bool> get deleted =>
-      $composableBuilder(column: $table.deleted, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<bool> get dirty =>
-      $composableBuilder(column: $table.dirty, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<bool> get dirty => $composableBuilder(
+    column: $table.dirty,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<String> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<int> get amountCents =>
-      $composableBuilder(column: $table.amountCents, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<int> get amountCents => $composableBuilder(
+    column: $table.amountCents,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<String> get categoryId =>
-      $composableBuilder(column: $table.categoryId, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get categoryId => $composableBuilder(
+    column: $table.categoryId,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<int> get day =>
-      $composableBuilder(column: $table.day, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<int> get day => $composableBuilder(
+    column: $table.day,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<String> get note =>
-      $composableBuilder(column: $table.note, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<int> get splitWays =>
-      $composableBuilder(column: $table.splitWays, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<int> get splitWays => $composableBuilder(
+    column: $table.splitWays,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<int> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
-class $$EntriesTableAnnotationComposer extends Composer<_$AppDatabase, $EntriesTable> {
+class $$EntriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $EntriesTable> {
   $$EntriesTableAnnotationComposer({
     required super.$db,
     required super.$table,
@@ -1703,11 +1933,15 @@ class $$EntriesTableAnnotationComposer extends Composer<_$AppDatabase, $EntriesT
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<int> get amountCents =>
-      $composableBuilder(column: $table.amountCents, builder: (column) => column);
+  GeneratedColumn<int> get amountCents => $composableBuilder(
+    column: $table.amountCents,
+    builder: (column) => column,
+  );
 
-  GeneratedColumn<String> get categoryId =>
-      $composableBuilder(column: $table.categoryId, builder: (column) => column);
+  GeneratedColumn<String> get categoryId => $composableBuilder(
+    column: $table.categoryId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get day =>
       $composableBuilder(column: $table.day, builder: (column) => column);
@@ -1742,8 +1976,10 @@ class $$EntriesTableTableManager
         TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer: () => $$EntriesTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () => $$EntriesTableOrderingComposer($db: db, $table: table),
+          createFilteringComposer: () =>
+              $$EntriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$EntriesTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$EntriesTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
@@ -1802,7 +2038,11 @@ class $$EntriesTableTableManager
               .map(
                 (e) => (
                   e.readTable<$EntriesTable, EntryRow>(table),
-                  BaseReferences<_$AppDatabase, $EntriesTable, EntryRow>(db, table, e),
+                  BaseReferences<_$AppDatabase, $EntriesTable, EntryRow>(
+                    db,
+                    table,
+                    e,
+                  ),
                 ),
               )
               .toList(),
@@ -1825,18 +2065,21 @@ typedef $$EntriesTableProcessedTableManager =
       EntryRow,
       PrefetchHooks Function()
     >;
-typedef $$SyncCursorsTableCreateCompanionBuilder = SyncCursorsCompanion Function({
-  required String collection,
-  Value<String?> cursor,
-  Value<int> rowid,
-});
-typedef $$SyncCursorsTableUpdateCompanionBuilder = SyncCursorsCompanion Function({
-  Value<String> collection,
-  Value<String?> cursor,
-  Value<int> rowid,
-});
+typedef $$SyncCursorsTableCreateCompanionBuilder =
+    SyncCursorsCompanion Function({
+      required String collection,
+      Value<String?> cursor,
+      Value<int> rowid,
+    });
+typedef $$SyncCursorsTableUpdateCompanionBuilder =
+    SyncCursorsCompanion Function({
+      Value<String> collection,
+      Value<String?> cursor,
+      Value<int> rowid,
+    });
 
-class $$SyncCursorsTableFilterComposer extends Composer<_$AppDatabase, $SyncCursorsTable> {
+class $$SyncCursorsTableFilterComposer
+    extends Composer<_$AppDatabase, $SyncCursorsTable> {
   $$SyncCursorsTableFilterComposer({
     required super.$db,
     required super.$table,
@@ -1844,14 +2087,19 @@ class $$SyncCursorsTableFilterComposer extends Composer<_$AppDatabase, $SyncCurs
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<String> get collection =>
-      $composableBuilder(column: $table.collection, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get collection => $composableBuilder(
+    column: $table.collection,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<String> get cursor =>
-      $composableBuilder(column: $table.cursor, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get cursor => $composableBuilder(
+    column: $table.cursor,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
-class $$SyncCursorsTableOrderingComposer extends Composer<_$AppDatabase, $SyncCursorsTable> {
+class $$SyncCursorsTableOrderingComposer
+    extends Composer<_$AppDatabase, $SyncCursorsTable> {
   $$SyncCursorsTableOrderingComposer({
     required super.$db,
     required super.$table,
@@ -1859,14 +2107,19 @@ class $$SyncCursorsTableOrderingComposer extends Composer<_$AppDatabase, $SyncCu
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<String> get collection =>
-      $composableBuilder(column: $table.collection, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get collection => $composableBuilder(
+    column: $table.collection,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<String> get cursor =>
-      $composableBuilder(column: $table.cursor, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get cursor => $composableBuilder(
+    column: $table.cursor,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
-class $$SyncCursorsTableAnnotationComposer extends Composer<_$AppDatabase, $SyncCursorsTable> {
+class $$SyncCursorsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SyncCursorsTable> {
   $$SyncCursorsTableAnnotationComposer({
     required super.$db,
     required super.$table,
@@ -1874,8 +2127,10 @@ class $$SyncCursorsTableAnnotationComposer extends Composer<_$AppDatabase, $Sync
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<String> get collection =>
-      $composableBuilder(column: $table.collection, builder: (column) => column);
+  GeneratedColumn<String> get collection => $composableBuilder(
+    column: $table.collection,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get cursor =>
       $composableBuilder(column: $table.cursor, builder: (column) => column);
@@ -1892,7 +2147,10 @@ class $$SyncCursorsTableTableManager
           $$SyncCursorsTableAnnotationComposer,
           $$SyncCursorsTableCreateCompanionBuilder,
           $$SyncCursorsTableUpdateCompanionBuilder,
-          (SyncCursorRow, BaseReferences<_$AppDatabase, $SyncCursorsTable, SyncCursorRow>),
+          (
+            SyncCursorRow,
+            BaseReferences<_$AppDatabase, $SyncCursorsTable, SyncCursorRow>,
+          ),
           SyncCursorRow,
           PrefetchHooks Function()
         > {
@@ -1901,25 +2159,41 @@ class $$SyncCursorsTableTableManager
         TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer: () => $$SyncCursorsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () => $$SyncCursorsTableOrderingComposer($db: db, $table: table),
+          createFilteringComposer: () =>
+              $$SyncCursorsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SyncCursorsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$SyncCursorsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> collection = const Value.absent(),
-            Value<String?> cursor = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) => SyncCursorsCompanion(collection: collection, cursor: cursor, rowid: rowid),
-          createCompanionCallback: ({
-            required String collection,
-            Value<String?> cursor = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) => SyncCursorsCompanion.insert(collection: collection, cursor: cursor, rowid: rowid),
+          updateCompanionCallback:
+              ({
+                Value<String> collection = const Value.absent(),
+                Value<String?> cursor = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SyncCursorsCompanion(
+                collection: collection,
+                cursor: cursor,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String collection,
+                Value<String?> cursor = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SyncCursorsCompanion.insert(
+                collection: collection,
+                cursor: cursor,
+                rowid: rowid,
+              ),
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
                   e.readTable<$SyncCursorsTable, SyncCursorRow>(table),
-                  BaseReferences<_$AppDatabase, $SyncCursorsTable, SyncCursorRow>(db, table, e),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $SyncCursorsTable,
+                    SyncCursorRow
+                  >(db, table, e),
                 ),
               )
               .toList(),
@@ -1938,7 +2212,10 @@ typedef $$SyncCursorsTableProcessedTableManager =
       $$SyncCursorsTableAnnotationComposer,
       $$SyncCursorsTableCreateCompanionBuilder,
       $$SyncCursorsTableUpdateCompanionBuilder,
-      (SyncCursorRow, BaseReferences<_$AppDatabase, $SyncCursorsTable, SyncCursorRow>),
+      (
+        SyncCursorRow,
+        BaseReferences<_$AppDatabase, $SyncCursorsTable, SyncCursorRow>,
+      ),
       SyncCursorRow,
       PrefetchHooks Function()
     >;
@@ -1948,7 +2225,8 @@ class $AppDatabaseManager {
   $AppDatabaseManager(this._db);
   $$CategoriesTableTableManager get categories =>
       $$CategoriesTableTableManager(_db, _db.categories);
-  $$EntriesTableTableManager get entries => $$EntriesTableTableManager(_db, _db.entries);
+  $$EntriesTableTableManager get entries =>
+      $$EntriesTableTableManager(_db, _db.entries);
   $$SyncCursorsTableTableManager get syncCursors =>
       $$SyncCursorsTableTableManager(_db, _db.syncCursors);
 }

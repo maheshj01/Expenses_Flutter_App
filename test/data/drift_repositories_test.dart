@@ -1,14 +1,14 @@
 import 'package:drift/drift.dart' show driftRuntimeOptions;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:spendwise/data/local/app_database.dart';
-import 'package:spendwise/data/local/default_categories.dart';
-import 'package:spendwise/data/local/drift_category_repository.dart';
-import 'package:spendwise/data/local/drift_entry_repository.dart';
-import 'package:spendwise/data/sync/local_sync_source.dart';
-import 'package:spendwise/data/sync/sync_record.dart';
-import 'package:spendwise/domain/entities/category.dart';
-import 'package:spendwise/domain/entities/ledger_entry.dart';
+import 'package:three_bucks/data/local/app_database.dart';
+import 'package:three_bucks/data/local/default_categories.dart';
+import 'package:three_bucks/data/local/drift_category_repository.dart';
+import 'package:three_bucks/data/local/drift_entry_repository.dart';
+import 'package:three_bucks/data/sync/local_sync_source.dart';
+import 'package:three_bucks/data/sync/sync_record.dart';
+import 'package:three_bucks/domain/entities/category.dart';
+import 'package:three_bucks/domain/entities/ledger_entry.dart';
 
 void main() {
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;

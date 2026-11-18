@@ -64,7 +64,7 @@ class AppDatabase extends _$AppDatabase implements SyncCursorStore {
   AppDatabase(super.executor);
 
   /// Opens the on-device database file.
-  factory AppDatabase.open() => AppDatabase(driftDatabase(name: 'spendwise'));
+  factory AppDatabase.open() => AppDatabase(driftDatabase(name: 'three_bucks'));
 
   @override
   int get schemaVersion => 1;

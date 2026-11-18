@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="SpendWise"
+        android:label="Three Bucks"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

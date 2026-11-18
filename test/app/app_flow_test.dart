@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:spendwise/app/app.dart';
-import 'package:spendwise/app/providers.dart';
-import 'package:spendwise/data/local/app_database.dart';
+import 'package:three_bucks/app/app.dart';
+import 'package:three_bucks/app/providers.dart';
+import 'package:three_bucks/data/local/app_database.dart';
 
 import '../support/fake_connectivity.dart';
 
@@ -29,7 +29,7 @@ void main() {
           databaseProvider.overrideWithValue(db),
           connectivityProvider.overrideWithValue(FakeConnectivity()),
         ],
-        child: const SpendWiseApp(),
+        child: const ThreeBucksApp(),
       ),
     );
     await tester.pumpAndSettle();

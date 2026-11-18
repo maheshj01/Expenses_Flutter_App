@@ -1,4 +1,4 @@
-package com.wml.spendwise
+package com.wml.threebucks
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,4 +1,4 @@
-# SpendWise
+# Three Bucks
 
 A simple, offline-first expense tracker built with Flutter.
 
