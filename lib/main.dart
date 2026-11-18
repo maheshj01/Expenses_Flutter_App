@@ -12,14 +12,17 @@ import 'app/shell.dart';
 import 'app/social_providers.dart';
 import 'data/local/app_database.dart';
 import 'features/people/people_widgets.dart';
+import 'shared/animations/splash_reveal.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  final logo = preloadSplashLogo();
   final prefs = await SharedPreferences.getInstance();
   final database = AppDatabase.open();
   // Local-only when Firebase is not configured.
   final backend = await createBackend(SyncBackend.configured);
+  await logo;
 
   runApp(
     ProviderScope(
@@ -29,7 +32,9 @@ Future<void> main() async {
         remoteStoreProvider.overrideWithValue(backend.remote),
         socialBackendProvider.overrideWithValue(backend.social),
       ],
-      child: const _SyncBootstrap(child: _InviteLinks(child: ThreeBucksApp())),
+      child: const _SyncBootstrap(
+        child: _InviteLinks(child: ThreeBucksApp(revealFromSplash: true)),
+      ),
     ),
   );
 }

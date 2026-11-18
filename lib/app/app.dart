@@ -3,12 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../features/onboarding/onboarding_flow.dart';
 import '../shared/animations/motion.dart';
+import '../shared/animations/splash_reveal.dart';
 import 'providers.dart';
 import 'shell.dart';
 import 'theme.dart';
 
 class ThreeBucksApp extends StatelessWidget {
-  const ThreeBucksApp({super.key});
+  const ThreeBucksApp({super.key, this.revealFromSplash = false});
+
+  /// Animates out of the native launch screen. Only on a real launch (not in
+  /// tests), where the native splash was just on screen.
+  final bool revealFromSplash;
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +22,7 @@ class ThreeBucksApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: buildTheme(Brightness.light),
       darkTheme: buildTheme(Brightness.dark),
+      builder: revealFromSplash ? (context, child) => SplashReveal(child: child!) : null,
       home: const _Root(),
     );
   }
