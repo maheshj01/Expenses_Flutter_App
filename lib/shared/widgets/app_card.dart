@@ -95,21 +95,26 @@ class SegmentBar extends StatelessWidget {
       child: Container(
         height: height,
         color: context.colors.sunk,
-        child: Row(
-          children: [
-            for (final (fraction, color) in segments)
-              if (fraction > 0)
-                Flexible(
-                  flex: (fraction * 1000).round(),
-                  child: Container(color: color),
-                ),
-            Flexible(
-              flex: (1000 - segments.fold<double>(0, (s, e) => s + e.$1.clamp(0, 1)) * 1000)
-                  .round()
-                  .clamp(0, 1000),
-              child: const SizedBox.expand(),
-            ),
-          ],
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            var remaining = constraints.maxWidth;
+            return Row(
+              children: [
+                for (final (fraction, color) in segments)
+                  if (fraction > 0)
+                    Builder(
+                      builder: (context) {
+                        final width = (constraints.maxWidth * fraction.clamp(0, 1)).clamp(
+                          0.0,
+                          remaining,
+                        );
+                        remaining -= width;
+                        return Container(width: width, color: color);
+                      },
+                    ),
+              ],
+            );
+          },
         ),
       ),
     );

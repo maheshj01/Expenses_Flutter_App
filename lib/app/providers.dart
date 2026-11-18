@@ -157,6 +157,15 @@ final categorySuggesterProvider = FutureProvider.autoDispose<CategorySuggester>(
   (ref) async => CategorySuggester(await ref.watch(entryRepositoryProvider).recent()),
 );
 
+/// How often each category was used recently, to order pickers.
+final categoryUsageProvider = FutureProvider.autoDispose<Map<String, int>>((ref) async {
+  final counts = <String, int>{};
+  for (final e in await ref.watch(entryRepositoryProvider).recent()) {
+    counts.update(e.categoryId, (v) => v + 1, ifAbsent: () => 1);
+  }
+  return counts;
+});
+
 /// Selected bottom navigation tab.
 class ShellTabNotifier extends Notifier<int> {
   @override

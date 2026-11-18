@@ -7,6 +7,7 @@ import '../../app/providers.dart';
 import '../../app/theme.dart';
 import '../../core/day.dart';
 import '../../core/ids.dart';
+import '../../domain/entities/category.dart';
 import '../../domain/entities/ledger_entry.dart';
 import '../../domain/services/quick_entry_parser.dart';
 import '../categories/category_editor_sheet.dart';
@@ -159,140 +160,171 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
     final share = (cents / _splitWays).round();
     final canSave = cents > 0 && _categoryId != null;
 
-    // Show the selected category even if it was archived since.
-    final shown = [...categories, if (selected != null && selected.archived) selected];
+    // Most used first; keep the selected one even if it was archived since.
+    final usage = ref.watch(categoryUsageProvider).value ?? const {};
+    final shown = [...categories, if (selected != null && selected.archived) selected]
+      ..sort((a, b) {
+        final byUse = (usage[b.id] ?? 0).compareTo(usage[a.id] ?? 0);
+        return byUse != 0 ? byUse : a.sortOrder.compareTo(b.sortOrder);
+      });
+
+    Widget chip(Category cat) => Padding(
+      padding: const EdgeInsets.only(right: 6),
+      child: ChoiceChip(
+        label: Text('${cat.emoji}  ${cat.name}'),
+        selected: cat.id == _categoryId,
+        onSelected: (_) => setState(() {
+          _categoryId = cat.id;
+          _categoryPickedByUser = true;
+        }),
+      ),
+    );
 
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    _isEditing ? 'Edit entry' : 'New entry',
-                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Flexible(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _isEditing ? 'Edit entry' : 'New entry',
+                          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                      ActionChip(
+                        avatar: const Icon(Icons.calendar_today_rounded, size: 16),
+                        label: Text(_dateLabel(_date)),
+                        onPressed: _pickDate,
+                      ),
+                      if (_isEditing)
+                        IconButton(
+                          tooltip: 'Delete',
+                          onPressed: _delete,
+                          icon: Icon(Icons.delete_outline_rounded, color: c.warn),
+                        ),
+                    ],
                   ),
-                ),
-                ActionChip(
-                  avatar: const Icon(Icons.calendar_today_rounded, size: 16),
-                  label: Text(_dateLabel(_date)),
-                  onPressed: _pickDate,
-                ),
-                if (_isEditing)
-                  IconButton(
-                    tooltip: 'Delete',
-                    onPressed: _delete,
-                    icon: Icon(Icons.delete_outline_rounded, color: c.warn),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            // Amount
-            Center(
-              child: Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(
-                      text: _moneyBack ? '+${money.symbol}' : money.symbol,
-                      style: TextStyle(fontSize: 30, color: c.muted),
+                  const SizedBox(height: 8),
+                  // Amount
+                  Center(
+                    child: Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: _moneyBack ? '+${money.symbol}' : money.symbol,
+                            style: TextStyle(fontSize: 30, color: c.muted),
+                          ),
+                          TextSpan(text: _amount),
+                        ],
+                      ),
+                      style: TextStyle(
+                        fontSize: 52,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -2,
+                        color: _moneyBack ? c.lived : c.ink,
+                        fontFeatures: tabularFigures,
+                      ),
                     ),
-                    TextSpan(text: _amount),
-                  ],
-                ),
-                style: TextStyle(
-                  fontSize: 52,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -2,
-                  color: _moneyBack ? c.lived : c.ink,
-                  fontFeatures: tabularFigures,
-                ),
-              ),
-            ),
-            SizedBox(
-              height: 20,
-              child: Center(
-                child: Text(
-                  _splitWays > 1 && cents > 0
-                      ? 'Your share ${money(share)}'
-                            '${settings.splitWith.isEmpty ? '' : ' · ${settings.splitWith} owes ${money(cents - share)}'}'
-                      : '',
-                  style: TextStyle(color: c.lived, fontWeight: FontWeight.w600, fontSize: 13),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _note,
-              onChanged: _onNoteChanged,
-              textCapitalization: TextCapitalization.sentences,
-              decoration: InputDecoration(
-                prefixIcon: Icon(Icons.auto_awesome_rounded, color: c.lived, size: 18),
-                hintText: 'Note, or type it all: costco 46 split',
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4, 6, 4, 0),
-              child: Text(
-                _suggestion != null && _suggestion!.categoryId == _categoryId
-                    ? '${selected?.name} · you used it ${_suggestion!.timesUsed}× for “${_suggestion!.matchedWord}”'
-                    : 'Category is picked from how you logged similar notes before.',
-                style: TextStyle(fontSize: 12, color: c.muted),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: [
-                for (final cat in shown)
-                  ChoiceChip(
-                    label: Text('${cat.emoji}  ${cat.name}'),
-                    selected: cat.id == _categoryId,
-                    onSelected: (_) => setState(() {
-                      _categoryId = cat.id;
-                      _categoryPickedByUser = true;
-                    }),
                   ),
-                ActionChip(
-                  avatar: const Icon(Icons.add_rounded, size: 18),
-                  label: const Text('New'),
-                  onPressed: _newCategory,
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _OptionTile(
-                    title: _splitWays == 1 ? 'Split bill' : 'Split $_splitWays ways',
-                    subtitle: settings.splitWith.isEmpty
-                        ? 'tap to change'
-                        : 'with ${settings.splitWith}',
-                    on: _splitWays > 1,
-                    onTap: () => setState(() => _splitWays = _splitWays >= 4 ? 1 : _splitWays + 1),
+                  SizedBox(
+                    height: 20,
+                    child: Center(
+                      child: Text(
+                        _splitWays > 1 && cents > 0
+                            ? 'Your share ${money(share)}'
+                                  '${settings.splitWith.isEmpty ? '' : ' · ${settings.splitWith} owes ${money(cents - share)}'}'
+                            : '',
+                        style: TextStyle(color: c.lived, fontWeight: FontWeight.w600, fontSize: 13),
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _OptionTile(
-                    title: 'Money back',
-                    subtitle: 'refund, share paid',
-                    on: _moneyBack,
-                    onTap: () => setState(() => _moneyBack = !_moneyBack),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _note,
+                    onChanged: _onNoteChanged,
+                    textCapitalization: TextCapitalization.sentences,
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(Icons.auto_awesome_rounded, color: c.lived, size: 18),
+                      hintText: 'Note, or type it all: costco 46 split',
+                    ),
                   ),
-                ),
-              ],
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(4, 6, 4, 0),
+                    child: Text(
+                      _suggestion != null && _suggestion!.categoryId == _categoryId
+                          ? '${selected?.name} · you used it ${_suggestion!.timesUsed}× for “${_suggestion!.matchedWord}”'
+                          : 'Category is picked from how you logged similar notes before.',
+                      style: TextStyle(fontSize: 12, color: c.muted),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Two rows that scroll sideways keep the sheet short.
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    clipBehavior: Clip.none,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(children: [for (var i = 0; i < shown.length; i += 2) chip(shown[i])]),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            for (var i = 1; i < shown.length; i += 2) chip(shown[i]),
+                            ActionChip(
+                              avatar: const Icon(Icons.add_rounded, size: 18),
+                              label: const Text('New'),
+                              onPressed: _newCategory,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _OptionTile(
+                          title: _splitWays == 1 ? 'Split bill' : 'Split $_splitWays ways',
+                          subtitle: settings.splitWith.isEmpty
+                              ? 'tap to change'
+                              : 'with ${settings.splitWith}',
+                          on: _splitWays > 1,
+                          onTap: () =>
+                              setState(() => _splitWays = _splitWays >= 4 ? 1 : _splitWays + 1),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _OptionTile(
+                          title: 'Money back',
+                          subtitle: 'refund, share paid',
+                          on: _moneyBack,
+                          onTap: () => setState(() => _moneyBack = !_moneyBack),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  _Keypad(onKey: _key),
+                ],
+              ),
             ),
-            const SizedBox(height: 8),
-            _Keypad(onKey: _key),
-            const SizedBox(height: 8),
-            FilledButton(
+          ),
+          // Always visible, even on small screens or with the keyboard open.
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 8, 18, 18),
+            child: FilledButton(
               onPressed: canSave ? _save : null,
               child: Text(
                 canSave
@@ -300,8 +332,8 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
                     : (_categoryId == null && cents > 0 ? 'Pick a category' : 'Save'),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
