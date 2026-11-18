@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'app/app.dart';
 import 'app/backend.dart';
 import 'app/providers.dart';
+import 'app/social_providers.dart';
 import 'data/local/app_database.dart';
 
 Future<void> main() async {
@@ -12,15 +13,16 @@ Future<void> main() async {
 
   final prefs = await SharedPreferences.getInstance();
   final database = AppDatabase.open();
-  // Null when Firebase is not configured: the app then runs local-only.
-  final remote = await createRemoteStore(SyncBackend.configured);
+  // Local-only when Firebase is not configured.
+  final backend = await createBackend(SyncBackend.configured);
 
   runApp(
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         databaseProvider.overrideWithValue(database),
-        remoteStoreProvider.overrideWithValue(remote),
+        remoteStoreProvider.overrideWithValue(backend.remote),
+        socialBackendProvider.overrideWithValue(backend.social),
       ],
       child: const _SyncBootstrap(child: ThreeBucksApp()),
     ),
@@ -35,7 +37,9 @@ class _SyncBootstrap extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.watch(syncEngineProvider);
+    ref
+      ..watch(syncEngineProvider)
+      ..watch(billProjectionProvider);
     return child;
   }
 }

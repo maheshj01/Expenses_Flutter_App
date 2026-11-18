@@ -49,6 +49,20 @@ class DriftEntryRepository implements EntryRepository, LocalSyncSource {
   }
 
   @override
+  Future<LedgerEntry?> byId(String id) async {
+    final row = await (_db.select(
+      _t,
+    )..where((t) => t.id.equals(id) & t.deleted.equals(false))).getSingleOrNull();
+    return row == null ? null : _toEntity(row);
+  }
+
+  @override
+  Future<List<LedgerEntry>> sharedEntries() async {
+    final query = _db.select(_t)..where((t) => t.deleted.equals(false) & t.billId.isNotNull());
+    return (await query.get()).map(_toEntity).toList();
+  }
+
+  @override
   Future<void> save(LedgerEntry entry) async {
     final now = _now;
     await _db
@@ -61,6 +75,7 @@ class DriftEntryRepository implements EntryRepository, LocalSyncSource {
             day: DayKey.fromDate(entry.date),
             note: Value(entry.note.trim()),
             splitWays: Value(entry.splitWays),
+            billId: Value(entry.billId),
             createdAt: entry.createdAt?.millisecondsSinceEpoch ?? now,
             updatedAt: now,
             deleted: const Value(false),
@@ -102,6 +117,7 @@ class DriftEntryRepository implements EntryRepository, LocalSyncSource {
               'day': r.day,
               'note': r.note,
               'splitWays': r.splitWays,
+              'billId': r.billId,
               'createdAt': r.createdAt,
             },
           ),
@@ -144,6 +160,7 @@ class DriftEntryRepository implements EntryRepository, LocalSyncSource {
                 day: (d['day'] as num?)?.toInt() ?? local?.day ?? DayKey.fromDate(_clock()),
                 note: Value(d['note'] as String? ?? ''),
                 splitWays: Value((d['splitWays'] as num?)?.toInt() ?? 1),
+                billId: Value(d['billId'] as String?),
                 createdAt: (d['createdAt'] as num?)?.toInt() ?? r.updatedAt,
                 updatedAt: r.updatedAt,
                 deleted: Value(r.deleted),
@@ -161,6 +178,7 @@ class DriftEntryRepository implements EntryRepository, LocalSyncSource {
     date: DayKey.toDate(r.day),
     note: r.note,
     splitWays: r.splitWays,
+    billId: r.billId,
     createdAt: DateTime.fromMillisecondsSinceEpoch(r.createdAt),
   );
 }

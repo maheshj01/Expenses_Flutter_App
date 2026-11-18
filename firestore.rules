@@ -1,9 +1,108 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Each user can only read and write their own data.
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // Sharing needs a real (Apple / Google) account, not an anonymous one.
+    function hasAccount() {
+      return signedIn() && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
+    function me() {
+      return request.auth.uid;
+    }
+
+    function changedOnly(keys) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
+    }
+
+    // ---- personal data: each user can only read and write their own ----
     match /users/{uid}/{collection}/{recordId} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read, write: if signedIn() && me() == uid;
+    }
+
+    // ---- usernames ----
+    // One document per handle makes them unique. Only exact lookups (get)
+    // are allowed, so nobody can list who uses the app.
+    match /handles/{handle} {
+      allow get: if hasAccount();
+      allow create: if hasAccount()
+        && request.resource.data.uid == me()
+        && handle.matches('^[a-z][a-z0-9_.]{2,19}$');
+      allow update: if hasAccount() && resource.data.uid == me() && request.resource.data.uid == me();
+      allow delete: if hasAccount() && resource.data.uid == me();
+    }
+
+    match /profiles/{uid} {
+      allow get: if hasAccount();
+      allow create, update: if hasAccount() && me() == uid
+        && request.resource.data.keys().hasOnly(['handle', 'name'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 40
+        // The handle must be claimed by the same person in the same write.
+        && existsAfter(/databases/$(database)/documents/handles/$(request.resource.data.handle))
+        && getAfter(/databases/$(database)/documents/handles/$(request.resource.data.handle)).data.uid == me();
+      allow delete: if hasAccount() && me() == uid;
+    }
+
+    // ---- connections ----
+    // Id is "uidA_uidB" (sorted). The person asked is the only one who can
+    // accept; either side can decline or remove.
+    match /connections/{id} {
+      allow read: if hasAccount() && (resource == null || me() in resource.data.members);
+      allow create: if hasAccount()
+        && request.resource.data.requestedBy == me()
+        && request.resource.data.status == 'pending'
+        && request.resource.data.members.size() == 2
+        && me() in request.resource.data.members
+        && request.resource.data.members[0] < request.resource.data.members[1]
+        && id == request.resource.data.members[0] + '_' + request.resource.data.members[1];
+      allow update: if hasAccount()
+        && me() in resource.data.members
+        && me() != resource.data.requestedBy
+        && changedOnly(['status'])
+        && request.resource.data.status == 'accepted';
+      allow delete: if hasAccount() && me() in resource.data.members;
+    }
+
+    // ---- shared bills ----
+    // The payer creates and edits (deleting is a soft delete). Every other
+    // member can only add or remove the flag on their own share.
+    // Bills from people you're not connected with are ignored by the app.
+    match /bills/{id} {
+      allow read: if hasAccount() && (resource == null || me() in resource.data.members);
+      allow create: if hasAccount()
+        && request.resource.data.createdBy == me()
+        && me() in request.resource.data.members
+        && request.resource.data.members.size() <= 20
+        && request.resource.data.amountCents is int
+        && request.resource.data.amountCents > 0;
+      allow update: if hasAccount() && (
+        (resource.data.createdBy == me()
+          && request.resource.data.createdBy == me()
+          && me() in request.resource.data.members
+          && request.resource.data.members.size() <= 20
+          && request.resource.data.amountCents > 0)
+        ||
+        (me() in resource.data.members
+          && changedOnly(['flags'])
+          && request.resource.data.flags.diff(resource.data.flags).affectedKeys().hasOnly([me()]))
+      );
+      allow delete: if false;
+    }
+
+    // ---- settlements ----
+    match /settlements/{id} {
+      allow read: if hasAccount() && (resource == null || me() in resource.data.members);
+      allow create: if hasAccount()
+        && request.resource.data.createdBy == me()
+        && me() in request.resource.data.members
+        && request.resource.data.members == [request.resource.data.from, request.resource.data.to]
+        && request.resource.data.amountCents is int
+        && request.resource.data.amountCents > 0;
+      allow delete: if hasAccount() && resource.data.createdBy == me();
     }
   }
 }

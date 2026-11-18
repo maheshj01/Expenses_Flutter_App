@@ -8,6 +8,7 @@ class LedgerEntry {
     required this.date,
     this.note = '',
     this.splitWays = 1,
+    this.billId,
     this.createdAt,
   }) : assert(splitWays >= 1);
 
@@ -24,9 +25,14 @@ class LedgerEntry {
   /// How many people share this bill. Only your share counts toward
   /// your totals: a $46 bill split 2 ways counts as $23.
   final int splitWays;
+
+  /// Set when this is your share of a bill shared with people on the app.
+  final String? billId;
   final DateTime? createdAt;
 
   bool get isSplit => splitWays > 1;
+
+  bool get isShared => billId != null;
 
   bool get isMoneyBack => amountCents < 0;
 
@@ -39,6 +45,7 @@ class LedgerEntry {
     DateTime? date,
     String? note,
     int? splitWays,
+    String? Function()? billId,
   }) {
     return LedgerEntry(
       id: id,
@@ -47,6 +54,7 @@ class LedgerEntry {
       date: date ?? this.date,
       note: note ?? this.note,
       splitWays: splitWays ?? this.splitWays,
+      billId: billId == null ? this.billId : billId(),
       createdAt: createdAt,
     );
   }
@@ -59,10 +67,11 @@ class LedgerEntry {
       other.categoryId == categoryId &&
       other.date == date &&
       other.note == note &&
-      other.splitWays == splitWays;
+      other.splitWays == splitWays &&
+      other.billId == billId;
 
   @override
-  int get hashCode => Object.hash(id, amountCents, categoryId, date, note, splitWays);
+  int get hashCode => Object.hash(id, amountCents, categoryId, date, note, splitWays, billId);
 
   @override
   String toString() => 'LedgerEntry($amountCents, $categoryId, $date, "$note")';

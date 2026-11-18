@@ -1,9 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart';
 
-import '../../../firebase_options.dart';
 import '../../sync/remote_store.dart';
 import '../../sync/sync_record.dart';
 
@@ -31,20 +28,11 @@ class FirebaseRemoteStore implements RemoteStore {
   static const _safetyWindow = Duration(seconds: 5);
   static const _serverUpdatedAt = 'serverUpdatedAt';
 
-  /// Initializes Firebase. Returns null (local-only mode) when the app has
-  /// not been configured with `flutterfire configure` yet.
-  static Future<FirebaseRemoteStore?> initialize() async {
-    try {
-      if (Firebase.apps.isEmpty) {
-        await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-      }
-      final firestore = FirebaseFirestore.instance
-        ..settings = const Settings(persistenceEnabled: true, cacheSizeBytes: 40 * 1024 * 1024);
-      return FirebaseRemoteStore(firestore: firestore);
-    } catch (e) {
-      debugPrint('Firebase unavailable, running local-only: $e');
-      return null;
-    }
+  /// Configures Firestore once Firebase is initialized.
+  static FirebaseRemoteStore configure() {
+    final firestore = FirebaseFirestore.instance
+      ..settings = const Settings(persistenceEnabled: true, cacheSizeBytes: 40 * 1024 * 1024);
+    return FirebaseRemoteStore(firestore: firestore);
   }
 
   @override

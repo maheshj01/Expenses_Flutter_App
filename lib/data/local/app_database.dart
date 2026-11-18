@@ -43,6 +43,9 @@ class Entries extends Table with SyncColumns {
   IntColumn get day => integer()();
   TextColumn get note => text().withDefault(const Constant(''))();
   IntColumn get splitWays => integer().withDefault(const Constant(1))();
+
+  /// Id of the shared bill this entry is your share of, if any.
+  TextColumn get billId => text().nullable()();
   IntColumn get createdAt => integer()();
 
   @override
@@ -67,13 +70,16 @@ class AppDatabase extends _$AppDatabase implements SyncCursorStore {
   factory AppDatabase.open() => AppDatabase(driftDatabase(name: 'three_bucks'));
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) async {
       await m.createAll();
       await _seedCategories();
+    },
+    onUpgrade: (m, from, to) async {
+      if (from < 2) await m.addColumn(entries, entries.billId);
     },
   );
 
