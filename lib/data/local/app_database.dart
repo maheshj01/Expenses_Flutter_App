@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 
+import '../sync/remote_store.dart';
 import 'default_categories.dart';
 
 part 'app_database.g.dart';
@@ -59,7 +60,7 @@ class SyncCursors extends Table {
 }
 
 @DriftDatabase(tables: [Categories, Entries, SyncCursors])
-class AppDatabase extends _$AppDatabase {
+class AppDatabase extends _$AppDatabase implements SyncCursorStore {
   AppDatabase(super.executor);
 
   /// Opens the on-device database file.
@@ -95,6 +96,7 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
+  @override
   Future<String?> readCursor(String collection) async {
     final row = await (select(
       syncCursors,
@@ -102,6 +104,7 @@ class AppDatabase extends _$AppDatabase {
     return row?.cursor;
   }
 
+  @override
   Future<void> writeCursor(String collection, String? cursor) {
     return into(syncCursors).insertOnConflictUpdate(
       SyncCursorsCompanion.insert(collection: collection, cursor: Value(cursor)),
