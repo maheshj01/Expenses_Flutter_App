@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/providers.dart';
 import '../../app/theme.dart';
+import '../../domain/entities/ledger_entry.dart';
 import '../../shared/widgets/app_card.dart';
 import 'year_screen.dart';
 
@@ -49,10 +50,20 @@ class _YearCard extends ConsumerWidget {
     final prev = previous == null ? null : ref.watch(yearSummaryProvider(previous!));
     final isCurrent = year == DateTime.now().year;
 
+    // Compare the average month, not totals: the current year (and the
+    // first year of history) usually covers only part of the year.
+    int months(int y) => {
+      for (final e in ref.watch(yearEntriesProvider(y)).value ?? const <LedgerEntry>[])
+        e.date.month,
+    }.length;
     String? change;
-    if (prev != null && prev.livedCents > 0) {
-      final pct = ((s.livedCents - prev.livedCents) / prev.livedCents * 100).round();
-      change = '${pct >= 0 ? '↑' : '↓'} ${pct.abs()}% living vs $previous';
+    if (prev != null && prev.livedCents > 0 && months(year) > 0 && months(previous!) > 0) {
+      final now = s.livedCents / months(year);
+      final before = prev.livedCents / months(previous!);
+      final pct = ((now - before) / before * 100).round();
+      change = pct == 0
+          ? 'Same monthly living cost as $previous'
+          : '${pct > 0 ? '↑' : '↓'} ${pct.abs()}% a month on living vs $previous';
     }
 
     Widget figure(String label, int cents, Color color) => Expanded(

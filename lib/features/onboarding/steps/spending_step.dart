@@ -30,7 +30,8 @@ class SpendingStep extends StatelessWidget {
         AmountInput(
           symbol: money.symbol,
           cents: spend,
-          autofocus: true,
+          // With income known, the suggestions are usually quicker than typing.
+          autofocus: income == 0,
           onChanged: (v) {
             draft.spendingCents = v;
             onChanged();

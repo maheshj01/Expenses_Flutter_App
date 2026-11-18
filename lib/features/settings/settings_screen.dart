@@ -198,7 +198,7 @@ class _SyncCard extends ConsumerWidget {
                   style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
                 ),
               ),
-              if (status.pendingCount > 0)
+              if (status.pendingCount > 0 && status.phase != SyncPhase.localOnly)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(

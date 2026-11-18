@@ -68,7 +68,11 @@ void main() {
     // Goals: savings target is pre-filled with what is left.
     await tester.tap(find.text('Invest more'));
     await settle();
-    await tester.scrollUntilVisible(find.byType(TextField), 200);
+    await tester.scrollUntilVisible(
+      find.byType(TextField),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.ensureVisible(find.byType(TextField));
     await settle();
     expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, '1560');
@@ -76,7 +80,11 @@ void main() {
 
     // Categories: defaults are selected; add Pets.
     expect(find.text('What do you spend on?'), findsOneWidget);
-    await tester.scrollUntilVisible(find.text('Pets'), 200);
+    await tester.scrollUntilVisible(
+      find.text('Pets'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.ensureVisible(find.text('Pets'));
     await settle();
     await tester.tap(find.text('Pets'));

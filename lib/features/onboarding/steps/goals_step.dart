@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/app_settings.dart';
 import '../../../domain/services/monthly_plan.dart';
+import '../../../shared/animations/fade_slide_in.dart';
 import '../../../shared/money_format.dart';
 import '../onboarding_draft.dart';
 import '../onboarding_widgets.dart';
@@ -43,20 +44,30 @@ class _GoalsStepState extends State<GoalsStep> {
       title: 'What are you working towards?',
       subtitle: 'Pick as many as you like.',
       children: [
-        for (final goal in MoneyGoal.values)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: ChoiceCard(
-              emoji: goal.emoji,
-              title: goal.label,
-              dense: true,
-              selected: d.goals.contains(goal),
-              onTap: () {
-                d.goals.contains(goal) ? d.goals.remove(goal) : d.goals.add(goal);
-                widget.onChanged();
-              },
-            ),
-          ),
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 8,
+          crossAxisSpacing: 8,
+          childAspectRatio: 1.75,
+          children: [
+            for (final (i, goal) in MoneyGoal.values.indexed)
+              FadeSlideIn(
+                index: i,
+                offset: const Offset(0, 10),
+                child: ChoiceTile(
+                  emoji: goal.emoji,
+                  label: goal.label,
+                  selected: d.goals.contains(goal),
+                  onTap: () {
+                    d.goals.contains(goal) ? d.goals.remove(goal) : d.goals.add(goal);
+                    widget.onChanged();
+                  },
+                ),
+              ),
+          ],
+        ),
         const SizedBox(height: 16),
         const Text(
           'Set aside each month',

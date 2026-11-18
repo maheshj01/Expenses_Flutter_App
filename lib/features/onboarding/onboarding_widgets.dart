@@ -237,3 +237,63 @@ class SuggestionPill extends StatelessWidget {
     );
   }
 }
+
+/// Compact square-ish choice for grids: emoji, short label, check badge.
+class ChoiceTile extends StatelessWidget {
+  const ChoiceTile({
+    super.key,
+    required this.emoji,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String emoji;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return PressableScale(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
+      child: AnimatedContainer(
+        duration: Motion.of(context, Motion.fast),
+        curve: Motion.enter,
+        padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
+        decoration: BoxDecoration(
+          color: selected ? c.livedSoft : c.card,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: selected ? c.lived : c.line, width: selected ? 1.6 : 1),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(emoji, style: const TextStyle(fontSize: 22)),
+                const Spacer(),
+                AnimatedScale(
+                  scale: selected ? 1 : 0,
+                  duration: Motion.of(context, Motion.medium),
+                  curve: Motion.emphasized,
+                  child: Icon(Icons.check_circle_rounded, color: c.lived, size: 20),
+                ),
+              ],
+            ),
+            const Spacer(),
+            Text(
+              label,
+              maxLines: 2,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, height: 1.2),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

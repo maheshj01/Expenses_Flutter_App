@@ -63,7 +63,10 @@ class EntryTile extends ConsumerWidget {
                           style: TextStyle(fontSize: 12.5, color: c.muted),
                         ),
                       ),
-                      if (entry.isSplit) ...[const SizedBox(width: 6), _Tag('÷${entry.splitWays}')],
+                      if (entry.isSplit) ...[
+                        const SizedBox(width: 6),
+                        _Tag(_splitLabel(entry.splitWays)),
+                      ],
                     ],
                   ),
                 ],
@@ -95,6 +98,13 @@ class EntryTile extends ConsumerWidget {
     );
   }
 }
+
+String _splitLabel(int ways) => switch (ways) {
+  2 => '½',
+  3 => '⅓',
+  4 => '¼',
+  _ => '1/$ways',
+};
 
 class _Tag extends StatelessWidget {
   const _Tag(this.text);

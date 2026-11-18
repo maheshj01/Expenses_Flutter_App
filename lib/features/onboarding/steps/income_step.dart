@@ -67,48 +67,38 @@ class IncomeStep extends StatelessWidget {
             ),
           ],
         ),
-        Text(draft.payFrequency.per, style: TextStyle(color: c.muted)),
-        const SizedBox(height: 16),
-        AnimatedSwitcher(
-          duration: Motion.of(context, Motion.medium),
-          transitionBuilder: (child, a) => FadeTransition(
-            opacity: a,
-            child: SizeTransition(sizeFactor: a, alignment: Alignment.topCenter, child: child),
-          ),
-          child: showMonthly
-              ? Container(
-                  key: const ValueKey('monthly'),
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: c.earnedSoft,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Row(
-                    children: [
-                      Text('≈ ', style: TextStyle(color: c.earned, fontSize: 18)),
-                      AnimatedAmount(
-                        cents: draft.monthlyIncomeCents,
-                        duration: Motion.medium,
-                        builder: (context, v) => Text(
-                          money.whole(v),
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            fontFeatures: tabularFigures,
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Text(draft.payFrequency.per, style: TextStyle(color: c.muted)),
+            // The monthly figure sits right under the amount so it stays
+            // visible while the keyboard is open.
+            AnimatedSize(
+              duration: Motion.of(context, Motion.medium),
+              curve: Motion.enter,
+              child: showMonthly
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('  ·  ≈ ', style: TextStyle(color: c.earned)),
+                        AnimatedAmount(
+                          cents: draft.monthlyIncomeCents,
+                          duration: Motion.medium,
+                          builder: (context, v) => Text(
+                            money.whole(v),
+                            style: TextStyle(
+                              color: c.earned,
+                              fontWeight: FontWeight.w700,
+                              fontFeatures: tabularFigures,
+                            ),
                           ),
                         ),
-                      ),
-                      Flexible(
-                        child: Text(
-                          ' a month on average',
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: c.ink2),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              : const SizedBox.shrink(key: ValueKey('none')),
+                        Text(' a month', style: TextStyle(color: c.earned)),
+                      ],
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ],
         ),
       ],
     );
