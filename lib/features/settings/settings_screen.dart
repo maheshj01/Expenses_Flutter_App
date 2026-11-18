@@ -6,41 +6,16 @@ import '../../app/providers.dart';
 import '../../app/theme.dart';
 import '../../data/sync/sync_status.dart';
 import '../../shared/widgets/app_card.dart';
+import '../../shared/widgets/currency_picker.dart';
 import '../categories/categories_screen.dart';
 import '../home/budget_dialog.dart';
-
-const _currencies = {
-  'USD': 'US Dollar',
-  'INR': 'Indian Rupee',
-  'EUR': 'Euro',
-  'GBP': 'British Pound',
-  'CAD': 'Canadian Dollar',
-  'AUD': 'Australian Dollar',
-  'SGD': 'Singapore Dollar',
-  'AED': 'UAE Dirham',
-  'JPY': 'Japanese Yen',
-};
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   Future<void> _pickCurrency(BuildContext context, WidgetRef ref) async {
     final settings = ref.read(settingsProvider);
-    final code = await showModalBottomSheet<String>(
-      context: context,
-      builder: (context) => ListView(
-        shrinkWrap: true,
-        children: [
-          for (final MapEntry(key: code, value: name) in _currencies.entries)
-            ListTile(
-              title: Text(name),
-              subtitle: Text(code),
-              trailing: code == settings.currencyCode ? const Icon(Icons.check_rounded) : null,
-              onTap: () => Navigator.pop(context, code),
-            ),
-        ],
-      ),
-    );
+    final code = await showCurrencyPicker(context, current: settings.currencyCode);
     if (code != null) {
       await ref.read(settingsProvider.notifier).update(settings.copyWith(currencyCode: code));
     }
