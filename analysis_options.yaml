@@ -3,6 +3,10 @@ include: package:flutter_lints/flutter.yaml
 analyzer:
   exclude:
     - "**/*.g.dart"
+    - build/**
+    - android/**
+    - ios/**
+    - macos/**
   language:
     strict-casts: true
     strict-raw-types: true
@@ -17,3 +21,6 @@ linter:
     - avoid_dynamic_calls
     - unawaited_futures
     - directives_ordering
+
+formatter:
+  page_width: 100
