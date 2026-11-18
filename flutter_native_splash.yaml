@@ -1,0 +1,22 @@
+# Native launch screens for iOS and Android. After changing this file or the
+# icon drawing, regenerate the logos and screens with:
+#
+#   tool/generate_splash.sh
+#
+# Colors match AppColors.background in lib/app/theme.dart.
+flutter_native_splash:
+  color: "#FAF9F6"
+  color_dark: "#131517"
+  image: branding/splash_logo.png
+
+  android_12:
+    image: branding/splash_logo_android12.png
+    color: "#FAF9F6"
+    color_dark: "#131517"
+
+  ios: true
+  android: true
+  web: false
+
+  # Keep the status bar visible, as the app does.
+  fullscreen: false
