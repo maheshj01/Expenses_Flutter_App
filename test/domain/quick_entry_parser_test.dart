@@ -42,6 +42,37 @@ void main() {
     });
   });
 
+  group('QuickEntryParser with saved names', () {
+    const known = ['Sam', 'Ana Ruiz', 'Lee'];
+
+    test('takes names after a split and counts them', () {
+      final r = QuickEntryParser.parse('pizza 30 split with sam and ana ruiz', knownNames: known);
+      expect(r.guestNames, ['Sam', 'Ana Ruiz']);
+      expect(r.splitWays, 3);
+      expect(r.note, 'Pizza');
+      expect(r.amountCents, 3000);
+    });
+
+    test('keeps a larger split count', () {
+      final r = QuickEntryParser.parse('rent 1800 split 4 sam', knownNames: known);
+      expect(r.splitWays, 4);
+      expect(r.guestNames, ['Sam']);
+    });
+
+    test('ignores names without a split', () {
+      final r = QuickEntryParser.parse('dinner with sam 40', knownNames: known);
+      expect(r.splitWays, 1);
+      expect(r.guestNames, isEmpty);
+      expect(r.note, 'Dinner with sam');
+    });
+
+    test('matches whole words only', () {
+      final r = QuickEntryParser.parse('sleep aid 12 split', knownNames: known);
+      expect(r.guestNames, isEmpty);
+      expect(r.note, 'Sleep aid');
+    });
+  });
+
   group('CategorySuggester', () {
     LedgerEntry e(String note, String cat) =>
         LedgerEntry(id: note, amountCents: 100, categoryId: cat, date: DateTime(2026), note: note);

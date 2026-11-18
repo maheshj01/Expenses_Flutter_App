@@ -2,11 +2,20 @@ import '../entities/ledger_entry.dart';
 
 /// Result of parsing free text such as `costco 46.50 split`.
 class QuickEntry {
-  const QuickEntry({this.amountCents, this.note = '', this.splitWays = 1, this.moneyBack = false});
+  const QuickEntry({
+    this.amountCents,
+    this.note = '',
+    this.splitWays = 1,
+    this.guestNames = const [],
+    this.moneyBack = false,
+  });
 
   final int? amountCents;
   final String note;
   final int splitWays;
+
+  /// Saved people named in a split, e.g. "Sam" in `pizza 30 split sam`.
+  final List<String> guestNames;
   final bool moneyBack;
 }
 
@@ -15,13 +24,15 @@ class QuickEntry {
 ///
 /// Supported words: `split` / `half` (split 2 ways), `split 3` or `/3`
 /// (split 3 ways), and `refund` / `back` / a leading `+` (money back).
+/// With a split, any of [knownNames] in the text are taken as the people
+/// sharing it: `pizza 30 split with sam and ana` is split 3 ways.
 abstract final class QuickEntryParser {
   static final _amount = RegExp(r'(?<![\w/])[+$]?(\d{1,7}(?:[.,]\d{1,2})?)(?![\w/])');
   static final _splitN = RegExp(r'\b(?:split|÷)\s*(\d)\b|/(\d)\b');
   static final _split2 = RegExp(r'\b(split|half|½)\b');
   static final _back = RegExp(r'\b(refund|refunded|back|returned)\b');
 
-  static QuickEntry parse(String input) {
+  static QuickEntry parse(String input, {Iterable<String> knownNames = const []}) {
     var text = input.trim();
     if (text.isEmpty) return const QuickEntry();
 
@@ -34,6 +45,24 @@ abstract final class QuickEntryParser {
     } else if (_split2.hasMatch(text)) {
       splitWays = 2;
       text = text.replaceAll(_split2, ' ');
+    }
+
+    final names = <String>[];
+    if (splitWays > 1) {
+      for (final name in knownNames) {
+        if (name.trim().isEmpty) continue;
+        final word = RegExp(
+          '(?<![\\w])${RegExp.escape(name.trim())}(?![\\w])',
+          caseSensitive: false,
+        );
+        if (!word.hasMatch(text)) continue;
+        names.add(name.trim());
+        text = text.replaceAll(word, ' ');
+      }
+      if (names.isNotEmpty) {
+        text = text.replaceAll(RegExp(r'\b(?:with|and)\b|&', caseSensitive: false), ' ');
+        if (names.length + 1 > splitWays) splitWays = names.length + 1;
+      }
     }
 
     final moneyBack = text.startsWith('+') || _back.hasMatch(text);
@@ -51,6 +80,7 @@ abstract final class QuickEntryParser {
       amountCents: cents,
       note: note.isEmpty ? '' : note[0].toUpperCase() + note.substring(1),
       splitWays: splitWays,
+      guestNames: names,
       moneyBack: moneyBack,
     );
   }
