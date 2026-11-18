@@ -153,6 +153,20 @@ Tests cover the money logic, the quick-entry parser, the local repositories, two
 (conflicts, deletes, offline queueing, failures, switching accounts), balances and the inbox, the
 shared-bill ledger projection, and end-to-end add / edit, onboarding and sharing flows.
 
+### App icon
+
+The icon (three fanned bills with a $) is drawn by a script, so every size comes from one
+drawing. To change it, edit [`tool/generate_icons.py`](tool/generate_icons.py) and run:
+
+```bash
+python3 tool/generate_icons.py   # needs Pillow; macOS for the SF Pro $
+```
+
+It writes the iOS and macOS icon sets, Android launcher icons (adaptive foreground, background
+color and a monochrome layer for themed icons) and the store icons in `branding/`:
+`app_store_icon_1024.png` (no alpha, as App Store Connect requires) and
+`play_store_icon_512.png`.
+
 Screenshots of onboarding, the main screens and sharing (on an in-memory backend):
 
 ```bash
