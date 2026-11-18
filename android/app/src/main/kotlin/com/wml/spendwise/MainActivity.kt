@@ -1,4 +1,4 @@
-package com.wml.moneytrace
+package com.wml.spendwise
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:moneytrace/domain/entities/ledger_entry.dart';
-import 'package:moneytrace/domain/services/quick_entry_parser.dart';
+import 'package:spendwise/domain/entities/ledger_entry.dart';
+import 'package:spendwise/domain/services/quick_entry_parser.dart';
 
 void main() {
   group('QuickEntryParser', () {

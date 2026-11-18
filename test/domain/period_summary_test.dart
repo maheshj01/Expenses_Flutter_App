@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:moneytrace/domain/entities/category.dart';
-import 'package:moneytrace/domain/entities/ledger_entry.dart';
-import 'package:moneytrace/domain/services/period_summary.dart';
+import 'package:spendwise/domain/entities/category.dart';
+import 'package:spendwise/domain/entities/ledger_entry.dart';
+import 'package:spendwise/domain/services/period_summary.dart';
 
 void main() {
   const cats = {

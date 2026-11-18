@@ -22,7 +22,7 @@ Future<void> main() async {
         databaseProvider.overrideWithValue(database),
         remoteStoreProvider.overrideWithValue(remote),
       ],
-      child: const _SyncBootstrap(child: MoneyTraceApp()),
+      child: const _SyncBootstrap(child: SpendWiseApp()),
     ),
   );
 }

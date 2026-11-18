@@ -1,14 +1,14 @@
 import 'package:drift/drift.dart' show driftRuntimeOptions;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:moneytrace/data/local/app_database.dart';
-import 'package:moneytrace/data/local/drift_category_repository.dart';
-import 'package:moneytrace/data/local/drift_entry_repository.dart';
-import 'package:moneytrace/data/sync/local_sync_source.dart';
-import 'package:moneytrace/data/sync/sync_engine.dart';
-import 'package:moneytrace/data/sync/sync_status.dart';
-import 'package:moneytrace/domain/entities/category.dart';
-import 'package:moneytrace/domain/entities/ledger_entry.dart';
+import 'package:spendwise/data/local/app_database.dart';
+import 'package:spendwise/data/local/drift_category_repository.dart';
+import 'package:spendwise/data/local/drift_entry_repository.dart';
+import 'package:spendwise/data/sync/local_sync_source.dart';
+import 'package:spendwise/data/sync/sync_engine.dart';
+import 'package:spendwise/data/sync/sync_status.dart';
+import 'package:spendwise/domain/entities/category.dart';
+import 'package:spendwise/domain/entities/ledger_entry.dart';
 
 import '../support/fake_connectivity.dart';
 import '../support/in_memory_remote_store.dart';

@@ -1,4 +1,4 @@
-# MoneyTrace
+# SpendWise
 
 A simple, offline-first expense tracker built with Flutter.
 

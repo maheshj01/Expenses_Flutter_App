@@ -3,10 +3,10 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:moneytrace/app/app.dart';
-import 'package:moneytrace/app/providers.dart';
-import 'package:moneytrace/data/local/app_database.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:spendwise/app/app.dart';
+import 'package:spendwise/app/providers.dart';
+import 'package:spendwise/data/local/app_database.dart';
 
 import '../support/fake_connectivity.dart';
 
@@ -29,7 +29,7 @@ void main() {
           databaseProvider.overrideWithValue(db),
           connectivityProvider.overrideWithValue(FakeConnectivity()),
         ],
-        child: const MoneyTraceApp(),
+        child: const SpendWiseApp(),
       ),
     );
     await tester.pumpAndSettle();

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:moneytrace/data/sync/connectivity_monitor.dart';
+import 'package:spendwise/data/sync/connectivity_monitor.dart';
 
 class FakeConnectivity implements ConnectivityMonitor {
   FakeConnectivity({this.online = true});

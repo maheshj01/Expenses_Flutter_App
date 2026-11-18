@@ -1,5 +1,5 @@
-import 'package:moneytrace/data/sync/remote_store.dart';
-import 'package:moneytrace/data/sync/sync_record.dart';
+import 'package:spendwise/data/sync/remote_store.dart';
+import 'package:spendwise/data/sync/sync_record.dart';
 
 /// A tiny server: stores records per collection and hands out a
 /// monotonically increasing sequence number as the pull cursor.
