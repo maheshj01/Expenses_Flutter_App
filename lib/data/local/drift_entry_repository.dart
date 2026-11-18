@@ -64,33 +64,46 @@ class DriftEntryRepository implements EntryRepository, LocalSyncSource {
     return (await query.get()).map(_toEntity).toList();
   }
 
+  EntriesCompanion _companion(LedgerEntry entry, int now) => EntriesCompanion.insert(
+    id: entry.id,
+    amountCents: entry.amountCents,
+    categoryId: entry.categoryId,
+    day: DayKey.fromDate(entry.date),
+    note: Value(entry.note.trim()),
+    splitWays: Value(entry.splitWays),
+    guestNames: Value(_encodeNames(entry.guestNames)),
+    billId: Value(entry.billId),
+    createdAt: entry.createdAt?.millisecondsSinceEpoch ?? now,
+    updatedAt: now,
+    deleted: const Value(false),
+    dirty: const Value(true),
+  );
+
   @override
   Future<void> save(LedgerEntry entry) async {
-    final now = _now;
-    await _db
-        .into(_t)
-        .insertOnConflictUpdate(
-          EntriesCompanion.insert(
-            id: entry.id,
-            amountCents: entry.amountCents,
-            categoryId: entry.categoryId,
-            day: DayKey.fromDate(entry.date),
-            note: Value(entry.note.trim()),
-            splitWays: Value(entry.splitWays),
-            guestNames: Value(_encodeNames(entry.guestNames)),
-            billId: Value(entry.billId),
-            createdAt: entry.createdAt?.millisecondsSinceEpoch ?? now,
-            updatedAt: now,
-            deleted: const Value(false),
-            dirty: const Value(true),
-          ),
-        );
+    await _db.into(_t).insertOnConflictUpdate(_companion(entry, _now));
     _changes.notify();
   }
 
   @override
-  Future<void> delete(String id) async {
-    await (_db.update(_t)..where((t) => t.id.equals(id))).write(
+  Future<void> saveAll(List<LedgerEntry> entries) async {
+    if (entries.isEmpty) return;
+    final now = _now;
+    await _db.batch((b) {
+      for (final e in entries) {
+        b.insert(_t, _companion(e, now), onConflict: DoUpdate((_) => _companion(e, now)));
+      }
+    });
+    _changes.notify();
+  }
+
+  @override
+  Future<void> delete(String id) => deleteAll([id]);
+
+  @override
+  Future<void> deleteAll(List<String> ids) async {
+    if (ids.isEmpty) return;
+    await (_db.update(_t)..where((t) => t.id.isIn(ids))).write(
       EntriesCompanion(
         deleted: const Value(true),
         updatedAt: Value(_now),

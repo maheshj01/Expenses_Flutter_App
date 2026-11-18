@@ -19,5 +19,11 @@ abstract interface class EntryRepository {
   /// Inserts or updates [entry].
   Future<void> save(LedgerEntry entry);
 
+  /// Inserts or updates many entries at once, e.g. from an import.
+  Future<void> saveAll(List<LedgerEntry> entries);
+
   Future<void> delete(String id);
+
+  /// Deletes many entries at once, e.g. to undo an import.
+  Future<void> deleteAll(List<String> ids);
 }
