@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../app/providers.dart';
+import '../../app/social_providers.dart';
 import '../../app/theme.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/entities/ledger_entry.dart';
@@ -20,6 +21,8 @@ class EntryTile extends ConsumerWidget {
     final c = context.colors;
     final money = ref.watch(moneyFormatProvider);
     final category = ref.watch(categoryMapProvider)[entry.categoryId];
+    final bill = entry.billId == null ? null : ref.watch(billMapProvider)[entry.billId];
+    final me = ref.watch(accountProvider.select((a) => a.value?.uid));
     final kind = category?.kind ?? CategoryKind.spending;
     final amountColor = entry.isMoneyBack
         ? c.lived
@@ -29,9 +32,16 @@ class EntryTile extends ConsumerWidget {
             CategoryKind.spending => c.ink,
           };
     final title = entry.note.isEmpty ? (category?.name ?? 'Uncategorised') : entry.note;
+    final others = bill == null
+        ? const <String>[]
+        : [
+            for (final uid in bill.members)
+              if (uid != me) bill.nameOf(uid).split(' ').first,
+          ];
     final subtitle = [
       category?.name ?? 'Uncategorised',
       if (showDate) DateFormat.MMMd().format(entry.date),
+      if (others.isNotEmpty) 'with ${others.join(', ')}',
     ].join(' · ');
 
     return InkWell(
@@ -66,6 +76,10 @@ class EntryTile extends ConsumerWidget {
                       if (entry.isSplit) ...[
                         const SizedBox(width: 6),
                         _Tag(_splitLabel(entry.splitWays)),
+                      ],
+                      if (bill != null && bill.isDisputed) ...[
+                        const SizedBox(width: 6),
+                        Icon(Icons.flag_rounded, size: 14, color: c.warn),
                       ],
                     ],
                   ),

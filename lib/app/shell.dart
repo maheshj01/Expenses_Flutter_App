@@ -5,18 +5,26 @@ import '../features/entries/activity_screen.dart';
 import '../features/entries/entry_editor_sheet.dart';
 import '../features/history/history_screen.dart';
 import '../features/home/home_screen.dart';
-import '../features/settings/settings_screen.dart';
+import '../features/people/people_screen.dart';
+import '../features/people/people_widgets.dart';
 import 'providers.dart';
+import 'social_providers.dart';
 import 'theme.dart';
 
 class ShellTab {
-  const ShellTab(this.label, this.icon, this.selectedIcon, this.screen);
+  const ShellTab(this.label, this.icon, this.selectedIcon, this.screen, {this.badge = false});
 
   final String label;
   final IconData icon;
   final IconData selectedIcon;
   final Widget screen;
+
+  /// Shows the inbox count on the icon.
+  final bool badge;
 }
+
+/// Index of the People tab, for opening it from elsewhere (invite links).
+const peopleTabIndex = 2;
 
 final shellTabs = <ShellTab>[
   ShellTab(
@@ -34,8 +42,14 @@ final shellTabs = <ShellTab>[
     Icons.receipt_long_rounded,
     ActivityScreen(),
   ),
+  const ShellTab(
+    'People',
+    Icons.people_outline_rounded,
+    Icons.people_rounded,
+    PeopleScreen(),
+    badge: true,
+  ),
   const ShellTab('History', Icons.bar_chart_outlined, Icons.bar_chart_rounded, HistoryScreen()),
-  const ShellTab('Settings', Icons.settings_outlined, Icons.settings_rounded, SettingsScreen()),
 ];
 
 /// Bottom navigation with the big "add" button in the middle.
@@ -47,6 +61,7 @@ class AppShell extends ConsumerWidget {
     final c = context.colors;
     final index = ref.watch(shellTabProvider).clamp(0, shellTabs.length - 1);
     final half = (shellTabs.length / 2).ceil();
+    final unread = ref.watch(inboxUnreadProvider);
 
     Widget item(int i) {
       final tab = shellTabs[i];
@@ -59,7 +74,13 @@ class AppShell extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(selected ? tab.selectedIcon : tab.icon, color: selected ? c.ink : c.muted),
+              CountBadge(
+                count: tab.badge ? unread : 0,
+                child: Icon(
+                  selected ? tab.selectedIcon : tab.icon,
+                  color: selected ? c.ink : c.muted,
+                ),
+              ),
               const SizedBox(height: 2),
               Text(
                 tab.label,

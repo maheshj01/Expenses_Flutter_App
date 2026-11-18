@@ -154,6 +154,32 @@ class SharedBill {
     );
   }
 
+  /// The payer's edit: resolves every open flag.
+  SharedBill edited({
+    required List<String> members,
+    required Map<String, Profile> people,
+    required int guests,
+    required int amountCents,
+    required String currencyCode,
+    required DateTime date,
+    required String note,
+    required String memo,
+    required String categoryId,
+    required DateTime at,
+  }) => copyWith(
+    members: members,
+    people: people,
+    guests: guests,
+    amountCents: amountCents,
+    currencyCode: currencyCode,
+    date: date,
+    note: note,
+    memo: memo,
+    categoryId: categoryId,
+    flags: const {},
+    editedAt: at,
+  );
+
   @override
   String toString() => 'SharedBill($id, $amountCents/$ways, by $createdBy)';
 }

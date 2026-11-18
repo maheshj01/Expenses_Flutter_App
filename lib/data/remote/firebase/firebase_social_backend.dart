@@ -67,9 +67,10 @@ class FirebaseSocialBackend implements SocialBackend {
   Stream<Account?> watchAccount() => _auth.userChanges().map(_toAccount).distinct();
 
   AuthProvider _provider(SignInMethod method) => switch (method) {
-    SignInMethod.apple => AppleAuthProvider()
-      ..addScope('email')
-      ..addScope('name'),
+    SignInMethod.apple =>
+      AppleAuthProvider()
+        ..addScope('email')
+        ..addScope('name'),
     SignInMethod.google => GoogleAuthProvider()..addScope('email'),
   };
 
@@ -296,7 +297,7 @@ class FirebaseSocialBackend implements SocialBackend {
         'note': bill.note,
         'memo': bill.memo,
         'categoryId': bill.categoryId,
-        'flags': <String, Object?>{},
+        'flags': {for (final MapEntry(:key, :value) in bill.flags.entries) key: value.toJson()},
         'createdAt': bill.createdAt.millisecondsSinceEpoch,
         'editedAt': bill.editedAt.millisecondsSinceEpoch,
         'deleted': bill.deleted,

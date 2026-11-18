@@ -4,17 +4,32 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../app/providers.dart';
+import '../../app/social_providers.dart';
 import '../../app/theme.dart';
 import '../../core/day.dart';
 import '../../core/ids.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/entities/ledger_entry.dart';
 import '../../domain/services/quick_entry_parser.dart';
+import '../../domain/social/account.dart';
+import '../../domain/social/shared_bill.dart';
 import '../categories/category_editor_sheet.dart';
+import '../people/bill_sheet.dart';
+import '../people/split_picker_sheet.dart';
 
-/// Opens the add / edit sheet. Returns true when something was saved or
-/// deleted.
-Future<bool?> showEntryEditor(BuildContext context, {LedgerEntry? entry, DateTime? date}) {
+/// Opens an entry: shared bills open their bill details, everything else
+/// the add / edit sheet. Returns true when something was saved or deleted.
+Future<bool?> showEntryEditor(BuildContext context, {LedgerEntry? entry, DateTime? date}) async {
+  final billId = entry?.billId;
+  if (billId != null && ProviderScope.containerOf(context).read(billMapProvider)[billId] != null) {
+    await showBillSheet(context, billId);
+    return null;
+  }
+  return showEntryForm(context, entry: entry, date: date);
+}
+
+/// The add / edit sheet itself.
+Future<bool?> showEntryForm(BuildContext context, {LedgerEntry? entry, DateTime? date}) {
   return showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
@@ -38,7 +53,10 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
   late String _amount; // what the keypad shows, e.g. "46.5"
   late DateTime _date;
   String? _categoryId;
-  int _splitWays = 1;
+  SplitChoice _split = SplitChoice.none;
+
+  /// The shared bill being edited, if this entry is one you paid.
+  SharedBill? _bill;
   bool _moneyBack = false;
   bool _categoryPickedByUser = false;
   CategorySuggestion? _suggestion;
@@ -54,14 +72,42 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
     _date = e?.date ?? dateOnly(widget.initialDate ?? DateTime.now());
     _categoryId = e?.categoryId;
     _categoryPickedByUser = e != null;
-    _splitWays = e?.splitWays ?? 1;
     _moneyBack = e?.isMoneyBack ?? false;
+    final me = ref.read(accountProvider).value?.uid;
+    final bill = e?.billId == null ? null : ref.read(billMapProvider)[e!.billId];
+    if (bill != null && bill.createdBy == me) {
+      _bill = bill;
+      _split = SplitChoice(
+        people: [
+          for (final uid in bill.members)
+            if (uid != me) bill.people[uid] ?? Profile(uid: uid, handle: '', name: 'Someone'),
+        ],
+        guests: bill.guests,
+        memo: bill.memo,
+      );
+    } else {
+      _split = SplitChoice(guests: (e?.splitWays ?? 1) - 1);
+    }
   }
 
   @override
   void dispose() {
     _note.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickSplit() async {
+    final choice = await showSplitPicker(
+      context,
+      initial: _split,
+      cents: _cents,
+      money: ref.read(moneyFormatProvider),
+    );
+    if (choice == null || !mounted) return;
+    setState(() {
+      _split = choice;
+      if (choice.isShared) _moneyBack = false;
+    });
   }
 
   static String _centsToText(int cents) {
@@ -79,7 +125,9 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
     final allowed = {for (final c in ref.read(activeCategoriesProvider)) c.id};
     setState(() {
       if (parsed.amountCents != null) _amount = _centsToText(parsed.amountCents!);
-      if (parsed.splitWays > 1) _splitWays = parsed.splitWays;
+      if (parsed.splitWays > 1 && !_split.isSplit) {
+        _split = SplitChoice(guests: parsed.splitWays - 1);
+      }
       if (parsed.moneyBack) _moneyBack = true;
       _suggestion = suggester?.suggest(text, allowedIds: allowed);
       if (!_categoryPickedByUser && _suggestion != null) _categoryId = _suggestion!.categoryId;
@@ -129,20 +177,76 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
     // Keep the note readable: drop the amount and keywords if typed inline.
     final parsed = QuickEntryParser.parse(raw);
     final note = parsed.amountCents != null ? parsed.note : raw.trim();
+    final id = widget.entry?.id ?? newId();
+    final billId = await _saveBill(id, cents, note);
     final entry = LedgerEntry(
-      id: widget.entry?.id ?? newId(),
+      id: id,
       amountCents: _moneyBack ? -cents : cents,
       categoryId: _categoryId!,
       date: _date,
       note: note,
-      splitWays: _splitWays,
+      splitWays: _split.ways,
+      billId: billId,
       createdAt: widget.entry?.createdAt,
     );
     await ref.read(entryRepositoryProvider).save(entry);
     if (mounted) Navigator.of(context).pop(true);
   }
 
+  /// Shares the bill with the people picked, or stops sharing it. Returns
+  /// the bill id when it is shared.
+  Future<String?> _saveBill(String id, int cents, String note) async {
+    final backend = ref.read(socialBackendProvider);
+    final me = ref.read(myProfileProvider).value;
+    final existing = _bill;
+    final now = DateTime.now();
+    if (backend == null || me == null) return null;
+    if (!_split.isShared) {
+      if (existing != null) await backend.saveBill(existing.copyWith(deleted: true, editedAt: now));
+      return null;
+    }
+    final members = [me.uid, for (final p in _split.people) p.uid];
+    final people = {me.uid: me, for (final p in _split.people) p.uid: p};
+    final currency = ref.read(settingsProvider).currencyCode;
+    final bill = existing == null
+        ? SharedBill(
+            id: id,
+            createdBy: me.uid,
+            members: members,
+            people: people,
+            guests: _split.guests,
+            amountCents: cents,
+            currencyCode: currency,
+            date: _date,
+            note: note,
+            memo: _split.memo,
+            categoryId: _categoryId!,
+            createdAt: now,
+            editedAt: now,
+          )
+        : existing.edited(
+            members: members,
+            people: people,
+            guests: _split.guests,
+            amountCents: cents,
+            currencyCode: existing.currencyCode,
+            date: _date,
+            note: note,
+            memo: _split.memo,
+            categoryId: _categoryId!,
+            at: now,
+          );
+    await backend.saveBill(bill);
+    return id;
+  }
+
   Future<void> _delete() async {
+    final bill = _bill;
+    if (bill != null) {
+      await ref
+          .read(socialBackendProvider)
+          ?.saveBill(bill.copyWith(deleted: true, editedAt: DateTime.now()));
+    }
     await ref.read(entryRepositoryProvider).delete(widget.entry!.id);
     if (mounted) Navigator.of(context).pop(true);
   }
@@ -157,7 +261,8 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
     ref.watch(categorySuggesterProvider); // warm up suggestions
     final selected = categoryMap[_categoryId];
     final cents = _cents;
-    final share = (cents / _splitWays).round();
+    final share = (cents / _split.ways).round();
+    final splitNames = _split.describe(settings.splitWith);
     final canSave = cents > 0 && _categoryId != null;
 
     // Most used first; keep the selected one even if it was archived since.
@@ -197,7 +302,9 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
                     children: [
                       Expanded(
                         child: Text(
-                          _isEditing ? 'Edit entry' : 'New entry',
+                          _bill != null
+                              ? 'Edit shared bill'
+                              : (_isEditing ? 'Edit entry' : 'New entry'),
                           style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
                         ),
                       ),
@@ -240,9 +347,9 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
                     height: 20,
                     child: Center(
                       child: Text(
-                        _splitWays > 1 && cents > 0
+                        _split.isSplit && cents > 0
                             ? 'Your share ${money(share)}'
-                                  '${settings.splitWith.isEmpty ? '' : ' · ${settings.splitWith} owes ${money(cents - share)}'}'
+                                  '${splitNames.isEmpty ? '' : ' · $splitNames ${_split.ways == 2 ? 'owes' : 'owe'} ${money(cents - share)}'}'
                             : '',
                         style: TextStyle(color: c.lived, fontWeight: FontWeight.w600, fontSize: 13),
                       ),
@@ -295,22 +402,23 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
                     children: [
                       Expanded(
                         child: _OptionTile(
-                          title: _splitWays == 1 ? 'Split bill' : 'Split $_splitWays ways',
-                          subtitle: settings.splitWith.isEmpty
-                              ? 'tap to change'
-                              : 'with ${settings.splitWith}',
-                          on: _splitWays > 1,
-                          onTap: () =>
-                              setState(() => _splitWays = _splitWays >= 4 ? 1 : _splitWays + 1),
+                          title: _split.isSplit ? 'Split ${_split.ways} ways' : 'Split bill',
+                          subtitle: !_split.isSplit
+                              ? 'tap to choose'
+                              : (splitNames.isEmpty ? 'tap to change' : 'with $splitNames'),
+                          on: _split.isSplit,
+                          onTap: _pickSplit,
                         ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: _OptionTile(
                           title: 'Money back',
-                          subtitle: 'refund, share paid',
+                          subtitle: _split.isShared ? 'not for shared bills' : 'refund, share paid',
                           on: _moneyBack,
-                          onTap: () => setState(() => _moneyBack = !_moneyBack),
+                          onTap: _split.isShared
+                              ? null
+                              : () => setState(() => _moneyBack = !_moneyBack),
                         ),
                       ),
                     ],
@@ -328,7 +436,7 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
               onPressed: canSave ? _save : null,
               child: Text(
                 canSave
-                    ? 'Save ${money(_splitWays > 1 ? share : cents)} · ${selected?.name ?? ''}'
+                    ? '${_split.isShared ? 'Share' : 'Save'} ${money(_split.isSplit ? share : cents)} · ${selected?.name ?? ''}'
                     : (_categoryId == null && cents > 0 ? 'Pick a category' : 'Save'),
               ),
             ),
@@ -357,7 +465,7 @@ class _OptionTile extends StatelessWidget {
   final String title;
   final String subtitle;
   final bool on;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {

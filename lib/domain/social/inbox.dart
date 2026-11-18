@@ -96,6 +96,5 @@ class Inbox {
   bool get isEmpty => items.isEmpty;
 
   /// Items needing action plus news newer than [seenAt].
-  int unread(DateTime seenAt) =>
-      items.where((i) => i.needsAction || i.at.isAfter(seenAt)).length;
+  int unread(DateTime seenAt) => items.where((i) => i.needsAction || i.at.isAfter(seenAt)).length;
 }

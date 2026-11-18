@@ -39,8 +39,9 @@ final connectionsProvider = StreamProvider<List<Connection>>((ref) {
 /// People you can split bills with, by name.
 final friendsProvider = Provider<List<Connection>>((ref) {
   final all = ref.watch(connectionsProvider).value ?? const [];
-  return all.where((c) => c.isAccepted).toList()
-    ..sort((a, b) => a.other.displayName.toLowerCase().compareTo(b.other.displayName.toLowerCase()));
+  return all.where((c) => c.isAccepted).toList()..sort(
+    (a, b) => a.other.displayName.toLowerCase().compareTo(b.other.displayName.toLowerCase()),
+  );
 });
 
 final billsProvider = StreamProvider<BillsSnapshot>((ref) {
@@ -104,9 +105,8 @@ class InboxSeenNotifier extends Notifier<DateTime> {
   static const _key = 'inboxSeenAt';
 
   @override
-  DateTime build() => DateTime.fromMillisecondsSinceEpoch(
-    ref.watch(sharedPreferencesProvider).getInt(_key) ?? 0,
-  );
+  DateTime build() =>
+      DateTime.fromMillisecondsSinceEpoch(ref.watch(sharedPreferencesProvider).getInt(_key) ?? 0);
 
   Future<void> markSeen([DateTime? at]) async {
     state = at ?? DateTime.now();

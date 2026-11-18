@@ -67,7 +67,8 @@ abstract interface class SocialBackend {
   /// Bills you are a member of, kept up to date.
   Stream<BillsSnapshot> watchBills();
 
-  /// Creates or updates a bill you created. Saving clears every flag.
+  /// Creates or updates a bill you created, flags included: editing the
+  /// amount or people should clear them (see [SharedBill.edited]).
   Future<void> saveBill(SharedBill bill);
 
   /// Flags (or with null, un-flags) your own share of a bill.

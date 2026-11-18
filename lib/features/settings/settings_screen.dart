@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../app/providers.dart';
+import '../../app/shell.dart';
+import '../../app/social_providers.dart';
 import '../../app/theme.dart';
 import '../../data/sync/sync_status.dart';
 import '../../shared/widgets/app_card.dart';
@@ -56,12 +58,13 @@ class SettingsScreen extends ConsumerWidget {
     final money = ref.watch(moneyFormatProvider);
     final categoryCount = ref.watch(activeCategoriesProvider).length;
 
-    return SafeArea(
-      bottom: false,
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(18, 8, 18, 120),
+    return Scaffold(
+      appBar: AppBar(title: const Text('Settings')),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(18, 0, 18, 60),
         children: [
-          Text('Settings', style: Theme.of(context).textTheme.headlineMedium),
+          const SectionHeader('Account'),
+          const _AccountCard(),
           const SectionHeader('Sync'),
           const _SyncCard(),
           const SectionHeader('Money'),
@@ -226,6 +229,101 @@ class _SyncCard extends ConsumerWidget {
               label: const Text('Sync now'),
             ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Who you're signed in as for sharing, with sign out and delete.
+class _AccountCard extends ConsumerWidget {
+  const _AccountCard();
+
+  Future<void> _deleteAccount(BuildContext context, WidgetRef ref) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete your account?'),
+        content: const Text(
+          'Your username and connections are deleted and can’t be recovered. '
+          'Bills already shared stay visible to the others on them. '
+          'Everything you track stays on this device.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: context.colors.warn),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await ref.read(socialBackendProvider)!.deleteAccount();
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.colors;
+    final backend = ref.watch(socialBackendProvider);
+    final account = ref.watch(accountProvider).value;
+    final profile = ref.watch(myProfileProvider).value;
+    if (backend == null) {
+      return const AppCard(
+        child: Text('Sharing is off in this build, so there is no account to sign in to.'),
+      );
+    }
+    if (account == null) {
+      return AppCard(
+        child: Row(
+          children: [
+            Icon(Icons.person_outline_rounded, color: c.ink2),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text('Not signed in. You only need an account to split bills with people.'),
+            ),
+            TextButton(
+              onPressed: () {
+                ref.read(shellTabProvider.notifier).select(peopleTabIndex);
+                Navigator.of(context).popUntil((r) => r.isFirst);
+              },
+              child: const Text('Set up'),
+            ),
+          ],
+        ),
+      );
+    }
+    return AppCard(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Column(
+        children: [
+          ListTile(
+            leading: Icon(Icons.verified_user_outlined, color: c.lived),
+            title: Text(profile == null ? 'Signed in' : '@${profile.handle}'),
+            subtitle: Text(
+              'with ${account.method.label}${account.email == null ? '' : ' · ${account.email}'}',
+            ),
+          ),
+          const Divider(indent: 56),
+          ListTile(
+            leading: Icon(Icons.logout_rounded, color: c.ink2),
+            title: const Text('Sign out'),
+            subtitle: const Text('What you track stays on this device'),
+            onTap: backend.signOut,
+          ),
+          const Divider(indent: 56),
+          ListTile(
+            leading: Icon(Icons.delete_outline_rounded, color: c.warn),
+            title: Text('Delete account', style: TextStyle(color: c.warn)),
+            onTap: () => _deleteAccount(context, ref),
+          ),
         ],
       ),
     );

@@ -218,7 +218,7 @@ class FakeSocialBackend implements SocialBackend {
       throw const SocialError('permission-denied');
     }
     if (existing != null && existing.createdBy != me) throw const SocialError('permission-denied');
-    server.bills[bill.id] = bill.copyWith(flags: const {});
+    server.bills[bill.id] = bill;
     server.changed();
   }
 

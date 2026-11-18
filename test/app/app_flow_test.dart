@@ -52,14 +52,14 @@ void main() {
     expect(find.text('Kroger'), findsOneWidget);
     expect(find.text('of \$18.00'), findsOneWidget);
 
-    // Edit: switch off the split by cycling to 1 way.
+    // Edit: switch off the split.
     await tester.tap(find.text('Kroger'));
     await tester.pumpAndSettle();
     expect(find.text('Edit entry'), findsOneWidget);
-    for (var i = 0; i < 3; i++) {
-      await tester.tap(find.textContaining('Split'));
-      await tester.pumpAndSettle();
-    }
+    await tester.tap(find.text('Split 2 ways'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Don’t split'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Save \$18.00 · Food'));
     await tester.pumpAndSettle();
     expect(find.text('of \$18.00'), findsNothing);

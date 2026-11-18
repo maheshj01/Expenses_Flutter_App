@@ -17,6 +17,7 @@ import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/category_avatar.dart';
 import '../../shared/widgets/entry_tile.dart';
 import '../entries/entry_editor_sheet.dart';
+import '../settings/settings_screen.dart';
 import 'budget_dialog.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -41,11 +42,30 @@ class HomeScreen extends ConsumerWidget {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(18, 8, 18, 120),
         children: [
-          Text(
-            DateFormat('EEEE, MMM d').format(now),
-            style: TextStyle(color: context.colors.muted, fontSize: 13),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      DateFormat('EEEE, MMM d').format(now),
+                      style: TextStyle(color: context.colors.muted, fontSize: 13),
+                    ),
+                    Text(_greeting(now, name), style: Theme.of(context).textTheme.headlineMedium),
+                  ],
+                ),
+              ),
+              IconButton(
+                tooltip: 'Settings',
+                onPressed: () =>
+                    Navigator.of(context)
+                        .push(MaterialPageRoute<void>(builder: (_) => const SettingsScreen())),
+                icon: Icon(Icons.settings_outlined, color: context.colors.ink2),
+              ),
+            ],
           ),
-          Text(_greeting(now, name), style: Theme.of(context).textTheme.headlineMedium),
           const SizedBox(height: 16),
           FadeSlideIn(
             child: _BudgetHero(month: month, summary: summary, money: money),
