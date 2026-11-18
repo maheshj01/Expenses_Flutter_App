@@ -1,12 +1,14 @@
-// Drives a brand-new user through onboarding and the main screens, and
-// doubles as the screenshot run for tool/capture_screens.sh:
+// Drives a brand-new user through onboarding and the main screens, then a
+// tour of splitting bills with people, and doubles as the screenshot run for
+// tool/capture_screens.sh:
 //
 //   make capture-screens DEVICE=<simulator-udid|adb-serial>
 //
 // Each `shot()` prints `__EPOCH_SHOT__ <name>` (the marker the capture script
 // watches for) and holds the screen while the host grabs the framebuffer.
-// Data lives in an in-memory database with sample entries, and sync is off,
-// so a run never touches Firebase or the device's real data.
+// Data lives in an in-memory database with sample entries, sync is off and
+// sharing runs on an in-memory fake backend, so a run never touches Firebase
+// or the device's real data.
 
 import 'dart:convert';
 
@@ -19,10 +21,16 @@ import 'package:integration_test/integration_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:three_bucks/app/app.dart';
 import 'package:three_bucks/app/providers.dart';
+import 'package:three_bucks/app/social_providers.dart';
 import 'package:three_bucks/data/local/app_database.dart';
 import 'package:three_bucks/data/local/drift_entry_repository.dart';
 import 'package:three_bucks/data/sync/local_sync_source.dart';
 import 'package:three_bucks/domain/entities/ledger_entry.dart';
+import 'package:three_bucks/domain/social/account.dart';
+import 'package:three_bucks/domain/social/settlement.dart';
+import 'package:three_bucks/domain/social/shared_bill.dart';
+
+import '../test/support/fake_social.dart';
 
 /// Set `--dart-define=CAPTURE_SHOTS=false` to run the flow without pauses.
 const _captureShots = bool.fromEnvironment('CAPTURE_SHOTS', defaultValue: true);
@@ -276,11 +284,13 @@ void main() {
     await tester.pageBack();
     await settle(tester);
 
-    await tester.tap(find.text('Settings').last);
+    await tester.tap(find.text('Home').last);
+    await settle(tester);
+    await tester.tap(find.byTooltip('Settings'));
     await shot(
       tester,
       '13_settings',
-      description: 'Settings: sync status, plan and goals, budget, currency, categories',
+      description: 'Settings: account, sync status, plan and goals, budget, currency, categories',
       feature: 'settings',
     );
 
@@ -288,4 +298,266 @@ void main() {
     await settle(tester, frames: 4);
     await db.close();
   });
+
+  testWidgets('sharing: sign in, people, bills, flags, settle up', (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'onboarded': true,
+      'name': 'Mahesh',
+      'splitWith': 'Alex',
+      'monthlyBudgetCents': 240000,
+    });
+    final prefs = await SharedPreferences.getInstance();
+    final db = AppDatabase(NativeDatabase.memory());
+    await _seed(db);
+    final server = _seedPeople();
+    final backend = FakeSocialBackend(
+      server,
+      signInAs: const Account(
+        uid: 'mahesh',
+        method: SignInMethod.apple,
+        email: 'mahesh@privaterelay.example',
+      ),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          databaseProvider.overrideWithValue(db),
+          remoteStoreProvider.overrideWithValue(null),
+          socialBackendProvider.overrideWithValue(backend),
+        ],
+        child: Consumer(
+          builder: (context, ref, child) {
+            ref.watch(billProjectionProvider);
+            return child!;
+          },
+          child: const ThreeBucksApp(),
+        ),
+      ),
+    );
+    await settle(tester);
+
+    await tester.tap(find.text('People').last);
+    await shot(
+      tester,
+      '14_people_sign_in',
+      description: 'People tab before signing in: what sharing does, Apple / Google sign-in',
+      feature: 'people',
+    );
+    await tester.tap(find.text('Continue with Apple'));
+    await settle(tester);
+    await shot(
+      tester,
+      '15_username',
+      description: 'Picking a unique username, pre-filled from the name',
+      feature: 'people',
+    );
+    await tester.tap(find.text('Continue as @mahesh'));
+    await settle(tester, frames: 14);
+    await shot(
+      tester,
+      '16_people',
+      description: 'People: totals owed, a request to accept, balances per person',
+      feature: 'people',
+    );
+
+    await tester.tap(find.byTooltip('Add people'));
+    await settle(tester);
+    await tester.enterText(find.byKey(const ValueKey('find-handle')), 'leo');
+    await tester.tap(find.text('Find'));
+    FocusManager.instance.primaryFocus?.unfocus();
+    await shot(
+      tester,
+      '17_add_person',
+      description: 'Add by exact username, plus your own invite QR code and share link',
+      feature: 'people',
+    );
+    await tester.tap(find.text('Send request'));
+    await settle(tester);
+    await tester.tapAt(const Offset(20, 80));
+    await settle(tester);
+
+    await tester.tap(find.text('Sam Lee'));
+    await settle(tester, frames: 12);
+    await shot(
+      tester,
+      '18_person',
+      description: 'One person: balance, settle up, and every bill and payment between you',
+      feature: 'people',
+    );
+
+    await tester.tap(find.text('Dinner at Lupa'));
+    await settle(tester);
+    await shot(
+      tester,
+      '19_bill_disputed',
+      description: 'A bill you paid with a disputed share: the flag reason and note',
+      feature: 'people',
+    );
+    await tester.tapAt(const Offset(20, 80));
+    await settle(tester);
+
+    await tester.tap(find.text('Settle up'));
+    await settle(tester);
+    FocusManager.instance.primaryFocus?.unfocus();
+    await shot(
+      tester,
+      '20_settle_up',
+      description: 'Settle up records a payment made outside the app',
+      feature: 'people',
+    );
+    await tester.tapAt(const Offset(20, 80));
+    await settle(tester);
+    await tester.pageBack();
+    await settle(tester);
+
+    await tester.tap(find.byTooltip('Inbox'));
+    await settle(tester, frames: 12);
+    await shot(
+      tester,
+      '21_inbox',
+      description: 'Inbox: a flag to resolve, a request, a new bill and a payment',
+      feature: 'people',
+    );
+    await tester.tap(find.textContaining('Concert tickets'));
+    await settle(tester);
+    await tester.tap(find.text('Flag my share'));
+    await settle(tester);
+    FocusManager.instance.primaryFocus?.unfocus();
+    await shot(
+      tester,
+      '22_flag',
+      description: 'Flagging your share: pick a reason and leave a note',
+      feature: 'people',
+    );
+    await tester.tapAt(const Offset(20, 80));
+    await settle(tester);
+    await tester.tapAt(const Offset(20, 80));
+    await settle(tester);
+    await tester.pageBack();
+    await settle(tester);
+
+    await tester.tap(find.byTooltip('Add entry'));
+    await settle(tester);
+    await tester.enterText(find.byType(TextField).last, 'pizza night 84');
+    await tester.tap(find.text('🛒  Food'));
+    FocusManager.instance.primaryFocus?.unfocus();
+    await settle(tester);
+    await tester.tap(find.text('Split bill'));
+    await settle(tester);
+    await tester.tap(find.widgetWithText(FilterChip, 'Sam Lee'));
+    await tester.tap(find.widgetWithText(FilterChip, 'Ana Ruiz'));
+    await settle(tester);
+    await tester.enterText(find.byType(TextField).last, 'I covered the tip');
+    FocusManager.instance.primaryFocus?.unfocus();
+    await shot(
+      tester,
+      '23_split_picker',
+      description: 'Split picker: people on the app, people who aren’t, and a note for them',
+      feature: 'people',
+    );
+    await tester.tap(find.textContaining('Split 3 ways'));
+    await settle(tester);
+    await shot(
+      tester,
+      '24_split_entry',
+      description: 'The entry sheet shows your share and what the others owe',
+      feature: 'people',
+    );
+
+    await tester.pumpWidget(const SizedBox());
+    await settle(tester, frames: 4);
+    await db.close();
+    await server.dispose();
+  });
+}
+
+/// People to share with: Sam owes you, you owe Ana (and Ana disputes a
+/// dinner), Jordan asked to connect, and Leo is on the app but not added.
+FakeSocialServer _seedPeople() {
+  final server = FakeSocialServer();
+  final now = DateTime.now();
+  DateTime day(int d) => DateTime(now.year, now.month, d.clamp(1, now.day));
+  const me = Profile(uid: 'mahesh', handle: 'mahesh', name: 'Mahesh');
+  final sam = server.addPerson('sam', 'samlee', 'Sam Lee');
+  final ana = server.addPerson('ana', 'ana.ruiz', 'Ana Ruiz');
+  final jordan = server.addPerson('jordan', 'jordanp', 'Jordan Park');
+  server
+    ..addPerson('leo', 'leo', 'Leo Martins')
+    ..connect(me, sam, at: day(2))
+    ..connect(me, ana, at: day(3))
+    ..connect(jordan, me, accepted: false, at: now.subtract(const Duration(hours: 3)));
+
+  SharedBill bill(
+    String id,
+    String by,
+    List<Profile> people,
+    double amount,
+    String note,
+    DateTime date, {
+    String category = 'food',
+    String memo = '',
+    Map<String, BillFlag> flags = const {},
+    DateTime? created,
+  }) => SharedBill(
+    id: id,
+    createdBy: by,
+    members: [for (final p in people) p.uid],
+    people: {for (final p in people) p.uid: p},
+    amountCents: (amount * 100).round(),
+    currencyCode: 'USD',
+    date: date,
+    note: note,
+    memo: memo,
+    categoryId: category,
+    flags: flags,
+    createdAt: created ?? date,
+    editedAt: created ?? date,
+  );
+
+  for (final b in [
+    bill('b1', 'mahesh', [me, sam], 86.40, 'Costco', day(4)),
+    bill(
+      'b2',
+      'mahesh',
+      [me, sam, ana],
+      126,
+      'Dinner at Lupa',
+      day(9),
+      category: 'entertainment',
+      flags: {
+        'ana': BillFlag(
+          reason: FlagReason.wrongAmount,
+          note: 'I left before dessert',
+          at: now.subtract(const Duration(minutes: 40)),
+        ),
+      },
+    ),
+    bill('b3', 'sam', [sam, me], 62, 'Utilities', day(6), category: 'electricity'),
+    bill(
+      'b4',
+      'ana',
+      [ana, me],
+      180,
+      'Concert tickets',
+      day(12),
+      category: 'entertainment',
+      memo: 'Row F, see you there!',
+      created: now.subtract(const Duration(hours: 1)),
+    ),
+  ]) {
+    server.bills[b.id] = b;
+  }
+  server.settlements['s1'] = Settlement(
+    id: 's1',
+    from: 'sam',
+    to: 'mahesh',
+    amountCents: 4000,
+    currencyCode: 'USD',
+    date: day(10),
+    createdBy: 'sam',
+    createdAt: now.subtract(const Duration(hours: 5)),
+  );
+  return server;
 }
