@@ -8,9 +8,9 @@ import 'sync_status.dart';
 
 /// Moves changes between the local database and a [RemoteStore].
 ///
-/// - Local writes are pushed shortly after they happen (debounced).
-/// - Remote changes are pulled on start, when the network returns, and
-///   after each push.
+/// - Each run pulls remote changes, then pushes local ones.
+/// - Runs on start, shortly after local edits (debounced) and when the
+///   network returns.
 /// - Conflicts are resolved per record: the most recent edit wins.
 /// - Without a network, changes stay queued in the local database.
 class SyncEngine {
@@ -115,11 +115,13 @@ class SyncEngine {
     _emit(_status.copyWith(phase: SyncPhase.syncing));
     try {
       await remote.connect();
-      for (final source in _sources) {
-        await _push(remote, source);
-      }
+      // Pull first: a stale local edit made offline is then overwritten by a
+      // newer remote edit before it gets the chance to be pushed.
       for (final source in _sources) {
         await _pull(remote, source);
+      }
+      for (final source in _sources) {
+        await _push(remote, source);
       }
       _emit(
         _status.copyWith(
