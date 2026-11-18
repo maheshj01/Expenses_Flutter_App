@@ -8,6 +8,7 @@ Things left open, roughly in the order they matter.
       and connections, but entries and categories stay in Firestore under `users/{uid}`.
       Delete that data too, then drop the "email us" line from the privacy policy
       (`wmlabs/src/routes/three-bucks/privacy/ThreeBucksPrivacy.tsx`).
+- [ ] Multiple device login should keep data consistent across devices. Or We should allow Single Sign In?
 - [ ] **Delete-account web page** at `/three-bucks/delete-account` on the wmlabs site, like
       Epoch's. Google Play requires one outside the app.
 - [ ] **Backups from abandoned installs.** Without sign-in, uninstalling leaves an anonymous
