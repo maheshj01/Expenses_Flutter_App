@@ -175,7 +175,7 @@ void main() {
       description: 'Welcome screen with the rising three-bar mark and an optional name field',
       feature: 'onboarding',
     );
-    await tester.enterText(find.byType(TextField), 'Mahesh');
+    await tester.enterText(find.byType(TextField), 'Maya');
     await next(tester, 'Let’s go');
 
     await tapText(tester, 'Every 2 weeks');
@@ -302,7 +302,7 @@ void main() {
   testWidgets('sharing: sign in, people, bills, flags, settle up', (tester) async {
     SharedPreferences.setMockInitialValues({
       'onboarded': true,
-      'name': 'Mahesh',
+      'name': 'Maya',
       'splitWith': 'Alex',
       'monthlyBudgetCents': 240000,
     });
@@ -313,9 +313,9 @@ void main() {
     final backend = FakeSocialBackend(
       server,
       signInAs: const Account(
-        uid: 'mahesh',
+        uid: 'maya',
         method: SignInMethod.apple,
-        email: 'mahesh@privaterelay.example',
+        email: 'maya@privaterelay.example',
       ),
     );
 
@@ -353,7 +353,7 @@ void main() {
       description: 'Picking a unique username, pre-filled from the name',
       feature: 'people',
     );
-    await tester.tap(find.text('Continue as @mahesh'));
+    await tester.tap(find.text('Continue as @maya'));
     await settle(tester, frames: 14);
     await shot(
       tester,
@@ -479,7 +479,7 @@ FakeSocialServer _seedPeople() {
   final server = FakeSocialServer();
   final now = DateTime.now();
   DateTime day(int d) => DateTime(now.year, now.month, d.clamp(1, now.day));
-  const me = Profile(uid: 'mahesh', handle: 'mahesh', name: 'Mahesh');
+  const me = Profile(uid: 'maya', handle: 'maya', name: 'Maya');
   final sam = server.addPerson('sam', 'samlee', 'Sam Lee');
   final ana = server.addPerson('ana', 'ana.ruiz', 'Ana Ruiz');
   final jordan = server.addPerson('jordan', 'jordanp', 'Jordan Park');
@@ -517,10 +517,10 @@ FakeSocialServer _seedPeople() {
   );
 
   for (final b in [
-    bill('b1', 'mahesh', [me, sam], 86.40, 'Costco', day(4)),
+    bill('b1', 'maya', [me, sam], 86.40, 'Costco', day(4)),
     bill(
       'b2',
-      'mahesh',
+      'maya',
       [me, sam, ana],
       126,
       'Dinner at Lupa',
@@ -552,7 +552,7 @@ FakeSocialServer _seedPeople() {
   server.settlements['s1'] = Settlement(
     id: 's1',
     from: 'sam',
-    to: 'mahesh',
+    to: 'maya',
     amountCents: 4000,
     currencyCode: 'USD',
     date: day(10),

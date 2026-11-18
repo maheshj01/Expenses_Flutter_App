@@ -60,9 +60,7 @@ void main() {
     await tester.pumpAndSettle();
 
     Future<void> tapTab(String label) async {
-      await tester.tap(
-        find.descendant(of: find.byType(BottomAppBar), matching: find.text(label)),
-      );
+      await tester.tap(find.descendant(of: find.byType(BottomAppBar), matching: find.text(label)));
       await tester.pumpAndSettle();
     }
 
