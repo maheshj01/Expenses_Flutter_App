@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../features/entries/activity_screen.dart';
 import '../features/entries/entry_editor_sheet.dart';
+import '../features/home/home_screen.dart';
 import 'providers.dart';
 import 'theme.dart';
 
@@ -15,8 +16,22 @@ class ShellTab {
   final Widget screen;
 }
 
-const shellTabs = <ShellTab>[
-  ShellTab('Activity', Icons.receipt_long_outlined, Icons.receipt_long_rounded, ActivityScreen()),
+final shellTabs = <ShellTab>[
+  ShellTab(
+    'Home',
+    Icons.home_outlined,
+    Icons.home_rounded,
+    Consumer(
+      builder: (context, ref, _) =>
+          HomeScreen(onSeeAll: () => ref.read(shellTabProvider.notifier).select(1)),
+    ),
+  ),
+  const ShellTab(
+    'Activity',
+    Icons.receipt_long_outlined,
+    Icons.receipt_long_rounded,
+    ActivityScreen(),
+  ),
 ];
 
 /// Bottom navigation with the big "add" button in the middle.
