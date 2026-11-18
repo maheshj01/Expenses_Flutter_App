@@ -378,7 +378,7 @@ class _SettleUpSheetState extends ConsumerState<_SettleUpSheet> {
             const Text('Settle up', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
             const SizedBox(height: 4),
             Text(
-              'Record a payment you made outside the app, like a bank transfer.',
+              'Record a payment made outside the app, like a bank transfer. No money moves here.',
               style: TextStyle(color: c.muted, fontSize: 13.5),
             ),
             const SizedBox(height: 16),

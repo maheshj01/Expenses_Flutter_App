@@ -91,19 +91,27 @@ class _SignInViewState extends ConsumerState<SignInView> {
             index: 6 + i,
             child: Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: FilledButton.icon(
-                style: method == SignInMethod.apple
-                    ? FilledButton.styleFrom(backgroundColor: c.ink, foregroundColor: c.background)
-                    : null,
-                onPressed: _busy == null ? () => _signIn(method) : null,
-                icon: _busy == method
-                    ? const SizedBox.square(
-                        dimension: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Icon(method == SignInMethod.apple ? Icons.apple : Icons.g_mobiledata_rounded),
-                label: Text('Continue with ${method.label}'),
-              ),
+              child: method == SignInMethod.apple
+                  ? FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: c.ink,
+                        foregroundColor: c.background,
+                      ),
+                      onPressed: _busy == null ? () => _signIn(method) : null,
+                      icon: _busy == method ? const _Spinner() : const Icon(Icons.apple),
+                      label: Text('Continue with ${method.label}'),
+                    )
+                  : OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+                      onPressed: _busy == null ? () => _signIn(method) : null,
+                      icon: _busy == method
+                          ? const _Spinner()
+                          : const Text(
+                              'G',
+                              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17),
+                            ),
+                      label: Text('Continue with ${method.label}'),
+                    ),
             ),
           ),
         AnimatedSize(
@@ -125,6 +133,14 @@ class _SignInViewState extends ConsumerState<SignInView> {
       ],
     );
   }
+}
+
+class _Spinner extends StatelessWidget {
+  const _Spinner();
+
+  @override
+  Widget build(BuildContext context) =>
+      const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2));
 }
 
 /// Three overlapping avatars that drift into place.

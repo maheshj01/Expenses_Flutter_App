@@ -122,6 +122,10 @@ class _SplitPickerState extends ConsumerState<_SplitPicker> {
                         ),
                       ),
                       label: Text(f.other.displayName),
+                      labelStyle: TextStyle(
+                        color: _people.containsKey(f.other.uid) ? c.background : c.ink2,
+                        fontWeight: FontWeight.w600,
+                      ),
                       selected: _people.containsKey(f.other.uid),
                       onSelected: (on) => setState(() {
                         if (on) {
