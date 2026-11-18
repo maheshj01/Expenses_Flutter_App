@@ -5,6 +5,7 @@ import '../features/entries/activity_screen.dart';
 import '../features/entries/entry_editor_sheet.dart';
 import '../features/history/history_screen.dart';
 import '../features/home/home_screen.dart';
+import '../features/settings/settings_screen.dart';
 import 'providers.dart';
 import 'theme.dart';
 
@@ -34,6 +35,7 @@ final shellTabs = <ShellTab>[
     ActivityScreen(),
   ),
   const ShellTab('History', Icons.bar_chart_outlined, Icons.bar_chart_rounded, HistoryScreen()),
+  const ShellTab('Settings', Icons.settings_outlined, Icons.settings_rounded, SettingsScreen()),
 ];
 
 /// Bottom navigation with the big "add" button in the middle.
