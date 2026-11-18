@@ -110,6 +110,11 @@ class DriftEntryRepository implements EntryRepository, LocalSyncSource {
   }
 
   @override
+  Future<void> markAllDirty() async {
+    await _db.update(_t).write(const EntriesCompanion(dirty: Value(true)));
+  }
+
+  @override
   Future<void> markSynced(List<SyncRecord> records) {
     return _db.batch((b) {
       for (final r in records) {

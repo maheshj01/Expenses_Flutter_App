@@ -10,6 +10,10 @@ abstract interface class LocalSyncSource {
   /// Records changed locally that the remote has not seen yet.
   Future<List<SyncRecord>> pendingChanges();
 
+  /// Marks every record as changed, e.g. after switching to another account
+  /// so this device's data is merged into it.
+  Future<void> markAllDirty();
+
   /// Marks [records] as synced, unless they were edited again meanwhile.
   Future<void> markSynced(List<SyncRecord> records);
 

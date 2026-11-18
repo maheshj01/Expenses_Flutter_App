@@ -115,6 +115,7 @@ class SyncEngine {
     _emit(_status.copyWith(phase: SyncPhase.syncing));
     try {
       await remote.connect();
+      await _handleAccountSwitch(remote);
       // Pull first: a stale local edit made offline is then overwritten by a
       // newer remote edit before it gets the chance to be pushed.
       for (final source in _sources) {
@@ -140,6 +141,25 @@ class SyncEngine {
       );
       _retryTimer = Timer(_retryAfter, () => unawaited(syncNow()));
     }
+  }
+
+  /// Key under which the account last synced with is kept.
+  static const accountKey = '__account__';
+
+  /// After switching accounts, pulls everything from the new account and
+  /// pushes everything on this device to it.
+  Future<void> _handleAccountSwitch(RemoteStore remote) async {
+    final account = remote.accountId;
+    if (account == null) return;
+    final previous = await _cursors.readCursor(accountKey);
+    if (previous == account) return;
+    if (previous != null) {
+      for (final source in _sources) {
+        await _cursors.writeCursor(source.collection, null);
+        await source.markAllDirty();
+      }
+    }
+    await _cursors.writeCursor(accountKey, account);
   }
 
   Future<void> _push(RemoteStore remote, LocalSyncSource source) async {

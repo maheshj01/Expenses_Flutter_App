@@ -12,8 +12,14 @@ class InMemoryRemoteStore implements RemoteStore {
   bool failNext = false;
   int pushCalls = 0;
 
+  /// Change to simulate another account signing in.
+  String accountIdValue = 'user-1';
+
   @override
   String get displayName => 'Memory';
+
+  @override
+  String? get accountId => accountIdValue;
 
   @override
   Future<void> connect() async {

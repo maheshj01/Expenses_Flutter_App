@@ -101,6 +101,11 @@ class DriftCategoryRepository implements CategoryRepository, LocalSyncSource {
   }
 
   @override
+  Future<void> markAllDirty() async {
+    await _db.update(_db.categories).write(const CategoriesCompanion(dirty: Value(true)));
+  }
+
+  @override
   Future<void> markSynced(List<SyncRecord> records) {
     return _db.batch((b) {
       for (final r in records) {

@@ -161,4 +161,18 @@ void main() {
     expect((await solo.all()).single.id, 'a');
     await solo.close();
   });
+
+  test('switching accounts merges this device into the new account', () async {
+    await phone.entries.save(entry('a', 100));
+    await phone.engine.syncNow();
+    final pushesBefore = remote.pushCalls;
+    expect(await phone.entries.pendingChanges(), isEmpty);
+
+    remote.accountIdValue = 'user-2';
+    await phone.engine.syncNow();
+
+    expect(remote.pushCalls, greaterThan(pushesBefore), reason: 'everything pushed again');
+    expect(await phone.entries.pendingChanges(), isEmpty);
+    expect(await phone.db.readCursor(SyncEngine.accountKey), 'user-2');
+  });
 }

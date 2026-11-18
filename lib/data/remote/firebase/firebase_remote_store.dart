@@ -14,8 +14,9 @@ import '../../sync/sync_record.dart';
 /// `deleted` (tombstone) and `serverUpdatedAt` (server write time, used as
 /// the pull cursor so device clocks never matter for "what's new").
 ///
-/// Firestore's own offline cache is turned off: the app's local database
-/// already provides offline support.
+/// Pulls always read from the server: the app's local database is the
+/// offline copy of personal data. Firestore's own cache is kept on for
+/// shared bills, so they work offline too.
 class FirebaseRemoteStore implements RemoteStore {
   FirebaseRemoteStore({FirebaseFirestore? firestore, FirebaseAuth? auth, this.pageSize = 300})
     : _firestore = firestore ?? FirebaseFirestore.instance,
@@ -38,7 +39,7 @@ class FirebaseRemoteStore implements RemoteStore {
         await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
       }
       final firestore = FirebaseFirestore.instance
-        ..settings = const Settings(persistenceEnabled: false);
+        ..settings = const Settings(persistenceEnabled: true, cacheSizeBytes: 40 * 1024 * 1024);
       return FirebaseRemoteStore(firestore: firestore);
     } catch (e) {
       debugPrint('Firebase unavailable, running local-only: $e');
@@ -50,9 +51,13 @@ class FirebaseRemoteStore implements RemoteStore {
   String get displayName => 'Firebase';
 
   @override
+  String? get accountId => _auth.currentUser?.uid;
+
+  @override
   Future<void> connect() async {
     // Anonymous sign-in keeps each person's data private without a login
-    // screen. Link it to Google / Apple sign-in later to use several devices.
+    // screen. Signing in with Apple or Google (for sharing) links to it and
+    // keeps the same uid.
     if (_auth.currentUser == null) await _auth.signInAnonymously();
   }
 

@@ -14,6 +14,11 @@ abstract interface class RemoteStore {
   /// sync; should be cheap when already connected.
   Future<void> connect();
 
+  /// Whose data this store reads and writes, once connected. When it
+  /// changes (another account signed in), the engine starts over and merges
+  /// this device's data into the new account.
+  String? get accountId;
+
   /// Upserts [records] (including tombstones) into [collection].
   Future<void> push(String collection, List<SyncRecord> records);
 
