@@ -129,11 +129,20 @@ class SegmentBar extends StatelessWidget {
 }
 
 class EmptyState extends StatelessWidget {
-  const EmptyState({super.key, required this.emoji, required this.title, this.message});
+  const EmptyState({
+    super.key,
+    required this.emoji,
+    required this.title,
+    this.message,
+    this.action,
+  });
 
   final String emoji;
   final String title;
   final String? message;
+
+  /// Optional button under the message.
+  final Widget? action;
 
   @override
   Widget build(BuildContext context) {
@@ -152,6 +161,7 @@ class EmptyState extends StatelessWidget {
               style: TextStyle(color: context.colors.muted, fontSize: 13),
             ),
           ],
+          if (action != null) ...[const SizedBox(height: 12), action!],
         ],
       ),
     );

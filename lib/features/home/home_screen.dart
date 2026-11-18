@@ -16,6 +16,7 @@ import '../../shared/money_format.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/category_avatar.dart';
 import '../../shared/widgets/entry_tile.dart';
+import '../data_io/import_screen.dart';
 import '../entries/entry_editor_sheet.dart';
 import '../settings/settings_screen.dart';
 import 'budget_dialog.dart';
@@ -99,11 +100,20 @@ class HomeScreen extends ConsumerWidget {
           ],
           SectionHeader('Recent', action: entries.isEmpty ? null : 'See all', onAction: onSeeAll),
           if (entries.isEmpty)
-            const AppCard(
+            AppCard(
               child: EmptyState(
                 emoji: '✨',
                 title: 'A fresh month',
                 message: 'Tap + and type something like “kroger 18”.',
+                // Nothing logged ever: offer to bring in an old spreadsheet.
+                action: !ref.watch(hasEntriesProvider)
+                    ? TextButton.icon(
+                        onPressed: () => Navigator.of(context)
+                            .push(MaterialPageRoute<void>(builder: (_) => const ImportScreen())),
+                        icon: const Icon(Icons.upload_file_rounded, size: 18),
+                        label: const Text('Import a spreadsheet'),
+                      )
+                    : null,
               ),
             )
           else

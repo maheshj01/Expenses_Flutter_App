@@ -10,6 +10,8 @@ import '../../data/sync/sync_status.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/currency_picker.dart';
 import '../categories/categories_screen.dart';
+import '../data_io/export_sheet.dart';
+import '../data_io/import_screen.dart';
 import '../home/budget_dialog.dart';
 import '../onboarding/onboarding_flow.dart';
 import '../people/saved_guests_sheet.dart';
@@ -88,6 +90,29 @@ class SettingsScreen extends ConsumerWidget {
                   onTap: () =>
                       Navigator.of(context)
                           .push(MaterialPageRoute<void>(builder: (_) => const CategoriesScreen())),
+                ),
+              ],
+            ),
+          ),
+          const SectionHeader('Your data'),
+          AppCard(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Column(
+              children: [
+                _Item(
+                  icon: Icons.upload_file_rounded,
+                  title: 'Import from a spreadsheet',
+                  value: '.xlsx, .csv',
+                  onTap: () =>
+                      Navigator.of(context)
+                          .push(MaterialPageRoute<void>(builder: (_) => const ImportScreen())),
+                ),
+                const Divider(indent: 56),
+                _Item(
+                  icon: Icons.ios_share_rounded,
+                  title: 'Export to a spreadsheet',
+                  value: 'Email',
+                  onTap: () => showExportSheet(context),
                 ),
               ],
             ),

@@ -11,6 +11,7 @@
 // or the device's real data.
 
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:drift/drift.dart' show driftRuntimeOptions;
 import 'package:drift/native.dart';
@@ -29,6 +30,8 @@ import 'package:three_bucks/domain/entities/ledger_entry.dart';
 import 'package:three_bucks/domain/social/account.dart';
 import 'package:three_bucks/domain/social/settlement.dart';
 import 'package:three_bucks/domain/social/shared_bill.dart';
+import 'package:three_bucks/features/data_io/data_io_providers.dart';
+import 'package:three_bucks/features/data_io/export_sheet.dart';
 
 import '../test/support/fake_social.dart';
 
@@ -471,6 +474,94 @@ void main() {
     await db.close();
     await server.dispose();
   });
+
+  testWidgets('import a spreadsheet, then export it', (tester) async {
+    SharedPreferences.setMockInitialValues({'onboarded': true, 'name': 'Maya'});
+    final prefs = await SharedPreferences.getInstance();
+    final db = AppDatabase(NativeDatabase.memory());
+    final delivery = _NoMail();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          databaseProvider.overrideWithValue(db),
+          remoteStoreProvider.overrideWithValue(null),
+          spreadsheetPickerProvider.overrideWithValue(
+            () async =>
+                (name: 'Expenses-2026.csv', bytes: Uint8List.fromList(utf8.encode(_sampleCsv()))),
+          ),
+          exportDeliveryProvider.overrideWithValue(delivery),
+        ],
+        child: const ThreeBucksApp(),
+      ),
+    );
+    await settle(tester);
+
+    Future<void> waitFor(Finder finder) async {
+      for (var i = 0; i < 100 && finder.evaluate().isEmpty; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      await settle(tester);
+    }
+
+    await tester.ensureVisible(find.text('Import a spreadsheet'));
+    await shot(
+      tester,
+      '25_import_offer',
+      description: 'A brand-new Home offers to import an existing spreadsheet',
+      feature: 'import',
+    );
+    await tapText(tester, 'Import a spreadsheet');
+    await shot(
+      tester,
+      '26_import_pick',
+      description: 'Import: what files work, before picking one',
+      feature: 'import',
+    );
+    await tester.tap(find.text('Choose file'));
+    await waitFor(find.text('Check your import'));
+    await shot(
+      tester,
+      '27_import_review',
+      description: 'Import review: entries found, sheets, and categories matched',
+      feature: 'import',
+    );
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, -700));
+    await shot(
+      tester,
+      '28_import_months',
+      description: 'Import review: duplicates, unreadable rows and a month-by-month preview',
+      feature: 'import',
+    );
+    await tester.tap(find.textContaining(RegExp(r'^Import \d+ entries')));
+    await waitFor(find.textContaining('Imported'));
+    await shot(
+      tester,
+      '29_import_done',
+      description: 'Import finished, with an undo',
+      feature: 'import',
+    );
+    await tapText(tester, 'Done');
+
+    await tester.fling(find.byType(Scrollable).first, const Offset(0, 800), 2000);
+    await settle(tester);
+    await tester.tap(find.byTooltip('Settings'));
+    await settle(tester);
+    await tester.scrollUntilVisible(find.text('Export to a spreadsheet'), 200);
+    await tapText(tester, 'Export to a spreadsheet');
+    await waitFor(find.textContaining(RegExp(r'^\d+ entries$')));
+    await shot(
+      tester,
+      '30_export',
+      description: 'Export to a spreadsheet: pick a year and email it',
+      feature: 'export',
+    );
+
+    await tester.pumpWidget(const SizedBox());
+    await settle(tester, frames: 4);
+    await db.close();
+  });
 }
 
 /// People to share with: Sam owes you, you owe Ana (and Ana disputes a
@@ -560,4 +651,39 @@ FakeSocialServer _seedPeople() {
     createdAt: now.subtract(const Duration(hours: 5)),
   );
   return server;
+}
+
+/// Never opens a mail composer during a capture run.
+class _NoMail extends ExportDelivery {
+  @override
+  Future<bool> email(ExportFile file, {String? to}) async => true;
+}
+
+/// A few months of made-up expenses in a typical layout, with one row
+/// that can't be read and a couple matching what is already logged.
+String _sampleCsv() {
+  final now = DateTime.now();
+  final rows = <String>['Date,Amount,Category,Description'];
+  final items = [
+    (1, 1166.0, 'Housing', 'Rent'),
+    (2, 46.10, 'Groceries', 'Costco'),
+    (3, 13.0, 'Productivity', 'Wifi'),
+    (4, 600.0, 'Investments', 'VOO'),
+    (6, 22.20, 'Car', 'Fuel'),
+    (9, 18.40, 'Groceries', 'Kroger'),
+    (12, 32.50, 'Entertainment', 'Zoo'),
+    (15, 47.0, 'Electricity', 'Power bill'),
+    (18, 9.99, 'Subscriptions', 'Music'),
+    (21, -500.0, 'Housing', 'Rent from roommate'),
+    (24, 64.0, 'Eating out', 'Dinner'),
+  ];
+  for (var back = 5; back >= 1; back--) {
+    final m = DateTime(now.year, now.month - back);
+    for (final (day, amount, cat, note) in items) {
+      final d = '${m.year}-${m.month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
+      rows.add('$d,${amount + back},$cat,$note');
+    }
+  }
+  rows.add('sometime,12,Groceries,Snacks');
+  return rows.join('\n');
 }

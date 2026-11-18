@@ -142,6 +142,11 @@ final yearSummaryProvider = Provider.family<PeriodSummary, int>((ref, year) {
   return PeriodSummary.of(entries, ref.watch(categoryMapProvider));
 });
 
+/// False until the first entry is logged or imported.
+final hasEntriesProvider = Provider<bool>(
+  (ref) => ref.watch(_yearsStream).value?.isNotEmpty ?? true,
+);
+
 /// Years with data, always including the current one, newest first.
 final yearsProvider = Provider<List<int>>((ref) {
   final years = {DateTime.now().year, ...?ref.watch(_yearsStream).value};

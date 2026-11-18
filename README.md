@@ -17,6 +17,11 @@ A simple, offline-first expense tracker built with Flutter.
   to see its entries.
 - **Your own categories.** Add, edit, recolour, archive and restore them.
 - **Works offline.** Everything is stored on the device first and synced when online.
+- **Bring your spreadsheet.** Import .xlsx or .csv files: every tab with a Date and an Amount
+  column is read, categories are matched by name, rows you already have are skipped, and the
+  whole import can be undone. Importing the same file twice adds nothing.
+- **Take it with you.** Export any year, or everything, as an .xlsx with every entry and a
+  summary per year, and email it to yourself. Exports import back in unchanged.
 
 ## Architecture
 
