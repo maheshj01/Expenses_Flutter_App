@@ -15,6 +15,7 @@ import '../../shared/money_format.dart';
 import '../../shared/widgets/category_avatar.dart';
 import '../entries/entry_editor_sheet.dart';
 import 'people_widgets.dart';
+import 'split_picker_sheet.dart';
 
 /// Details of a shared bill. The payer can edit it, delete it or take
 /// someone off it; everyone else can flag their own share.
@@ -122,7 +123,8 @@ class BillSheet extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text(
-                '+ ${bill.guests} not on the app · ${money(bill.shareCents * bill.guests)}',
+                '+ ${bill.guestNames.isEmpty ? bill.guests : describeSplit(bill.guestNames, bill.guests - bill.guestNames.length)} '
+                'not on the app · ${money(bill.shareCents * bill.guests)}',
                 style: TextStyle(color: c.muted),
               ),
             ),

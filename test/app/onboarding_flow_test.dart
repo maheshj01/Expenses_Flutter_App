@@ -94,8 +94,8 @@ void main() {
     // Sharing
     await tester.tap(find.text('Yes, I split some bills'));
     await settle();
-    await tester.enterText(find.byType(TextField), 'Vishal');
-    await settle();
+    expect(find.text('Not on the app?'), findsOneWidget);
+    expect(find.byType(TextField), findsNothing, reason: 'names are added when splitting');
     await tapCta('Continue');
 
     // Plan summary
@@ -115,7 +115,8 @@ void main() {
     expect(s.monthlyBudgetCents, 234000);
     expect(s.savingsGoalCents, 156000);
     expect(s.goals, {MoneyGoal.investMore});
-    expect(s.splitWith, 'Vishal');
+    expect(s.splitsBills, isTrue);
+    expect(s.savedGuests, isEmpty);
 
     final cats = await tester.runAsync(() => db.select(db.categories).get());
     bool active(String id) => cats!.any((c) => c.id == id && !c.archived && !c.deleted);

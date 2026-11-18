@@ -32,12 +32,13 @@ class EntryTile extends ConsumerWidget {
             CategoryKind.spending => c.ink,
           };
     final title = entry.note.isEmpty ? (category?.name ?? 'Uncategorised') : entry.note;
-    final others = bill == null
-        ? const <String>[]
-        : [
-            for (final uid in bill.members)
-              if (uid != me) bill.nameOf(uid).split(' ').first,
-          ];
+    final others = [
+      if (bill != null)
+        for (final uid in bill.members)
+          if (uid != me) bill.nameOf(uid).split(' ').first,
+      ...?bill?.guestNames,
+      if (bill == null) ...entry.guestNames,
+    ];
     final subtitle = [
       category?.name ?? 'Uncategorised',
       if (showDate) DateFormat.MMMd().format(entry.date),

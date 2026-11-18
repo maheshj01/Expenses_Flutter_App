@@ -1,9 +1,12 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/providers.dart';
 import '../../app/social_providers.dart';
 import '../../app/theme.dart';
+import '../../domain/entities/ledger_entry.dart';
 import '../../domain/social/account.dart';
 import '../../shared/animations/fade_slide_in.dart';
 import '../../shared/animations/motion.dart';
@@ -11,17 +14,34 @@ import '../../shared/money_format.dart';
 
 /// Who a bill is split with: people on the app and people who aren't.
 class SplitChoice {
-  const SplitChoice({this.people = const [], this.guests = 0, this.memo = ''});
+  const SplitChoice({
+    this.people = const [],
+    this.guestNames = const [],
+    this.unnamed = 0,
+    this.memo = '',
+  });
+
+  /// How a personal entry was split.
+  factory SplitChoice.of(LedgerEntry entry) => SplitChoice(
+    guestNames: entry.guestNames,
+    unnamed: math.max(0, entry.splitWays - 1 - entry.guestNames.length),
+  );
 
   static const none = SplitChoice();
 
   final List<Profile> people;
 
-  /// People not on the app; only your share is tracked for them.
-  final int guests;
+  /// People not on the app, by name. Only your share is tracked for them.
+  final List<String> guestNames;
+
+  /// People not on the app you didn't name.
+  final int unnamed;
 
   /// Optional note for the people on the app, e.g. "I covered the tip".
   final String memo;
+
+  /// Everyone not on the app.
+  int get guests => guestNames.length + unnamed;
 
   /// Ways the bill is split, you included.
   int get ways => 1 + people.length + guests;
@@ -30,21 +50,27 @@ class SplitChoice {
 
   bool get isShared => people.isNotEmpty;
 
-  /// "Sam and Ana", "Sam +1", or "Alex" (your usual split partner).
-  String describe(String guestName) {
-    final names = [
-      for (final p in people) p.name.isEmpty ? '@${p.handle}' : p.name.split(' ').first,
-    ];
-    if (names.isEmpty) {
-      // Unnamed people not on the app: nothing useful to say.
-      if (guests == 0 || guestName.isEmpty) return '';
-      return guests == 1 ? guestName : '$guestName +${guests - 1}';
-    }
-    final listed = names.length == 1
-        ? names.first
-        : '${names.sublist(0, names.length - 1).join(', ')} and ${names.last}';
-    return guests == 0 ? listed : '$listed +$guests';
-  }
+  SplitChoice copyWith({List<String>? guestNames, int? unnamed}) => SplitChoice(
+    people: people,
+    guestNames: guestNames ?? this.guestNames,
+    unnamed: unnamed ?? this.unnamed,
+    memo: memo,
+  );
+
+  /// "Sam and Ana", "Sam +1", or "" when nobody is named.
+  String describe() => describeSplit([
+    for (final p in people) p.name.isEmpty ? '@${p.handle}' : p.name.split(' ').first,
+    ...guestNames,
+  ], unnamed);
+}
+
+/// "Sam", "Sam and Ana", "Sam, Ana and Lee", plus "+n" for unnamed people.
+String describeSplit(List<String> names, int unnamed) {
+  if (names.isEmpty) return '';
+  final listed = names.length == 1
+      ? names.first
+      : '${names.sublist(0, names.length - 1).join(', ')} and ${names.last}';
+  return unnamed == 0 ? listed : '$listed +$unnamed';
 }
 
 Future<SplitChoice?> showSplitPicker(
@@ -74,16 +100,56 @@ class _SplitPicker extends ConsumerStatefulWidget {
 
 class _SplitPickerState extends ConsumerState<_SplitPicker> {
   late final Map<String, Profile> _people = {for (final p in widget.initial.people) p.uid: p};
-  late int _guests = widget.initial.guests;
+  late final List<String> _guestNames = [...widget.initial.guestNames];
+  late int _unnamed = widget.initial.unnamed;
   late final _memo = TextEditingController(text: widget.initial.memo);
+  final _newName = TextEditingController();
+  bool _adding = false;
 
-  SplitChoice get _choice =>
-      SplitChoice(people: _people.values.toList(), guests: _guests, memo: _memo.text.trim());
+  SplitChoice get _choice => SplitChoice(
+    people: _people.values.toList(),
+    guestNames: _guestNames,
+    unnamed: _unnamed,
+    memo: _memo.text.trim(),
+  );
+
+  static const _maxGuests = 19;
+
+  bool get _full => _guestNames.length + _unnamed >= _maxGuests;
 
   @override
   void dispose() {
     _memo.dispose();
+    _newName.dispose();
     super.dispose();
+  }
+
+  bool _picked(String name) => _guestNames.any((n) => n.toLowerCase() == name.toLowerCase());
+
+  void _toggleGuest(String name, bool on) => setState(() {
+    if (on) {
+      if (!_picked(name) && !_full) _guestNames.add(name);
+    } else {
+      _guestNames.removeWhere((n) => n.toLowerCase() == name.toLowerCase());
+    }
+  });
+
+  /// Adds a new person not on the app, picks them and saves them for next time.
+  Future<void> _addGuest() async {
+    final name = _newName.text.trim();
+    if (name.isEmpty) {
+      setState(() => _adding = false);
+      return;
+    }
+    _toggleGuest(name, true);
+    setState(() {
+      _adding = false;
+      _newName.clear();
+    });
+    final settings = ref.read(settingsProvider);
+    await ref
+        .read(settingsProvider.notifier)
+        .update(settings.copyWith(savedGuests: settings.withGuests([name])));
   }
 
   @override
@@ -91,7 +157,13 @@ class _SplitPickerState extends ConsumerState<_SplitPicker> {
     final c = context.colors;
     final friends = ref.watch(friendsProvider);
     final signedIn = ref.watch(myProfileProvider).value != null;
-    final guestName = ref.watch(settingsProvider.select((s) => s.splitWith));
+    final saved = ref.watch(settingsProvider.select((s) => s.savedGuests));
+    // Saved people first, then anyone named on this bill but no longer saved.
+    final guestOptions = [
+      ...saved,
+      for (final n in widget.initial.guestNames)
+        if (!saved.any((s) => s.toLowerCase() == n.toLowerCase())) n,
+    ];
     final choice = _choice;
     final share = (widget.cents / choice.ways).round();
 
@@ -184,23 +256,80 @@ class _SplitPickerState extends ConsumerState<_SplitPicker> {
                 ],
               ),
             ),
+          const Text('Not on the app', style: TextStyle(fontWeight: FontWeight.w600)),
+          Text(
+            _people.isEmpty
+                ? 'Only your share is tracked for them.'
+                : 'Only your share is tracked for them. Names show on the shared bill.',
+            style: TextStyle(color: c.muted, fontSize: 12.5),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final (i, name) in guestOptions.indexed)
+                FadeSlideIn(
+                  key: ValueKey('guest-$name'),
+                  index: i,
+                  child: FilterChip(
+                    label: Text(name),
+                    labelStyle: TextStyle(
+                      color: _picked(name) ? c.background : c.ink2,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    selected: _picked(name),
+                    onSelected: (on) => _toggleGuest(name, on),
+                  ),
+                ),
+              if (!_adding)
+                ActionChip(
+                  avatar: const Icon(Icons.person_add_alt_1_rounded, size: 18),
+                  label: const Text('Add name'),
+                  onPressed: _full ? null : () => setState(() => _adding = true),
+                ),
+            ],
+          ),
+          AnimatedSize(
+            duration: Motion.of(context, Motion.medium),
+            curve: Motion.enter,
+            alignment: Alignment.topCenter,
+            child: !_adding
+                ? const SizedBox(width: double.infinity)
+                : Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: TextField(
+                      controller: _newName,
+                      autofocus: true,
+                      maxLength: 40,
+                      textCapitalization: TextCapitalization.words,
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) => _addGuest(),
+                      decoration: InputDecoration(
+                        isDense: true,
+                        counterText: '',
+                        hintText: 'Their name, e.g. your roommate',
+                        suffixIcon: IconButton(
+                          tooltip: 'Add',
+                          icon: const Icon(Icons.check_rounded),
+                          onPressed: _addGuest,
+                        ),
+                      ),
+                    ),
+                  ),
+          ),
+          const SizedBox(height: 10),
           Row(
             children: [
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Not on the app', style: TextStyle(fontWeight: FontWeight.w600)),
-                    Text(
-                      guestName.isEmpty ? 'Only your share is tracked' : 'e.g. $guestName',
-                      style: TextStyle(color: c.muted, fontSize: 12.5),
-                    ),
-                  ],
+                child: Text(
+                  _guestNames.isEmpty ? 'People, unnamed' : 'Others, unnamed',
+                  style: TextStyle(color: c.ink2),
                 ),
               ),
               IconButton.outlined(
                 tooltip: 'Fewer',
-                onPressed: _guests == 0 ? null : () => setState(() => _guests--),
+                onPressed: _unnamed == 0 ? null : () => setState(() => _unnamed--),
                 icon: const Icon(Icons.remove_rounded),
               ),
               SizedBox(
@@ -209,8 +338,8 @@ class _SplitPickerState extends ConsumerState<_SplitPicker> {
                   duration: Motion.of(context, Motion.fast),
                   transitionBuilder: (child, a) => ScaleTransition(scale: a, child: child),
                   child: Text(
-                    '$_guests',
-                    key: ValueKey(_guests),
+                    '$_unnamed',
+                    key: ValueKey(_unnamed),
                     textAlign: TextAlign.center,
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
@@ -218,7 +347,7 @@ class _SplitPickerState extends ConsumerState<_SplitPicker> {
               ),
               IconButton.outlined(
                 tooltip: 'More',
-                onPressed: _guests >= 9 ? null : () => setState(() => _guests++),
+                onPressed: _full ? null : () => setState(() => _unnamed++),
                 icon: const Icon(Icons.add_rounded),
               ),
             ],

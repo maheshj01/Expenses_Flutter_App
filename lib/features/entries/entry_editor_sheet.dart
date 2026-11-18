@@ -59,6 +59,9 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
   SharedBill? _bill;
   bool _moneyBack = false;
   bool _categoryPickedByUser = false;
+
+  /// True while the split came from typing "split" in the note.
+  bool _splitFromNote = false;
   CategorySuggestion? _suggestion;
 
   bool get _isEditing => widget.entry != null;
@@ -82,11 +85,12 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
           for (final uid in bill.members)
             if (uid != me) bill.people[uid] ?? Profile(uid: uid, handle: '', name: 'Someone'),
         ],
-        guests: bill.guests,
+        guestNames: bill.guestNames,
+        unnamed: bill.guests - bill.guestNames.length,
         memo: bill.memo,
       );
     } else {
-      _split = SplitChoice(guests: (e?.splitWays ?? 1) - 1);
+      _split = e == null ? SplitChoice.none : SplitChoice.of(e);
     }
   }
 
@@ -106,6 +110,7 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
     if (choice == null || !mounted) return;
     setState(() {
       _split = choice;
+      _splitFromNote = false;
       if (choice.isShared) _moneyBack = false;
     });
   }
@@ -120,13 +125,20 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
   int get _cents => ((double.tryParse(_amount) ?? 0) * 100).round();
 
   void _onNoteChanged(String text) {
-    final parsed = QuickEntryParser.parse(text);
+    final parsed = QuickEntryParser.parse(text, knownNames: ref.read(settingsProvider).savedGuests);
     final suggester = ref.read(categorySuggesterProvider).value;
     final allowed = {for (final c in ref.read(activeCategoriesProvider)) c.id};
     setState(() {
       if (parsed.amountCents != null) _amount = _centsToText(parsed.amountCents!);
-      if (parsed.splitWays > 1 && !_split.isSplit) {
-        _split = SplitChoice(guests: parsed.splitWays - 1);
+      // The note drives the split until the picker is used.
+      if (!_split.isSplit || _splitFromNote) {
+        _split = parsed.splitWays > 1
+            ? SplitChoice(
+                guestNames: parsed.guestNames,
+                unnamed: parsed.splitWays - 1 - parsed.guestNames.length,
+              )
+            : SplitChoice.none;
+        _splitFromNote = parsed.splitWays > 1;
       }
       if (parsed.moneyBack) _moneyBack = true;
       _suggestion = suggester?.suggest(text, allowedIds: allowed);
@@ -175,7 +187,7 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
     if (cents <= 0 || _categoryId == null) return;
     final raw = _note.text;
     // Keep the note readable: drop the amount and keywords if typed inline.
-    final parsed = QuickEntryParser.parse(raw);
+    final parsed = QuickEntryParser.parse(raw, knownNames: ref.read(settingsProvider).savedGuests);
     final note = parsed.amountCents != null ? parsed.note : raw.trim();
     final id = widget.entry?.id ?? newId();
     final billId = await _saveBill(id, cents, note);
@@ -186,6 +198,7 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
       date: _date,
       note: note,
       splitWays: _split.ways,
+      guestNames: _split.guestNames,
       billId: billId,
       createdAt: widget.entry?.createdAt,
     );
@@ -215,6 +228,7 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
             members: members,
             people: people,
             guests: _split.guests,
+            guestNames: _split.guestNames,
             amountCents: cents,
             currencyCode: currency,
             date: _date,
@@ -228,6 +242,7 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
             members: members,
             people: people,
             guests: _split.guests,
+            guestNames: _split.guestNames,
             amountCents: cents,
             currencyCode: existing.currencyCode,
             date: _date,
@@ -262,7 +277,10 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
     final selected = categoryMap[_categoryId];
     final cents = _cents;
     final share = (cents / _split.ways).round();
-    final splitNames = _split.describe(settings.splitWith);
+    final splitNames = _split.describe();
+    final example = settings.splitsBills
+        ? 'costco 46 split${settings.savedGuests.isEmpty ? '' : ' ${settings.savedGuests.first.split(' ').first.toLowerCase()}'}'
+        : 'kroger 18';
     final canSave = cents > 0 && _categoryId != null;
 
     // Most used first; keep the selected one even if it was archived since.
@@ -362,7 +380,7 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
                     textCapitalization: TextCapitalization.sentences,
                     decoration: InputDecoration(
                       prefixIcon: Icon(Icons.auto_awesome_rounded, color: c.lived, size: 18),
-                      hintText: 'Note, or type it all: costco 46 split',
+                      hintText: 'Note, or type it all: $example',
                     ),
                   ),
                   Padding(

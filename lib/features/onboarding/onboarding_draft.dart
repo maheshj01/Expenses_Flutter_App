@@ -11,8 +11,8 @@ class OnboardingDraft {
       spendingCents = s.monthlyBudgetCents,
       savingsCents = s.savingsGoalCents,
       goals = {...s.goals},
-      splitWith = s.splitWith,
-      sharesBills = s.splitWith.isNotEmpty ? true : null;
+      // Asked again on first run; shown as answered when editing the plan.
+      sharesBills = s.onboarded ? s.splitsBills : null;
 
   String name;
   String currencyCode;
@@ -24,7 +24,6 @@ class OnboardingDraft {
 
   /// null until the user answers.
   bool? sharesBills;
-  String splitWith;
 
   /// Spending categories to keep. null until the categories step is shown.
   Set<String>? categoryIds;
@@ -43,7 +42,7 @@ class OnboardingDraft {
     monthlyBudgetCents: spendingCents,
     savingsGoalCents: savingsCents,
     goals: goals,
-    splitWith: sharesBills ?? false ? splitWith.trim() : '',
+    splitsBills: sharesBills ?? false,
   );
 }
 

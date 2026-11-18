@@ -218,12 +218,10 @@ void main() {
     await next(tester, 'Continue');
 
     await tapText(tester, 'Yes, I split some bills');
-    await tester.enterText(find.byType(TextField), 'Alex');
-    FocusManager.instance.primaryFocus?.unfocus();
     await shot(
       tester,
       '06_sharing',
-      description: 'Bill sharing question with the partner name revealed',
+      description: 'Bill sharing question with hints for people on and off the app',
       feature: 'onboarding',
     );
     await next(tester, 'Continue');
@@ -303,7 +301,8 @@ void main() {
     SharedPreferences.setMockInitialValues({
       'onboarded': true,
       'name': 'Maya',
-      'splitWith': 'Alex',
+      'splitsBills': true,
+      'savedGuests': ['Alex'],
       'monthlyBudgetCents': 240000,
     });
     final prefs = await SharedPreferences.getInstance();
@@ -448,6 +447,7 @@ void main() {
     await settle(tester);
     await tester.tap(find.widgetWithText(FilterChip, 'Sam Lee'));
     await tester.tap(find.widgetWithText(FilterChip, 'Ana Ruiz'));
+    await tester.tap(find.widgetWithText(FilterChip, 'Alex'));
     await settle(tester);
     await tester.enterText(find.byType(TextField).last, 'I covered the tip');
     FocusManager.instance.primaryFocus?.unfocus();
@@ -457,7 +457,7 @@ void main() {
       description: 'Split picker: people on the app, people who aren’t, and a note for them',
       feature: 'people',
     );
-    await tester.tap(find.textContaining('Split 3 ways'));
+    await tester.tap(find.textContaining('Split 4 ways'));
     await settle(tester);
     await shot(
       tester,

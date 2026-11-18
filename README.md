@@ -6,8 +6,9 @@ A simple, offline-first expense tracker built with Flutter.
   category it learned from your past notes.
 - **Investing is not spending.** Every category is *spending*, *investing* or *income*, so months
   where you invest a lot don't look like overspending.
-- **Split bills and money back.** Log the full bill and only your share counts. A roommate paying
-  you back is logged as *money back*.
+- **Split bills and money back.** Log the full bill and only your share counts. Name the people
+  who aren't on the app once and they're offered next time (`pizza 30 split sam`). A roommate
+  paying you back is logged as *money back*.
 - **Split with people on the app.** Add friends by their exact username. A bill you split with them
   shows up in their app with their share; the People tab keeps a running balance, records
   settling up, and lets anyone flag a share that looks wrong.

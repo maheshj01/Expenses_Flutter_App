@@ -12,6 +12,7 @@ import '../../shared/widgets/currency_picker.dart';
 import '../categories/categories_screen.dart';
 import '../home/budget_dialog.dart';
 import '../onboarding/onboarding_flow.dart';
+import '../people/saved_guests_sheet.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -21,34 +22,6 @@ class SettingsScreen extends ConsumerWidget {
     final code = await showCurrencyPicker(context, current: settings.currencyCode);
     if (code != null) {
       await ref.read(settingsProvider.notifier).update(settings.copyWith(currencyCode: code));
-    }
-  }
-
-  Future<void> _editSplitWith(BuildContext context, WidgetRef ref) async {
-    final settings = ref.read(settingsProvider);
-    final controller = TextEditingController(text: settings.splitWith);
-    final name = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Who do you split bills with?'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(hintText: 'e.g. your roommate’s name'),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-    controller.dispose();
-    if (name != null) {
-      await ref.read(settingsProvider.notifier).update(settings.copyWith(splitWith: name));
     }
   }
 
@@ -99,9 +72,13 @@ class SettingsScreen extends ConsumerWidget {
                 const Divider(indent: 56),
                 _Item(
                   icon: Icons.people_outline_rounded,
-                  title: 'Split bills with',
-                  value: settings.splitWith.isEmpty ? 'Not set' : settings.splitWith,
-                  onTap: () => _editSplitWith(context, ref),
+                  title: 'People not on the app',
+                  value: switch (settings.savedGuests.length) {
+                    0 => 'None',
+                    1 => settings.savedGuests.first,
+                    final n => '$n people',
+                  },
+                  onTap: () => showSavedGuestsSheet(context),
                 ),
                 const Divider(indent: 56),
                 _Item(

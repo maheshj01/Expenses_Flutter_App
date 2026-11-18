@@ -47,7 +47,8 @@ class AppSettings {
   const AppSettings({
     this.monthlyBudgetCents = 0,
     this.currencyCode = 'USD',
-    this.splitWith = '',
+    this.splitsBills = false,
+    this.savedGuests = const [],
     this.onboarded = false,
     this.name = '',
     this.incomeCents = 0,
@@ -60,8 +61,11 @@ class AppSettings {
   final int monthlyBudgetCents;
   final String currencyCode;
 
-  /// Name of the person you usually split bills with (shown as a hint).
-  final String splitWith;
+  /// The user said they split bills with others.
+  final bool splitsBills;
+
+  /// People not on the app the user splits with, offered in the split picker.
+  final List<String> savedGuests;
 
   /// True once the first-run setup has been completed or skipped.
   final bool onboarded;
@@ -85,10 +89,21 @@ class AppSettings {
 
   int get monthlyIncomeCents => payFrequency.toMonthly(incomeCents);
 
+  /// [savedGuests] plus any of [names] not saved yet (ignoring case).
+  List<String> withGuests(Iterable<String> names) {
+    final known = {for (final n in savedGuests) n.toLowerCase()};
+    return [
+      ...savedGuests,
+      for (final n in names)
+        if (n.trim().isNotEmpty && known.add(n.trim().toLowerCase())) n.trim(),
+    ];
+  }
+
   AppSettings copyWith({
     int? monthlyBudgetCents,
     String? currencyCode,
-    String? splitWith,
+    bool? splitsBills,
+    List<String>? savedGuests,
     bool? onboarded,
     String? name,
     int? incomeCents,
@@ -99,7 +114,8 @@ class AppSettings {
     return AppSettings(
       monthlyBudgetCents: monthlyBudgetCents ?? this.monthlyBudgetCents,
       currencyCode: currencyCode ?? this.currencyCode,
-      splitWith: splitWith ?? this.splitWith,
+      splitsBills: splitsBills ?? this.splitsBills,
+      savedGuests: savedGuests ?? this.savedGuests,
       onboarded: onboarded ?? this.onboarded,
       name: name ?? this.name,
       incomeCents: incomeCents ?? this.incomeCents,
