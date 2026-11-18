@@ -53,6 +53,8 @@ class AppShell extends ConsumerWidget {
       final selected = i == index;
       return Expanded(
         child: InkResponse(
+          radius: 28,
+          highlightColor: Colors.transparent,
           onTap: () => ref.read(shellTabProvider.notifier).select(i),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -75,10 +77,10 @@ class AppShell extends ConsumerWidget {
 
     return Scaffold(
       body: IndexedStack(index: index, children: [for (final t in shellTabs) t.screen]),
-      floatingActionButton: FloatingActionButton.large(
+      floatingActionButton: FloatingActionButton(
         tooltip: 'Add entry',
         onPressed: () => showEntryEditor(context),
-        child: const Icon(Icons.add_rounded, size: 32),
+        child: const Icon(Icons.add_rounded, size: 30),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
@@ -91,7 +93,7 @@ class AppShell extends ConsumerWidget {
         child: Row(
           children: [
             for (var i = 0; i < half; i++) item(i),
-            const SizedBox(width: 96),
+            const SizedBox(width: 72),
             for (var i = half; i < shellTabs.length; i++) item(i),
             if (shellTabs.length.isOdd) const Spacer(),
           ],
