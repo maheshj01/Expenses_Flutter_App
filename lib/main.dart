@@ -1,35 +1,16 @@
-import 'package:expense_manager/constants/exports.dart';
-import 'package:expense_manager/pages/home.dart';
-import 'package:expense_manager/utils/settings.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Settings.init();
-  runApp(MyApp());
+void main() {
+  runApp(const MainApp());
 }
 
-class MyApp extends StatelessWidget {
-  Settings appSettings = Settings();
+class MainApp extends StatelessWidget {
+  const MainApp({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-        animation: appSettings,
-        builder: (context, snapshot) {
-          return MaterialApp(
-            debugShowCheckedModeBanner: kDebugMode,
-            theme: ExpenseTheme.lightThemeData,
-            darkTheme: ExpenseTheme.darkThemeData,
-            themeMode: Settings.getTheme,
-            initialRoute: pages[0],
-            routes: {
-              pages[0]: (context) => LoginCheck(),
-              pages[1]: (context) => ExpensesListPage(),
-              pages[2]: (context) => HomePage()
-            },
-            // home: LoginCheck(),
-          );
-        });
+    return const MaterialApp(
+      home: Scaffold(body: Center(child: Text('Hello World!'))),
+    );
   }
 }

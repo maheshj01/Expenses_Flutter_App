@@ -5,10 +5,10 @@
 // 'flutter create' template.
 
 // The application's name. By default this is also the title of the Flutter window.
-PRODUCT_NAME = expense_manager
+PRODUCT_NAME = moneytrace
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.wml.expensesmanager.expenseManager
+PRODUCT_BUNDLE_IDENTIFIER = com.wml.moneytrace
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2022 com.wml.expenses_manager. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 com.wml. All rights reserved.
