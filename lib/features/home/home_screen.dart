@@ -8,6 +8,8 @@ import '../../core/year_month.dart';
 import '../../data/sync/sync_status.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/services/period_summary.dart';
+import '../../shared/animations/animated_amount.dart';
+import '../../shared/animations/fade_slide_in.dart';
 import '../../shared/money_format.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/category_avatar.dart';
@@ -30,6 +32,7 @@ class HomeScreen extends ConsumerWidget {
     final money = ref.watch(moneyFormatProvider);
 
     final spending = summary.ranked(cats, CategoryKind.spending);
+    final name = ref.watch(settingsProvider.select((s) => s.name));
 
     return SafeArea(
       bottom: false,
@@ -40,26 +43,34 @@ class HomeScreen extends ConsumerWidget {
             DateFormat('EEEE, MMM d').format(now),
             style: TextStyle(color: context.colors.muted, fontSize: 13),
           ),
-          Text(_greeting(now), style: Theme.of(context).textTheme.headlineMedium),
+          Text(_greeting(now, name), style: Theme.of(context).textTheme.headlineMedium),
           const SizedBox(height: 16),
-          _BudgetHero(month: month, summary: summary, money: money),
+          FadeSlideIn(
+            child: _BudgetHero(month: month, summary: summary, money: money),
+          ),
           const _SyncBanner(),
           const SectionHeader('This month'),
-          _FlowTiles(summary: summary, money: money),
+          FadeSlideIn(
+            index: 1,
+            child: _FlowTiles(summary: summary, money: money),
+          ),
           if (spending.isNotEmpty) ...[
             const SectionHeader('Where it went'),
-            AppCard(
-              padding: const EdgeInsets.fromLTRB(14, 6, 14, 6),
-              child: Column(
-                children: [
-                  for (final MapEntry(key: id, value: cents) in spending.take(6))
-                    _CategoryBar(
-                      category: cats[id],
-                      cents: cents,
-                      max: spending.first.value,
-                      money: money,
-                    ),
-                ],
+            FadeSlideIn(
+              index: 2,
+              child: AppCard(
+                padding: const EdgeInsets.fromLTRB(14, 6, 14, 6),
+                child: Column(
+                  children: [
+                    for (final MapEntry(key: id, value: cents) in spending.take(6))
+                      _CategoryBar(
+                        category: cats[id],
+                        cents: cents,
+                        max: spending.first.value,
+                        money: money,
+                      ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -89,11 +100,14 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  static String _greeting(DateTime now) => switch (now.hour) {
-    < 12 => 'Good morning',
-    < 17 => 'Good afternoon',
-    _ => 'Good evening',
-  };
+  static String _greeting(DateTime now, String name) {
+    final hello = switch (now.hour) {
+      < 12 => 'Good morning',
+      < 17 => 'Good afternoon',
+      _ => 'Good evening',
+    };
+    return name.isEmpty ? hello : '$hello, $name';
+  }
 }
 
 class _BudgetHero extends ConsumerWidget {
@@ -108,8 +122,6 @@ class _BudgetHero extends ConsumerWidget {
     final c = context.colors;
     final settings = ref.watch(settingsProvider);
     final lived = summary.livedCents;
-    final whole = money.whole(lived);
-    final cents = money(lived).split('.').skip(1).firstOrNull;
 
     return AppCard(
       child: Column(
@@ -117,23 +129,31 @@ class _BudgetHero extends ConsumerWidget {
         children: [
           Label('Living spend · ${DateFormat.MMMM().format(month.firstDay)}'),
           const SizedBox(height: 6),
-          Text.rich(
-            TextSpan(
-              children: [
-                TextSpan(text: whole),
-                if (cents != null)
-                  TextSpan(
-                    text: '.$cents',
-                    style: TextStyle(fontSize: 22, color: c.muted, fontWeight: FontWeight.w500),
-                  ),
-              ],
-            ),
-            style: const TextStyle(
-              fontSize: 42,
-              fontWeight: FontWeight.w600,
-              letterSpacing: -1.6,
-              fontFeatures: tabularFigures,
-            ),
+          AnimatedAmount(
+            cents: lived,
+            builder: (context, value) {
+              // Split "$1,234.56" into "$1,234" and ".56" without rounding.
+              final full = money(value);
+              final dot = full.lastIndexOf('.');
+              return Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(text: dot < 0 ? full : full.substring(0, dot)),
+                    if (dot >= 0)
+                      TextSpan(
+                        text: full.substring(dot),
+                        style: TextStyle(fontSize: 22, color: c.muted, fontWeight: FontWeight.w500),
+                      ),
+                  ],
+                ),
+                style: const TextStyle(
+                  fontSize: 42,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -1.6,
+                  fontFeatures: tabularFigures,
+                ),
+              );
+            },
           ),
           if (!settings.hasBudget) ...[
             const SizedBox(height: 8),
@@ -260,12 +280,15 @@ class _FlowTiles extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             FittedBox(
-              child: Text(
-                money.whole(cents),
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w600,
-                  fontFeatures: tabularFigures,
+              child: AnimatedAmount(
+                cents: cents,
+                builder: (context, value) => Text(
+                  money.whole(value),
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    fontFeatures: tabularFigures,
+                  ),
                 ),
               ),
             ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
+import '../animations/motion.dart';
 
 class AppCard extends StatelessWidget {
   const AppCard({
@@ -109,7 +110,13 @@ class SegmentBar extends StatelessWidget {
                           remaining,
                         );
                         remaining -= width;
-                        return Container(width: width, color: color);
+                        // Grows from zero on first show, then eases to new values.
+                        return TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0, end: width),
+                          duration: Motion.of(context, Motion.slow),
+                          curve: Motion.enter,
+                          builder: (context, w, _) => Container(width: w, color: color),
+                        );
                       },
                     ),
               ],
