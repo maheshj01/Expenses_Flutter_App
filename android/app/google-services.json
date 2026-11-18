@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "732922541900",
+    "project_id": "three-bucks",
+    "storage_bucket": "three-bucks.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:732922541900:android:91900b2f1f2da1972481e9",
+        "android_client_info": {
+          "package_name": "com.wml.threebucks"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCQwAkUljcwRnCRV1SwP6vRKOJ4Vd_vdFs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
