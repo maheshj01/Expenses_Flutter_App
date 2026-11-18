@@ -44,6 +44,9 @@ class Entries extends Table with SyncColumns {
   TextColumn get note => text().withDefault(const Constant(''))();
   IntColumn get splitWays => integer().withDefault(const Constant(1))();
 
+  /// Names of people sharing it who aren't on the app, as a JSON list.
+  TextColumn get guestNames => text().withDefault(const Constant(''))();
+
   /// Id of the shared bill this entry is your share of, if any.
   TextColumn get billId => text().nullable()();
   IntColumn get createdAt => integer()();
@@ -70,7 +73,7 @@ class AppDatabase extends _$AppDatabase implements SyncCursorStore {
   factory AppDatabase.open() => AppDatabase(driftDatabase(name: 'three_bucks'));
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -80,6 +83,7 @@ class AppDatabase extends _$AppDatabase implements SyncCursorStore {
     },
     onUpgrade: (m, from, to) async {
       if (from < 2) await m.addColumn(entries, entries.billId);
+      if (from < 3) await m.addColumn(entries, entries.guestNames);
     },
   );
 

@@ -59,6 +59,7 @@ class BillProjector {
         date: bill.date,
         note: bill.note,
         splitWays: bill.ways,
+        guestNames: bill.guestNames,
         billId: bill.id,
         createdAt: current?.createdAt ?? bill.createdAt,
       );

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 
 import '../../core/clock.dart';
@@ -75,6 +77,7 @@ class DriftEntryRepository implements EntryRepository, LocalSyncSource {
             day: DayKey.fromDate(entry.date),
             note: Value(entry.note.trim()),
             splitWays: Value(entry.splitWays),
+            guestNames: Value(_encodeNames(entry.guestNames)),
             billId: Value(entry.billId),
             createdAt: entry.createdAt?.millisecondsSinceEpoch ?? now,
             updatedAt: now,
@@ -117,6 +120,7 @@ class DriftEntryRepository implements EntryRepository, LocalSyncSource {
               'day': r.day,
               'note': r.note,
               'splitWays': r.splitWays,
+              'guestNames': _decodeNames(r.guestNames),
               'billId': r.billId,
               'createdAt': r.createdAt,
             },
@@ -160,6 +164,12 @@ class DriftEntryRepository implements EntryRepository, LocalSyncSource {
                 day: (d['day'] as num?)?.toInt() ?? local?.day ?? DayKey.fromDate(_clock()),
                 note: Value(d['note'] as String? ?? ''),
                 splitWays: Value((d['splitWays'] as num?)?.toInt() ?? 1),
+                guestNames: Value(
+                  _encodeNames([
+                    for (final n in d['guestNames'] as List? ?? const [])
+                      if (n is String) n,
+                  ]),
+                ),
                 billId: Value(d['billId'] as String?),
                 createdAt: (d['createdAt'] as num?)?.toInt() ?? r.updatedAt,
                 updatedAt: r.updatedAt,
@@ -178,7 +188,27 @@ class DriftEntryRepository implements EntryRepository, LocalSyncSource {
     date: DayKey.toDate(r.day),
     note: r.note,
     splitWays: r.splitWays,
+    guestNames: _decodeNames(r.guestNames),
     billId: r.billId,
     createdAt: DateTime.fromMillisecondsSinceEpoch(r.createdAt),
   );
+
+  static String _encodeNames(List<String> names) {
+    final clean = [
+      for (final n in names)
+        if (n.trim().isNotEmpty) n.trim(),
+    ];
+    return clean.isEmpty ? '' : jsonEncode(clean);
+  }
+
+  static List<String> _decodeNames(String raw) {
+    if (raw.isEmpty) return const [];
+    final decoded = jsonDecode(raw);
+    return decoded is List
+        ? [
+            for (final n in decoded)
+              if (n is String) n,
+          ]
+        : const [];
+  }
 }

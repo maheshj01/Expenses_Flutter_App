@@ -266,6 +266,10 @@ class FirebaseSocialBackend implements SocialBackend {
           key: Profile.fromJson(key, Map<String, Object?>.from(value as Map)),
       },
       guests: ms('guests'),
+      guestNames: [
+        for (final n in d['guestNames'] as List? ?? const [])
+          if (n is String) n,
+      ].take(ms('guests')).toList(),
       amountCents: ms('amountCents'),
       currencyCode: d['currencyCode'] as String? ?? 'USD',
       date: DayKey.toDate(ms('day')),
@@ -291,6 +295,7 @@ class FirebaseSocialBackend implements SocialBackend {
         'members': bill.members,
         'people': {for (final p in bill.people.values) p.uid: p.toJson()},
         'guests': bill.guests,
+        'guestNames': bill.guestNames,
         'amountCents': bill.amountCents,
         'currencyCode': bill.currencyCode,
         'day': DayKey.fromDate(bill.date),

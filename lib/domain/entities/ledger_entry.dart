@@ -8,6 +8,7 @@ class LedgerEntry {
     required this.date,
     this.note = '',
     this.splitWays = 1,
+    this.guestNames = const [],
     this.billId,
     this.createdAt,
   }) : assert(splitWays >= 1);
@@ -25,6 +26,10 @@ class LedgerEntry {
   /// How many people share this bill. Only your share counts toward
   /// your totals: a $46 bill split 2 ways counts as $23.
   final int splitWays;
+
+  /// Names of people sharing the bill who aren't on the app, as far as
+  /// you named them. May be shorter than `splitWays - 1`.
+  final List<String> guestNames;
 
   /// Set when this is your share of a bill shared with people on the app.
   final String? billId;
@@ -45,6 +50,7 @@ class LedgerEntry {
     DateTime? date,
     String? note,
     int? splitWays,
+    List<String>? guestNames,
     String? Function()? billId,
   }) {
     return LedgerEntry(
@@ -54,6 +60,7 @@ class LedgerEntry {
       date: date ?? this.date,
       note: note ?? this.note,
       splitWays: splitWays ?? this.splitWays,
+      guestNames: guestNames ?? this.guestNames,
       billId: billId == null ? this.billId : billId(),
       createdAt: createdAt,
     );
@@ -68,10 +75,23 @@ class LedgerEntry {
       other.date == date &&
       other.note == note &&
       other.splitWays == splitWays &&
+      _sameNames(other.guestNames, guestNames) &&
       other.billId == billId;
 
+  static bool _sameNames(List<String> a, List<String> b) =>
+      a.length == b.length && Iterable<int>.generate(a.length).every((i) => a[i] == b[i]);
+
   @override
-  int get hashCode => Object.hash(id, amountCents, categoryId, date, note, splitWays, billId);
+  int get hashCode => Object.hash(
+    id,
+    amountCents,
+    categoryId,
+    date,
+    note,
+    splitWays,
+    Object.hashAll(guestNames),
+    billId,
+  );
 
   @override
   String toString() => 'LedgerEntry($amountCents, $categoryId, $date, "$note")';

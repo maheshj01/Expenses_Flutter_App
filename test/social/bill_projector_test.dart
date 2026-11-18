@@ -36,6 +36,15 @@ void main() {
 
   Future<List<LedgerEntry>> ledger() => entries.sharedEntries();
 
+  test('copies the names of people not on the app', () async {
+    await apply([
+      bill('a', by: sam, guests: 2, guestNames: ['Alex']),
+    ]);
+    final e = (await ledger()).single;
+    expect(e.splitWays, 4);
+    expect(e.guestNames, ['Alex']);
+  });
+
   test('adds my share of bills from connections', () async {
     await apply([bill('a', by: sam, cents: 9000)]);
     final [entry] = await ledger();

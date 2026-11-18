@@ -638,6 +638,16 @@ class $EntriesTable extends Entries with TableInfo<$EntriesTable, EntryRow> {
     requiredDuringInsert: false,
     defaultValue: const Constant(1),
   );
+  static const VerificationMeta _guestNamesMeta = const VerificationMeta('guestNames');
+  @override
+  late final GeneratedColumn<String> guestNames = GeneratedColumn<String>(
+    'guest_names',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
   static const VerificationMeta _billIdMeta = const VerificationMeta('billId');
   @override
   late final GeneratedColumn<String> billId = GeneratedColumn<String>(
@@ -667,6 +677,7 @@ class $EntriesTable extends Entries with TableInfo<$EntriesTable, EntryRow> {
     day,
     note,
     splitWays,
+    guestNames,
     billId,
     createdAt,
   ];
@@ -728,6 +739,12 @@ class $EntriesTable extends Entries with TableInfo<$EntriesTable, EntryRow> {
         splitWays.isAcceptableOrUnknown(data['split_ways']!, _splitWaysMeta),
       );
     }
+    if (data.containsKey('guest_names')) {
+      context.handle(
+        _guestNamesMeta,
+        guestNames.isAcceptableOrUnknown(data['guest_names']!, _guestNamesMeta),
+      );
+    }
     if (data.containsKey('bill_id')) {
       context.handle(_billIdMeta, billId.isAcceptableOrUnknown(data['bill_id']!, _billIdMeta));
     }
@@ -772,6 +789,10 @@ class $EntriesTable extends Entries with TableInfo<$EntriesTable, EntryRow> {
         DriftSqlType.int,
         data['${effectivePrefix}split_ways'],
       )!,
+      guestNames: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}guest_names'],
+      )!,
       billId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}bill_id'],
@@ -807,6 +828,9 @@ class EntryRow extends DataClass implements Insertable<EntryRow> {
   final String note;
   final int splitWays;
 
+  /// Names of people sharing it who aren't on the app, as a JSON list.
+  final String guestNames;
+
   /// Id of the shared bill this entry is your share of, if any.
   final String? billId;
   final int createdAt;
@@ -820,6 +844,7 @@ class EntryRow extends DataClass implements Insertable<EntryRow> {
     required this.day,
     required this.note,
     required this.splitWays,
+    required this.guestNames,
     this.billId,
     required this.createdAt,
   });
@@ -835,6 +860,7 @@ class EntryRow extends DataClass implements Insertable<EntryRow> {
     map['day'] = Variable<int>(day);
     map['note'] = Variable<String>(note);
     map['split_ways'] = Variable<int>(splitWays);
+    map['guest_names'] = Variable<String>(guestNames);
     if (!nullToAbsent || billId != null) {
       map['bill_id'] = Variable<String>(billId);
     }
@@ -853,6 +879,7 @@ class EntryRow extends DataClass implements Insertable<EntryRow> {
       day: Value(day),
       note: Value(note),
       splitWays: Value(splitWays),
+      guestNames: Value(guestNames),
       billId: billId == null && nullToAbsent ? const Value.absent() : Value(billId),
       createdAt: Value(createdAt),
     );
@@ -870,6 +897,7 @@ class EntryRow extends DataClass implements Insertable<EntryRow> {
       day: serializer.fromJson<int>(json['day']),
       note: serializer.fromJson<String>(json['note']),
       splitWays: serializer.fromJson<int>(json['splitWays']),
+      guestNames: serializer.fromJson<String>(json['guestNames']),
       billId: serializer.fromJson<String?>(json['billId']),
       createdAt: serializer.fromJson<int>(json['createdAt']),
     );
@@ -887,6 +915,7 @@ class EntryRow extends DataClass implements Insertable<EntryRow> {
       'day': serializer.toJson<int>(day),
       'note': serializer.toJson<String>(note),
       'splitWays': serializer.toJson<int>(splitWays),
+      'guestNames': serializer.toJson<String>(guestNames),
       'billId': serializer.toJson<String?>(billId),
       'createdAt': serializer.toJson<int>(createdAt),
     };
@@ -902,6 +931,7 @@ class EntryRow extends DataClass implements Insertable<EntryRow> {
     int? day,
     String? note,
     int? splitWays,
+    String? guestNames,
     Value<String?> billId = const Value.absent(),
     int? createdAt,
   }) => EntryRow(
@@ -914,6 +944,7 @@ class EntryRow extends DataClass implements Insertable<EntryRow> {
     day: day ?? this.day,
     note: note ?? this.note,
     splitWays: splitWays ?? this.splitWays,
+    guestNames: guestNames ?? this.guestNames,
     billId: billId.present ? billId.value : this.billId,
     createdAt: createdAt ?? this.createdAt,
   );
@@ -928,6 +959,7 @@ class EntryRow extends DataClass implements Insertable<EntryRow> {
       day: data.day.present ? data.day.value : this.day,
       note: data.note.present ? data.note.value : this.note,
       splitWays: data.splitWays.present ? data.splitWays.value : this.splitWays,
+      guestNames: data.guestNames.present ? data.guestNames.value : this.guestNames,
       billId: data.billId.present ? data.billId.value : this.billId,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
@@ -945,6 +977,7 @@ class EntryRow extends DataClass implements Insertable<EntryRow> {
           ..write('day: $day, ')
           ..write('note: $note, ')
           ..write('splitWays: $splitWays, ')
+          ..write('guestNames: $guestNames, ')
           ..write('billId: $billId, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -962,6 +995,7 @@ class EntryRow extends DataClass implements Insertable<EntryRow> {
     day,
     note,
     splitWays,
+    guestNames,
     billId,
     createdAt,
   );
@@ -978,6 +1012,7 @@ class EntryRow extends DataClass implements Insertable<EntryRow> {
           other.day == this.day &&
           other.note == this.note &&
           other.splitWays == this.splitWays &&
+          other.guestNames == this.guestNames &&
           other.billId == this.billId &&
           other.createdAt == this.createdAt);
 }
@@ -992,6 +1027,7 @@ class EntriesCompanion extends UpdateCompanion<EntryRow> {
   final Value<int> day;
   final Value<String> note;
   final Value<int> splitWays;
+  final Value<String> guestNames;
   final Value<String?> billId;
   final Value<int> createdAt;
   final Value<int> rowid;
@@ -1005,6 +1041,7 @@ class EntriesCompanion extends UpdateCompanion<EntryRow> {
     this.day = const Value.absent(),
     this.note = const Value.absent(),
     this.splitWays = const Value.absent(),
+    this.guestNames = const Value.absent(),
     this.billId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -1019,6 +1056,7 @@ class EntriesCompanion extends UpdateCompanion<EntryRow> {
     required int day,
     this.note = const Value.absent(),
     this.splitWays = const Value.absent(),
+    this.guestNames = const Value.absent(),
     this.billId = const Value.absent(),
     required int createdAt,
     this.rowid = const Value.absent(),
@@ -1038,6 +1076,7 @@ class EntriesCompanion extends UpdateCompanion<EntryRow> {
     Expression<int>? day,
     Expression<String>? note,
     Expression<int>? splitWays,
+    Expression<String>? guestNames,
     Expression<String>? billId,
     Expression<int>? createdAt,
     Expression<int>? rowid,
@@ -1052,6 +1091,7 @@ class EntriesCompanion extends UpdateCompanion<EntryRow> {
       if (day != null) 'day': day,
       if (note != null) 'note': note,
       if (splitWays != null) 'split_ways': splitWays,
+      if (guestNames != null) 'guest_names': guestNames,
       if (billId != null) 'bill_id': billId,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
@@ -1068,6 +1108,7 @@ class EntriesCompanion extends UpdateCompanion<EntryRow> {
     Value<int>? day,
     Value<String>? note,
     Value<int>? splitWays,
+    Value<String>? guestNames,
     Value<String?>? billId,
     Value<int>? createdAt,
     Value<int>? rowid,
@@ -1082,6 +1123,7 @@ class EntriesCompanion extends UpdateCompanion<EntryRow> {
       day: day ?? this.day,
       note: note ?? this.note,
       splitWays: splitWays ?? this.splitWays,
+      guestNames: guestNames ?? this.guestNames,
       billId: billId ?? this.billId,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
@@ -1118,6 +1160,9 @@ class EntriesCompanion extends UpdateCompanion<EntryRow> {
     if (splitWays.present) {
       map['split_ways'] = Variable<int>(splitWays.value);
     }
+    if (guestNames.present) {
+      map['guest_names'] = Variable<String>(guestNames.value);
+    }
     if (billId.present) {
       map['bill_id'] = Variable<String>(billId.value);
     }
@@ -1142,6 +1187,7 @@ class EntriesCompanion extends UpdateCompanion<EntryRow> {
           ..write('day: $day, ')
           ..write('note: $note, ')
           ..write('splitWays: $splitWays, ')
+          ..write('guestNames: $guestNames, ')
           ..write('billId: $billId, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
@@ -1632,6 +1678,7 @@ typedef $$EntriesTableCreateCompanionBuilder = EntriesCompanion Function({
   required int day,
   Value<String> note,
   Value<int> splitWays,
+  Value<String> guestNames,
   Value<String?> billId,
   required int createdAt,
   Value<int> rowid,
@@ -1646,6 +1693,7 @@ typedef $$EntriesTableUpdateCompanionBuilder = EntriesCompanion Function({
   Value<int> day,
   Value<String> note,
   Value<int> splitWays,
+  Value<String> guestNames,
   Value<String?> billId,
   Value<int> createdAt,
   Value<int> rowid,
@@ -1685,6 +1733,9 @@ class $$EntriesTableFilterComposer extends Composer<_$AppDatabase, $EntriesTable
 
   ColumnFilters<int> get splitWays =>
       $composableBuilder(column: $table.splitWays, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get guestNames =>
+      $composableBuilder(column: $table.guestNames, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get billId =>
       $composableBuilder(column: $table.billId, builder: (column) => ColumnFilters(column));
@@ -1728,6 +1779,9 @@ class $$EntriesTableOrderingComposer extends Composer<_$AppDatabase, $EntriesTab
   ColumnOrderings<int> get splitWays =>
       $composableBuilder(column: $table.splitWays, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get guestNames =>
+      $composableBuilder(column: $table.guestNames, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get billId =>
       $composableBuilder(column: $table.billId, builder: (column) => ColumnOrderings(column));
 
@@ -1769,6 +1823,9 @@ class $$EntriesTableAnnotationComposer extends Composer<_$AppDatabase, $EntriesT
 
   GeneratedColumn<int> get splitWays =>
       $composableBuilder(column: $table.splitWays, builder: (column) => column);
+
+  GeneratedColumn<String> get guestNames =>
+      $composableBuilder(column: $table.guestNames, builder: (column) => column);
 
   GeneratedColumn<String> get billId =>
       $composableBuilder(column: $table.billId, builder: (column) => column);
@@ -1812,6 +1869,7 @@ class $$EntriesTableTableManager
                 Value<int> day = const Value.absent(),
                 Value<String> note = const Value.absent(),
                 Value<int> splitWays = const Value.absent(),
+                Value<String> guestNames = const Value.absent(),
                 Value<String?> billId = const Value.absent(),
                 Value<int> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -1825,6 +1883,7 @@ class $$EntriesTableTableManager
                 day: day,
                 note: note,
                 splitWays: splitWays,
+                guestNames: guestNames,
                 billId: billId,
                 createdAt: createdAt,
                 rowid: rowid,
@@ -1840,6 +1899,7 @@ class $$EntriesTableTableManager
                 required int day,
                 Value<String> note = const Value.absent(),
                 Value<int> splitWays = const Value.absent(),
+                Value<String> guestNames = const Value.absent(),
                 Value<String?> billId = const Value.absent(),
                 required int createdAt,
                 Value<int> rowid = const Value.absent(),
@@ -1853,6 +1913,7 @@ class $$EntriesTableTableManager
                 day: day,
                 note: note,
                 splitWays: splitWays,
+                guestNames: guestNames,
                 billId: billId,
                 createdAt: createdAt,
                 rowid: rowid,

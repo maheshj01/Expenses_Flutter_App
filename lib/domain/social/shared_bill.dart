@@ -54,6 +54,7 @@ class SharedBill {
     required this.members,
     required this.people,
     this.guests = 0,
+    this.guestNames = const [],
     required this.amountCents,
     required this.currencyCode,
     required this.date,
@@ -64,7 +65,7 @@ class SharedBill {
     required this.createdAt,
     required this.editedAt,
     this.deleted = false,
-  }) : assert(guests >= 0);
+  }) : assert(guests >= guestNames.length);
 
   final String id;
 
@@ -80,6 +81,9 @@ class SharedBill {
 
   /// People sharing the bill who aren't on the app.
   final int guests;
+
+  /// Names the payer gave some of the [guests]. May be shorter than [guests].
+  final List<String> guestNames;
 
   /// Full amount, always positive.
   final int amountCents;
@@ -125,6 +129,7 @@ class SharedBill {
     List<String>? members,
     Map<String, Profile>? people,
     int? guests,
+    List<String>? guestNames,
     int? amountCents,
     String? currencyCode,
     DateTime? date,
@@ -141,6 +146,7 @@ class SharedBill {
       members: members ?? this.members,
       people: people ?? this.people,
       guests: guests ?? this.guests,
+      guestNames: guestNames ?? this.guestNames,
       amountCents: amountCents ?? this.amountCents,
       currencyCode: currencyCode ?? this.currencyCode,
       date: date ?? this.date,
@@ -159,6 +165,7 @@ class SharedBill {
     required List<String> members,
     required Map<String, Profile> people,
     required int guests,
+    List<String> guestNames = const [],
     required int amountCents,
     required String currencyCode,
     required DateTime date,
@@ -170,6 +177,7 @@ class SharedBill {
     members: members,
     people: people,
     guests: guests,
+    guestNames: guestNames,
     amountCents: amountCents,
     currencyCode: currencyCode,
     date: date,

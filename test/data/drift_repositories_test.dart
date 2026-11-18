@@ -71,6 +71,47 @@ void main() {
       expect(await entries.watchYears().first, [2026, 2025]);
     });
 
+    test('keep and sync the names of people not on the app', () async {
+      await entries.save(
+        LedgerEntry(
+          id: 'pizza',
+          amountCents: 3000,
+          categoryId: 'food',
+          date: DateTime(2026, 11, 2),
+          splitWays: 3,
+          guestNames: const [' Sam ', 'Ana', ''],
+        ),
+      );
+      expect(
+        (await entries.watchBetween(DateTime(2026, 10), DateTime(2027)).first).single.guestNames,
+        ['Sam', 'Ana'],
+      );
+      final pushed = (await entries.pendingChanges()).single;
+      expect(pushed.data['guestNames'], ['Sam', 'Ana']);
+
+      await entries.applyRemote([
+        SyncRecord(
+          id: 'pizza',
+          updatedAt: now.millisecondsSinceEpoch + 1,
+          deleted: false,
+          data: {
+            ...pushed.data,
+            'guestNames': ['Sam'],
+            'splitWays': 2,
+          },
+        ),
+        SyncRecord(
+          id: 'old',
+          updatedAt: now.millisecondsSinceEpoch + 1,
+          deleted: false,
+          data: const {'amountCents': 100, 'categoryId': 'food', 'day': 20261101, 'splitWays': 2},
+        ),
+      ]);
+      final all = await entries.watchBetween(DateTime(2026, 10), DateTime(2027)).first;
+      expect(all.firstWhere((e) => e.id == 'pizza').guestNames, ['Sam']);
+      expect(all.firstWhere((e) => e.id == 'old').guestNames, isEmpty, reason: 'older apps');
+    });
+
     test('delete leaves a tombstone for sync', () async {
       await entries.save(entry('a', 1000, DateTime(2026, 11, 2)));
       await entries.markSynced(await entries.pendingChanges());
