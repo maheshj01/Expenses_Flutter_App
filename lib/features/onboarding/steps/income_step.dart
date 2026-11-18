@@ -98,7 +98,13 @@ class IncomeStep extends StatelessWidget {
                           ),
                         ),
                       ),
-                      Text(' a month on average', style: TextStyle(color: c.ink2)),
+                      Flexible(
+                        child: Text(
+                          ' a month on average',
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: c.ink2),
+                        ),
+                      ),
                     ],
                   ),
                 )

@@ -9,6 +9,7 @@ import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/currency_picker.dart';
 import '../categories/categories_screen.dart';
 import '../home/budget_dialog.dart';
+import '../onboarding/onboarding_flow.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -68,6 +69,17 @@ class SettingsScreen extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: Column(
               children: [
+                _Item(
+                  icon: Icons.flag_outlined,
+                  title: 'Plan & goals',
+                  value: settings.hasIncome
+                      ? '${money.whole(settings.monthlyIncomeCents)}/mo'
+                      : 'Set up',
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(builder: (_) => const OnboardingFlow(editing: true)),
+                  ),
+                ),
+                const Divider(indent: 56),
                 _Item(
                   icon: Icons.savings_outlined,
                   title: 'Monthly living budget',

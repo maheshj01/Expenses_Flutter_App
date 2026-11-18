@@ -7,9 +7,11 @@ import '../../app/theme.dart';
 import '../../core/year_month.dart';
 import '../../data/sync/sync_status.dart';
 import '../../domain/entities/category.dart';
+import '../../domain/services/monthly_plan.dart';
 import '../../domain/services/period_summary.dart';
 import '../../shared/animations/animated_amount.dart';
 import '../../shared/animations/fade_slide_in.dart';
+import '../../shared/animations/motion.dart';
 import '../../shared/money_format.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/category_avatar.dart';
@@ -54,6 +56,7 @@ class HomeScreen extends ConsumerWidget {
             index: 1,
             child: _FlowTiles(summary: summary, money: money),
           ),
+          _GoalCard(summary: summary, money: money),
           if (spending.isNotEmpty) ...[
             const SectionHeader('Where it went'),
             FadeSlideIn(
@@ -390,6 +393,85 @@ class _SyncBanner extends ConsumerWidget {
               child: Text(text!, style: TextStyle(color: c.ink2, fontSize: 13)),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Progress toward the monthly savings target set during onboarding.
+class _GoalCard extends ConsumerWidget {
+  const _GoalCard({required this.summary, required this.money});
+
+  final PeriodSummary summary;
+  final MoneyFormat money;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.colors;
+    final settings = ref.watch(settingsProvider);
+    if (!settings.hasSavingsGoal) return const SizedBox.shrink();
+    final goal = settings.savingsGoalCents;
+    final saved = MonthlyPlan.setAside(
+      earned: summary.earnedCents,
+      lived: summary.livedCents,
+      invested: summary.investedCents,
+    );
+    final fraction = (saved / goal).clamp(0, 1).toDouble();
+    final reached = saved >= goal;
+    final emojis = settings.goals.map((g) => g.emoji).take(3).join(' ');
+    final status = TextStyle(color: c.invested, fontWeight: FontWeight.w700);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: FadeSlideIn(
+        index: 2,
+        child: AppCard(
+          color: reached ? c.investedSoft : null,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Expanded(child: Label('Set aside this month')),
+                  if (emojis.isNotEmpty) Text(emojis, style: const TextStyle(fontSize: 14)),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  AnimatedAmount(
+                    cents: saved,
+                    builder: (context, v) => Text(
+                      money.whole(v),
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        fontFeatures: tabularFigures,
+                      ),
+                    ),
+                  ),
+                  Text(' of ${money.whole(goal)}', style: TextStyle(color: c.muted)),
+                  const Spacer(),
+                  AnimatedSwitcher(
+                    duration: Motion.of(context, Motion.medium),
+                    transitionBuilder: (child, a) => ScaleTransition(scale: a, child: child),
+                    child: reached
+                        ? Text('Goal reached 🎉', key: const ValueKey('done'), style: status)
+                        : Text(
+                            '${(fraction * 100).round()}%',
+                            key: const ValueKey('pct'),
+                            style: status,
+                          ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              SegmentBar(height: 8, segments: [(fraction, c.invested)]),
+            ],
+          ),
         ),
       ),
     );
