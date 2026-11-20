@@ -179,6 +179,24 @@ Screenshots of onboarding, the main screens and sharing (on an in-memory backend
 make capture-screens DEVICE=<simulator-udid>
 ```
 
+### Store screenshots
+
+These targets capture the same flow straight into the storeshots projects (store screenshot
+designs), ready to design with:
+
+```bash
+make store-shots-ios       # iPhone 17 Pro Max (1320×2868) -> store-assets/
+make store-shots-android   # a Pixel emulator              -> store-assets-android/
+```
+
+Each screen is written to `<project>/captures/<locale>/<name>.png` (no device frame), with
+`<name>.json` beside it: a description, the feature, the theme, the size, the text on screen and
+named `regions` (for example `keypad` or `import-summary`) in screenshot pixels. Names stay the
+same between runs, so designs pick up new captures. The status bar is set to 9:41 with full
+battery and signal, and restored afterwards. `LOCALE=de` writes to `captures/de/`. The iOS target
+creates and boots the simulator if needed; the Android one uses a running emulator or starts the
+first Pixel AVD. Nothing else in the project folders is touched.
+
 ## Roadmap
 
 - Import past years from the existing Excel sheet

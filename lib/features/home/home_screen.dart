@@ -13,6 +13,7 @@ import '../../shared/animations/animated_amount.dart';
 import '../../shared/animations/fade_slide_in.dart';
 import '../../shared/animations/motion.dart';
 import '../../shared/money_format.dart';
+import '../../shared/region_keys.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/category_avatar.dart';
 import '../../shared/widgets/entry_tile.dart';
@@ -69,15 +70,24 @@ class HomeScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           FadeSlideIn(
-            child: _BudgetHero(month: month, summary: summary, money: money),
+            child: KeyedSubtree(
+              key: RegionKeys.budgetHero,
+              child: _BudgetHero(month: month, summary: summary, money: money),
+            ),
           ),
           const _SyncBanner(),
           const SectionHeader('This month'),
           FadeSlideIn(
             index: 1,
-            child: _FlowTiles(summary: summary, money: money),
+            child: KeyedSubtree(
+              key: RegionKeys.monthTiles,
+              child: _FlowTiles(summary: summary, money: money),
+            ),
           ),
-          _GoalCard(summary: summary, money: money),
+          KeyedSubtree(
+            key: RegionKeys.goalCard,
+            child: _GoalCard(summary: summary, money: money),
+          ),
           if (spending.isNotEmpty) ...[
             const SectionHeader('Where it went'),
             FadeSlideIn(

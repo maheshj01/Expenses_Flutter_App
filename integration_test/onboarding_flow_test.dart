@@ -32,6 +32,7 @@ import 'package:three_bucks/domain/social/settlement.dart';
 import 'package:three_bucks/domain/social/shared_bill.dart';
 import 'package:three_bucks/features/data_io/data_io_providers.dart';
 import 'package:three_bucks/features/data_io/export_sheet.dart';
+import 'package:three_bucks/shared/region_keys.dart';
 
 import '../test/support/fake_social.dart';
 
@@ -99,7 +100,17 @@ void main() {
     }
   }
 
-  void emitMeta(WidgetTester tester, String name, String description, String feature) {
+  /// Describes the current screen for the capture script: on-screen text,
+  /// named regions, theme and size. Regions are in raw screenshot pixels
+  /// (the status bar included, since the app draws under it), plus the same
+  /// box as 0..1 fractions of the screen.
+  void emitMeta(
+    WidgetTester tester,
+    String name,
+    String description,
+    String feature,
+    Map<String, Finder> regions,
+  ) {
     final texts = <String>{
       for (final e in find.byType(RichText).evaluate())
         (e.widget as RichText).text.toPlainText().trim(),
@@ -107,6 +118,38 @@ void main() {
         (e.widget as EditableText).controller.text.trim(),
     }..removeWhere((t) => t.isEmpty);
     final size = tester.view.physicalSize;
+    final dpr = tester.view.devicePixelRatio;
+    final boxes = <String, Object>{};
+    regions.forEach((key, finder) {
+      if (finder.evaluate().isEmpty) {
+        debugPrint('region $key not found on $name');
+        return;
+      }
+      // Only the part that can be seen: clipped by every list it scrolls in
+      // and by the screen edges.
+      var r = tester.getRect(finder.first);
+      for (final list
+          in find.ancestor(of: finder.first, matching: find.byType(Scrollable)).evaluate()) {
+        final box = list.renderObject! as RenderBox;
+        r = r.intersect(box.localToGlobal(Offset.zero) & box.size);
+      }
+      r = r.intersect(Offset.zero & (size / dpr));
+      if (r.width <= 0 || r.height <= 0) {
+        debugPrint('region $key is off screen on $name');
+        return;
+      }
+      final x = r.left * dpr, y = r.top * dpr, w = r.width * dpr, h = r.height * dpr;
+      boxes[key] = {
+        'x': x.round(),
+        'y': y.round(),
+        'w': w.round(),
+        'h': h.round(),
+        'nx': x / size.width,
+        'ny': y / size.height,
+        'nw': w / size.width,
+        'nh': h / size.height,
+      };
+    });
     final app = find.byType(MaterialApp);
     final dark =
         app.evaluate().isNotEmpty &&
@@ -116,7 +159,7 @@ void main() {
       'feature': feature,
       'theme': dark ? 'dark' : 'light',
       'size': {'w': size.width.round(), 'h': size.height.round()},
-      'regions': <String, Object>{},
+      'regions': boxes,
       'texts': texts.toList(),
     };
     debugPrint('__EPOCH_META__ $name ${base64Encode(utf8.encode(jsonEncode(meta)))}');
@@ -128,10 +171,13 @@ void main() {
     String name, {
     required String description,
     required String feature,
+    Map<String, Key> regions = const {},
   }) async {
     await settle(tester);
     if (!_captureShots) return;
-    emitMeta(tester, name, description, feature);
+    emitMeta(tester, name, description, feature, {
+      for (final MapEntry(:key, :value) in regions.entries) key: find.byKey(value),
+    });
     debugPrint('__EPOCH_SHOT__ $name');
     for (var i = 0; i < 24; i++) {
       await tester.pump(const Duration(milliseconds: 130));
@@ -207,6 +253,7 @@ void main() {
       '04_goals',
       description: 'Goal choices and the pre-filled monthly savings target',
       feature: 'onboarding',
+      regions: {'goal-grid': RegionKeys.goalGrid},
     );
     await next(tester, 'Continue');
 
@@ -234,6 +281,7 @@ void main() {
       '07_plan',
       description: 'Monthly plan summary: income split into live on, set aside, unplanned',
       feature: 'onboarding',
+      regions: {'plan-card': RegionKeys.planCard},
     );
     await next(tester, 'Start tracking');
     await settle(tester, frames: 12);
@@ -244,16 +292,30 @@ void main() {
       '08_home',
       description: 'Dashboard: living spend vs budget, safe to spend, buckets, savings goal',
       feature: 'home',
+      regions: {
+        'budget-hero': RegionKeys.budgetHero,
+        'month-tiles': RegionKeys.monthTiles,
+        'goal-card': RegionKeys.goalCard,
+      },
     );
 
     await tester.tap(find.byTooltip('Add entry'));
     await settle(tester);
     await tester.enterText(find.byType(TextField).last, 'costco 46 split');
+    // Close the keyboard so the shot shows the app's own keypad.
+    FocusManager.instance.primaryFocus?.unfocus();
     await shot(
       tester,
       '09_add_entry',
       description: 'Quick entry: "costco 46 split" fills the amount, split and category',
       feature: 'entries',
+      regions: {
+        'entry-amount': RegionKeys.entryAmount,
+        'quick-entry': RegionKeys.quickEntry,
+        'entry-categories': RegionKeys.entryCategories,
+        'keypad': RegionKeys.keypad,
+        'save-button': RegionKeys.saveButton,
+      },
     );
     await tester.tap(find.textContaining('Save').last);
     await settle(tester);
@@ -281,6 +343,7 @@ void main() {
       '12_year',
       description: 'One year: monthly chart, totals and top categories',
       feature: 'history',
+      regions: {'month-chart': RegionKeys.monthChart},
     );
     await tester.pageBack();
     await settle(tester);
@@ -459,6 +522,7 @@ void main() {
       '23_split_picker',
       description: 'Split picker: people on the app, people who aren’t, and a note for them',
       feature: 'people',
+      regions: {'split-sheet': RegionKeys.splitSheet, 'split-button': RegionKeys.splitButton},
     );
     await tester.tap(find.textContaining('Split 4 ways'));
     await settle(tester);
@@ -467,6 +531,11 @@ void main() {
       '24_split_entry',
       description: 'The entry sheet shows your share and what the others owe',
       feature: 'people',
+      regions: {
+        'entry-amount': RegionKeys.entryAmount,
+        'share-line': RegionKeys.shareLine,
+        'save-button': RegionKeys.saveButton,
+      },
     );
 
     await tester.pumpWidget(const SizedBox());
@@ -526,6 +595,10 @@ void main() {
       '27_import_review',
       description: 'Import review: entries found, sheets, and categories matched',
       feature: 'import',
+      regions: {
+        'import-summary': RegionKeys.importSummary,
+        'import-categories': RegionKeys.importCategories,
+      },
     );
     await tester.drag(find.byType(Scrollable).first, const Offset(0, -700));
     await shot(
@@ -533,6 +606,7 @@ void main() {
       '28_import_months',
       description: 'Import review: duplicates, unreadable rows and a month-by-month preview',
       feature: 'import',
+      regions: {'month-preview': RegionKeys.monthPreview},
     );
     await tester.tap(find.textContaining(RegExp(r'^Import \d+ entries')));
     await waitFor(find.textContaining('Imported'));
@@ -556,6 +630,7 @@ void main() {
       '30_export',
       description: 'Export to a spreadsheet: pick a year and email it',
       feature: 'export',
+      regions: {'export-sheet': RegionKeys.exportSheet, 'email-button': RegionKeys.emailButton},
     );
 
     await tester.pumpWidget(const SizedBox());

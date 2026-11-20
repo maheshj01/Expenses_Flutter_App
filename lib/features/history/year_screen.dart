@@ -8,6 +8,7 @@ import '../../core/year_month.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/entities/ledger_entry.dart';
 import '../../domain/services/period_summary.dart';
+import '../../shared/region_keys.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/category_avatar.dart';
 import '../entries/activity_screen.dart';
@@ -57,6 +58,7 @@ class YearScreen extends ConsumerWidget {
                 const Label('Monthly · tap a month to open it'),
                 const SizedBox(height: 14),
                 MonthBarsChart(
+                  key: RegionKeys.monthChart,
                   months: [
                     for (final m in monthSummaries)
                       MonthBar(

@@ -13,6 +13,7 @@ import '../../domain/entities/ledger_entry.dart';
 import '../../domain/services/quick_entry_parser.dart';
 import '../../domain/social/account.dart';
 import '../../domain/social/shared_bill.dart';
+import '../../shared/region_keys.dart';
 import '../categories/category_editor_sheet.dart';
 import '../people/bill_sheet.dart';
 import '../people/split_picker_sheet.dart';
@@ -342,6 +343,7 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
                   const SizedBox(height: 8),
                   // Amount
                   Center(
+                    key: RegionKeys.entryAmount,
                     child: Text.rich(
                       TextSpan(
                         children: [
@@ -365,6 +367,7 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
                     height: 20,
                     child: Center(
                       child: Text(
+                        key: RegionKeys.shareLine,
                         _split.isSplit && cents > 0
                             ? 'Your share ${money(share)}'
                                   '${splitNames.isEmpty ? '' : ' · $splitNames ${_split.ways == 2 ? 'owes' : 'owe'} ${money(cents - share)}'}'
@@ -375,6 +378,7 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
                   ),
                   const SizedBox(height: 8),
                   TextField(
+                    key: RegionKeys.quickEntry,
                     controller: _note,
                     onChanged: _onNoteChanged,
                     textCapitalization: TextCapitalization.sentences,
@@ -395,6 +399,7 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
                   const SizedBox(height: 12),
                   // Two rows that scroll sideways keep the sheet short.
                   SingleChildScrollView(
+                    key: RegionKeys.entryCategories,
                     scrollDirection: Axis.horizontal,
                     clipBehavior: Clip.none,
                     child: Column(
@@ -442,7 +447,7 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  _Keypad(onKey: _key),
+                  _Keypad(key: RegionKeys.keypad, onKey: _key),
                 ],
               ),
             ),
@@ -451,6 +456,7 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
           Padding(
             padding: const EdgeInsets.fromLTRB(18, 8, 18, 18),
             child: FilledButton(
+              key: RegionKeys.saveButton,
               onPressed: canSave ? _save : null,
               child: Text(
                 canSave
@@ -527,7 +533,7 @@ class _OptionTile extends StatelessWidget {
 }
 
 class _Keypad extends StatelessWidget {
-  const _Keypad({required this.onKey});
+  const _Keypad({super.key, required this.onKey});
 
   final ValueChanged<String> onKey;
 

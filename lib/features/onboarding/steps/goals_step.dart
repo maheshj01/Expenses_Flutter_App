@@ -5,6 +5,7 @@ import '../../../domain/entities/app_settings.dart';
 import '../../../domain/services/monthly_plan.dart';
 import '../../../shared/animations/fade_slide_in.dart';
 import '../../../shared/money_format.dart';
+import '../../../shared/region_keys.dart';
 import '../onboarding_draft.dart';
 import '../onboarding_widgets.dart';
 
@@ -45,6 +46,7 @@ class _GoalsStepState extends State<GoalsStep> {
       subtitle: 'Pick as many as you like.',
       children: [
         GridView.count(
+          key: RegionKeys.goalGrid,
           crossAxisCount: 2,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),

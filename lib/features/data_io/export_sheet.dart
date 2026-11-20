@@ -14,6 +14,7 @@ import '../../domain/entities/ledger_entry.dart';
 import '../../shared/animations/animated_amount.dart';
 import '../../shared/animations/fade_slide_in.dart';
 import '../../shared/animations/motion.dart';
+import '../../shared/region_keys.dart';
 
 const _xlsxType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
@@ -141,6 +142,7 @@ class _ExportSheetState extends ConsumerState<_ExportSheet> {
     final count = ref.watch(_countProvider(_year)).value;
 
     return SingleChildScrollView(
+      key: RegionKeys.exportSheet,
       padding: const EdgeInsets.fromLTRB(18, 4, 18, 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -198,6 +200,7 @@ class _ExportSheetState extends ConsumerState<_ExportSheet> {
           ),
           const SizedBox(height: 12),
           FilledButton.icon(
+            key: RegionKeys.emailButton,
             onPressed: _busy || count == 0 ? null : () => _send(email: true),
             icon: _busy
                 ? const SizedBox.square(

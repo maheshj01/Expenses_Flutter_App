@@ -5,6 +5,7 @@ import '../../../domain/services/monthly_plan.dart';
 import '../../../shared/animations/animated_amount.dart';
 import '../../../shared/animations/fade_slide_in.dart';
 import '../../../shared/money_format.dart';
+import '../../../shared/region_keys.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../onboarding_draft.dart';
 import '../onboarding_widgets.dart';
@@ -61,6 +62,7 @@ class PlanStep extends StatelessWidget {
       subtitle: 'Three buckets for every month: what you live on, what you build, what you earn.',
       children: [
         AppCard(
+          key: RegionKeys.planCard,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

@@ -35,7 +35,19 @@
 #
 # iOS simulators frame with the Xcode Simulator's own device bezel (SKIN=ios).
 #
+# Store screenshots: STORESHOTS=<project dir> also copies every raw shot into
+# that storeshots project as <project>/captures/<LOCALE>/<name>.png, with its
+# description beside it as <name>.json (LOCALE defaults to "en"). Names stay
+# the same between runs, so designs that use a capture pick up the new image.
+# Only captures/<LOCALE>/ is written; storeshots.json and the rest of the
+# project are never touched.
+#
+# Before capturing, the status bar is cleaned up (9:41, full battery and
+# signal, no notifications): `simctl status_bar` on iOS, demo mode on Android.
+# Both are restored when the script exits. CLEAN_STATUS_BAR=0 skips this.
+#
 # Usage: [FRAME=0] [SKIN=pixel_7] [DEVICE_NAME="pixel 7"] \
+#        [STORESHOTS=store-assets] [LOCALE=en] [CLEAN_STATUS_BAR=0] \
 #          tool/capture_screens.sh <device-serial|simulator-udid> [out-dir]
 set -uo pipefail
 
@@ -77,6 +89,15 @@ META_DIR="$RAW_DIR/meta"
 
 mkdir -p "$RAW_DIR" "$META_DIR"
 rm -f "$RAW_DIR"/*.png "$META_DIR"/*.json 2>/dev/null || true
+
+# Optional: also deliver raw shots + descriptions into a storeshots project.
+STORESHOTS="${STORESHOTS:-}"
+LOCALE="${LOCALE:-en}"
+CAPTURES_DIR=""
+if [ -n "$STORESHOTS" ]; then
+  CAPTURES_DIR="${STORESHOTS%/}/captures/$LOCALE"
+  mkdir -p "$CAPTURES_DIR"
+fi
 
 if [ "$FRAME" = 1 ] && ! python3 -c 'import PIL' >/dev/null 2>&1; then
   echo "⚠️  Pillow not installed; saving raw screenshots only (python3 -m pip install pillow)"
@@ -128,6 +149,7 @@ fi
 echo "Running onboarding flow on $DEVICE"
 echo "  raw    -> $RAW_DIR/"
 [ "$FRAME" = 1 ] && echo "  framed -> $FRAMED_DIR/"
+[ -n "$CAPTURES_DIR" ] && echo "  store  -> $CAPTURES_DIR/"
 
 # Foldables expose several displays. Without `-d`, screencap prints a
 # "multiple displays" warning into the PNG stream (corrupting it) and grabs
@@ -152,7 +174,50 @@ if [ "$IOS" = 0 ]; then
   ( for _ in $(seq 1 60); do adb -s "$DEVICE" shell input keyevent KEYCODE_WAKEUP >/dev/null 2>&1; sleep 5; done ) &
   WAKER=$!
 fi
-trap '[ -n "$WAKER" ] && kill "$WAKER" 2>/dev/null || true' EXIT
+
+# A clean status bar: 9:41, full battery and signal, no notification icons.
+CLEAN_STATUS_BAR="${CLEAN_STATUS_BAR:-1}"
+DEMO_WAS_ALLOWED=""
+clean_status_bar() {
+  [ "$CLEAN_STATUS_BAR" = 1 ] || return 0
+  if [ "$IOS" = 1 ]; then
+    xcrun simctl status_bar "$DEVICE" override --time 9:41 --batteryState charged \
+      --batteryLevel 100 --cellularMode active --cellularBars 4 --wifiBars 3 \
+      --dataNetwork wifi >/dev/null 2>&1 &&
+      echo "Status bar: 9:41, full battery and signal"
+  else
+    DEMO_WAS_ALLOWED=$(adb -s "$DEVICE" shell settings get global sysui_demo_allowed 2>/dev/null | tr -d '\r')
+    adb -s "$DEVICE" shell settings put global sysui_demo_allowed 1 >/dev/null 2>&1
+    demo() { adb -s "$DEVICE" shell am broadcast -a com.android.systemui.demo -e command "$@" >/dev/null 2>&1; }
+    demo enter
+    demo clock -e hhmm 0941
+    demo battery -e level 100 -e plugged false
+    demo network -e wifi show -e level 4
+    demo network -e mobile show -e datatype none -e level 4
+    demo notifications -e visible false
+    echo "Status bar: demo mode (09:41, full battery and signal, no notifications)"
+  fi
+}
+restore_status_bar() {
+  [ "$CLEAN_STATUS_BAR" = 1 ] || return 0
+  if [ "$IOS" = 1 ]; then
+    xcrun simctl status_bar "$DEVICE" clear >/dev/null 2>&1
+  else
+    adb -s "$DEVICE" shell am broadcast -a com.android.systemui.demo -e command exit >/dev/null 2>&1
+    case "$DEMO_WAS_ALLOWED" in
+      1) ;;
+      0) adb -s "$DEVICE" shell settings put global sysui_demo_allowed 0 >/dev/null 2>&1 ;;
+      *) adb -s "$DEVICE" shell settings delete global sysui_demo_allowed >/dev/null 2>&1 ;;
+    esac
+  fi
+}
+cleanup() {
+  [ -n "$WAKER" ] && kill "$WAKER" 2>/dev/null
+  restore_status_bar
+}
+trap cleanup EXIT
+trap 'exit 130' INT TERM
+clean_status_bar
 
 echo "Building and installing the app on $DEVICE — the first build can take a few"
 echo "minutes and prints little. Progress appears below; capture starts at 📸."
@@ -176,6 +241,9 @@ while IFS= read -r line; do
       if printf '%s' "$payload" | base64 --decode > "$META_DIR/$mname.json" 2>/dev/null \
          && [ -s "$META_DIR/$mname.json" ]; then
         echo "  📝 $META_DIR/$mname.json"
+        if [ -n "$CAPTURES_DIR" ]; then
+          cp "$META_DIR/$mname.json" "$CAPTURES_DIR/$mname.json" && echo "  🏷  $CAPTURES_DIR/$mname.json"
+        fi
       else
         rm -f "$META_DIR/$mname.json" 2>/dev/null
         echo "  ⚠️  failed to write metadata for $mname"
@@ -197,6 +265,9 @@ while IFS= read -r line; do
       fi
       if [ -s "$RAW_DIR/$name.png" ]; then
         echo "  📸 $RAW_DIR/$name.png"
+        if [ -n "$CAPTURES_DIR" ]; then
+          cp "$RAW_DIR/$name.png" "$CAPTURES_DIR/$name.png" && echo "  🛍  $CAPTURES_DIR/$name.png"
+        fi
         # Framing runs in the background so the ~2s of image work doesn't
         # delay the next capture; the script waits for all of them at the end.
         if [ "$FRAME" = 1 ]; then
@@ -220,7 +291,8 @@ done
 # Propagate the test's exit status (not the while-loop's), so a failing flow
 # fails this script — required for it to be a valid CI gate.
 status=${PIPESTATUS[0]}
-# Wait for any framing jobs still running (the waker is killed by the trap).
+# Stop the waker first, then wait for any framing jobs still running.
+[ -n "$WAKER" ] && kill "$WAKER" 2>/dev/null
 wait 2>/dev/null
 
 echo "Done."
@@ -229,5 +301,9 @@ ls -1 "$RAW_DIR"/*.png 2>/dev/null || echo "(no screenshots captured)"
 if [ "$FRAME" = 1 ]; then
   echo "Framed screenshots ($DEVICE_NAME):"
   ls -1 "$FRAMED_DIR"/*.png 2>/dev/null || echo "(no framed screenshots)"
+fi
+if [ -n "$CAPTURES_DIR" ]; then
+  echo "Store captures ($CAPTURES_DIR):"
+  ls -1 "$CAPTURES_DIR"/*.png 2>/dev/null || echo "(no store captures)"
 fi
 exit "$status"

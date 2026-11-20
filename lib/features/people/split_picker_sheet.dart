@@ -11,6 +11,7 @@ import '../../domain/social/account.dart';
 import '../../shared/animations/fade_slide_in.dart';
 import '../../shared/animations/motion.dart';
 import '../../shared/money_format.dart';
+import '../../shared/region_keys.dart';
 
 /// Who a bill is split with: people on the app and people who aren't.
 class SplitChoice {
@@ -168,6 +169,7 @@ class _SplitPickerState extends ConsumerState<_SplitPicker> {
     final share = (widget.cents / choice.ways).round();
 
     return SingleChildScrollView(
+      key: RegionKeys.splitSheet,
       padding: EdgeInsets.fromLTRB(18, 4, 18, 18 + MediaQuery.viewInsetsOf(context).bottom),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -354,6 +356,7 @@ class _SplitPickerState extends ConsumerState<_SplitPicker> {
           ),
           const SizedBox(height: 18),
           FilledButton(
+            key: RegionKeys.splitButton,
             onPressed: () => Navigator.pop(context, choice),
             child: Text(
               choice.isSplit

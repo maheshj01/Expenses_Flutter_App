@@ -15,6 +15,7 @@ import '../../domain/import/raw_sheet.dart';
 import '../../shared/animations/animated_amount.dart';
 import '../../shared/animations/fade_slide_in.dart';
 import '../../shared/animations/motion.dart';
+import '../../shared/region_keys.dart';
 import '../../shared/widgets/app_card.dart';
 import 'data_io_providers.dart';
 import 'import_widgets.dart';
@@ -189,6 +190,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
             padding: const EdgeInsets.fromLTRB(18, 4, 18, 24),
             children: [
               FadeSlideIn(
+                key: RegionKeys.importSummary,
                 index: i++,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -262,6 +264,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
               if (plan.groups.isNotEmpty) ...[
                 const SectionHeader('Categories'),
                 FadeSlideIn(
+                  key: RegionKeys.importCategories,
                   index: i++,
                   child: AppCard(
                     padding: const EdgeInsets.symmetric(vertical: 4),
@@ -331,6 +334,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
               if (plan.months.isNotEmpty) ...[
                 const SectionHeader('By month'),
                 FadeSlideIn(
+                  key: RegionKeys.monthPreview,
                   index: i++,
                   child: AppCard(
                     child: Column(

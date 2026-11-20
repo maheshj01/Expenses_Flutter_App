@@ -45,6 +45,20 @@ capture-screens-raw:
 	@if [ -z "$(DEVICE)" ]; then echo "No device found. Pass DEVICE=<serial>."; exit 1; fi
 	FRAME=0 bash tool/capture_screens.sh $(DEVICE) screenshots
 
+# Store screenshots, straight into the storeshots projects (raw shots plus a
+# <name>.json description each, in <project>/captures/<LOCALE>/). Also writes
+# the usual screenshots/raw and screenshots/framed output.
+#   make store-shots-ios                  # iPhone 17 Pro Max -> store-assets/
+#   make store-shots-android              # Pixel emulator   -> store-assets-android/
+#   make store-shots-ios LOCALE=de
+LOCALE ?= en
+
+store-shots-ios:
+	LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 LOCALE=$(LOCALE) bash tool/store_shots.sh ios store-assets
+
+store-shots-android:
+	LOCALE=$(LOCALE) bash tool/store_shots.sh android store-assets-android
+
 # Build a release for a physical iPhone and install it over the paired
 # connection. On a free Personal Team, blank the Sign in with Apple
 # entitlement first (see ios/Flutter/Debug.xcconfig):
@@ -171,4 +185,4 @@ rsa_keys:
 
 localenv: rsa_keys
 
-.PHONY: start-emu start-devtools generate emulator rsa_keys localenv update_version increment_build upload_dsym_ios mr MR upload release
+.PHONY: store-shots-ios store-shots-android start-emu start-devtools generate emulator rsa_keys localenv update_version increment_build upload_dsym_ios mr MR upload release
