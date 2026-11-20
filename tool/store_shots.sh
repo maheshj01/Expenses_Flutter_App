@@ -82,12 +82,12 @@ android_serial() {
 
 case "$PLATFORM" in
   ios)
-    PROJECT="${2:-store-assets}"
+    PROJECT="${2:-store-assets/ios}"
     DEVICE="${DEVICE:-}"
     if [ -z "$DEVICE" ]; then DEVICE=$(ios_udid) || exit 1; fi
     ;;
   android)
-    PROJECT="${2:-store-assets-android}"
+    PROJECT="${2:-store-assets/android}"
     DEVICE="${DEVICE:-}"
     if [ -z "$DEVICE" ]; then DEVICE=$(android_serial) || exit 1; fi
     ;;

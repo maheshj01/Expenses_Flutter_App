@@ -47,7 +47,7 @@
 # Both are restored when the script exits. CLEAN_STATUS_BAR=0 skips this.
 #
 # Usage: [FRAME=0] [SKIN=pixel_7] [DEVICE_NAME="pixel 7"] \
-#        [STORESHOTS=store-assets] [LOCALE=en] [CLEAN_STATUS_BAR=0] \
+#        [STORESHOTS=store-assets/ios] [LOCALE=en] [CLEAN_STATUS_BAR=0] \
 #          tool/capture_screens.sh <device-serial|simulator-udid> [out-dir]
 set -uo pipefail
 
