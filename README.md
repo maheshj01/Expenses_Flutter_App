@@ -185,8 +185,8 @@ These targets capture the same flow straight into the storeshots projects (store
 designs), ready to design with:
 
 ```bash
-make store-shots-ios       # iPhone 17 Pro Max (1320×2868) -> store-assets/
-make store-shots-android   # a Pixel emulator              -> store-assets-android/
+make store-shots-ios       # iPhone 17 Pro Max (1320×2868) -> store-assets/ios/
+make store-shots-android   # a Pixel emulator              -> store-assets/android/
 ```
 
 Each screen is written to `<project>/captures/<locale>/<name>.png` (no device frame), with
