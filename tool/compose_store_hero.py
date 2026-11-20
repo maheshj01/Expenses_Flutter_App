@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
-"""Builds the first App Store screenshot (the "hero") at 1320x2868 (6.9").
+"""Builds the first store screenshot (the "hero").
 
-    python3 tool/compose_store_hero.py [--theme green|paper|ink]
+    python3 tool/compose_store_hero.py [--store app|play] [--theme green|paper|ink]
+
+App Store: 1320x2868 (6.9"), iPhone 17 Pro Max capture.
+Google Play: 1080x1920 (9:16; Play allows at most 2:1), Pixel 10 Pro capture.
 
 Same layout as the "App Store screenshot 1" board on the brand canvas: the
 icon and name, a headline, one line of copy, and the framed Home screen from
 `make capture-screens` on an iPhone 17 Pro Max simulator. Needs Pillow and
-macOS (text uses SF Pro). Writes branding/app_store_hero_<theme>.png with no
-alpha channel, as App Store Connect requires.
+macOS (text uses SF Pro). Writes branding/<store>_store_hero_<theme>.png
+with no alpha channel, as both stores require.
 """
 
 from __future__ import annotations
@@ -62,67 +65,87 @@ def wrap(text: str, f, tracking: float, max_w: float) -> list[str]:
     return lines + [line]
 
 
+# Per store: output size, screenshot, layout scale and top margin.
+# Play allows at most 2:1, so it uses 9:16 with an Android (Pixel) capture.
+STORES = {
+    "app": {"size": (1320, 2868), "screen": SCREEN, "k": 1.0, "top": 200, "name": "app_store_hero"},
+    "play": {
+        "size": (1080, 1920),
+        "screen": ROOT / "screenshots/framed/pixel_10_pro/08_home.png",
+        "k": 1080 / 1320,
+        "top": 150,
+        "name": "play_store_hero",
+    },
+}
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--theme", choices=THEMES, default="green")
-    theme = THEMES[parser.parse_args().theme]
+    parser.add_argument("--store", choices=STORES, default="app")
+    args = parser.parse_args()
+    theme = THEMES[args.theme]
+    store = STORES[args.store]
+    w, h = store["size"]
+    k = store["k"]
 
-    img = Image.new("RGB", (W * SS, H * SS), theme["bg"])
+    img = Image.new("RGB", (w * SS, h * SS), theme["bg"])
     d = ImageDraw.Draw(img)
-    margin = 110
-    y = 200
+    margin = 110 * k
+    y = store["top"]
 
     # Icon and name, centered as one row.
-    icon_px = 104
-    label = font(52, 800)
-    label_track = -0.015 * 52
+    icon_px = round(104 * k)
+    label = font(52 * k, 800)
+    label_track = -0.015 * 52 * k
     label_w = width("Three Bucks", label, label_track)
-    row_w = icon_px * SS + 24 * SS + label_w
-    x = (W * SS - row_w) / 2
+    row_w = icon_px * SS + 24 * k * SS + label_w
+    x = (w * SS - row_w) / 2
     icon = Image.open(ICON).convert("RGBA").resize((icon_px * SS, icon_px * SS), Image.LANCZOS)
     mask = Image.new("L", icon.size, 0)
     ImageDraw.Draw(mask).rounded_rectangle(
         [0, 0, icon.width - 1, icon.height - 1], radius=round(icon_px * 0.2237) * SS, fill=255
     )
-    img.paste(icon, (round(x), y * SS), mask)
+    img.paste(icon, (round(x), round(y * SS)), mask)
     asc, desc = label.getmetrics()
     draw_tracked(
         d,
-        x + icon_px * SS + 24 * SS,
+        x + icon_px * SS + 24 * k * SS,
         y * SS + (icon_px * SS - (asc + desc)) / 2,
         "Three Bucks",
         label,
         theme["soft"],
         label_track,
     )
-    y += icon_px + 44
+    y += icon_px + 44 * k
 
     # Headline: 128px, tight line height. SF Pro needs less negative tracking
     # than Inter on the canvas, or words run together.
-    head = font(128, 800)
-    head_track = -0.018 * 128
-    for line in wrap(HEADLINE, head, head_track, W - 2 * margin):
+    head_px = 128 * k
+    head = font(head_px, 800)
+    head_track = -0.018 * head_px
+    for line in wrap(HEADLINE, head, head_track, w - 2 * margin):
         lw = width(line, head, head_track)
-        draw_tracked(d, (W * SS - lw) / 2, y * SS, line, head, theme["ink"], head_track)
-        y += 128
-    y += 44 - 8
+        draw_tracked(d, (w * SS - lw) / 2, y * SS, line, head, theme["ink"], head_track)
+        y += head_px
+    y += (44 - 8) * k
 
-    sub = font(50, 500)
-    for line in wrap(SUBLINE, sub, 0, W - 2 * margin):
+    sub = font(50 * k, 500)
+    for line in wrap(SUBLINE, sub, 0, w - 2 * margin):
         lw = width(line, sub, 0)
-        d.text(((W * SS - lw) / 2, y * SS), line, font=sub, fill=theme["soft"])
-        y += 65
+        d.text(((w * SS - lw) / 2, y * SS), line, font=sub, fill=theme["soft"])
+        y += 65 * k
 
-    # Framed Home screen, 1100 wide, running off the bottom edge.
-    screen = Image.open(SCREEN).convert("RGBA")
-    sw = 1100 * SS
+    # Framed Home screen, running off the bottom edge.
+    screen = Image.open(store["screen"]).convert("RGBA")
+    sw = round((w - 2 * margin) * SS)
     screen = screen.resize((sw, round(sw * screen.height / screen.width)), Image.LANCZOS)
-    top = y + 100
+    top = y + 100 * k
     base = img.convert("RGBA")
-    base.alpha_composite(screen, (margin * SS, top * SS))
+    base.alpha_composite(screen, (round(margin * SS), round(top * SS)))
 
-    out = base.convert("RGB").resize((W, H), Image.LANCZOS)
-    path = ROOT / "branding" / f"app_store_hero_{parser.parse_args().theme}.png"
+    out = base.convert("RGB").resize((w, h), Image.LANCZOS)
+    path = ROOT / "branding" / f"{store['name']}_{args.theme}.png"
     out.save(path, optimize=True)
     print(f"{path.relative_to(ROOT)}  {out.width}x{out.height} {out.mode}")
 
