@@ -4,7 +4,7 @@ import 'package:flutter/widgets.dart';
 ///
 /// The screenshot run (integration_test/onboarding_flow_test.dart) reports
 /// where each one is, in screenshot pixels, so a screenshot design can point
-/// at it: zoom in on the keypad, circle the import summary, and so on.
+/// at it: zoom in on the amount, circle the import summary, and so on.
 abstract final class RegionKeys {
   // Home
   static const budgetHero = Key('budget-hero');
@@ -15,7 +15,6 @@ abstract final class RegionKeys {
   static const entryAmount = Key('entry-amount');
   static const quickEntry = Key('quick-entry');
   static const entryCategories = Key('entry-categories');
-  static const keypad = Key('keypad');
   static const saveButton = Key('save-button');
 
   // Onboarding

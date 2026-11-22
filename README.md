@@ -191,7 +191,7 @@ make store-shots-android   # a Pixel emulator              -> store-assets/andro
 
 Each screen is written to `<project>/captures/<locale>/<name>.png` (no device frame), with
 `<name>.json` beside it: a description, the feature, the theme, the size, the text on screen and
-named `regions` (for example `keypad` or `import-summary`) in screenshot pixels. Names stay the
+named `regions` (for example `entry-amount` or `import-summary`) in screenshot pixels. Names stay the
 same between runs, so designs pick up new captures. The status bar is set to 9:41 with full
 battery and signal, and restored afterwards. `LOCALE=de` writes to `captures/de/`. The iOS target
 creates and boots the simulator if needed; the Android one uses a running emulator or starts the

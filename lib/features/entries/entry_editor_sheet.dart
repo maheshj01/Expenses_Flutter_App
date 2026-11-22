@@ -51,7 +51,7 @@ class EntryEditorSheet extends ConsumerStatefulWidget {
 
 class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
   late final TextEditingController _note;
-  late String _amount; // what the keypad shows, e.g. "46.5"
+  late final TextEditingController _amount; // e.g. "46.5"
   late DateTime _date;
   String? _categoryId;
   SplitChoice _split = SplitChoice.none;
@@ -72,7 +72,7 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
     super.initState();
     final e = widget.entry;
     _note = TextEditingController(text: e?.note ?? '');
-    _amount = e == null ? '0' : _centsToText(e.amountCents.abs());
+    _amount = TextEditingController(text: e == null ? '' : _centsToText(e.amountCents.abs()));
     _date = e?.date ?? dateOnly(widget.initialDate ?? DateTime.now());
     _categoryId = e?.categoryId;
     _categoryPickedByUser = e != null;
@@ -98,6 +98,7 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
   @override
   void dispose() {
     _note.dispose();
+    _amount.dispose();
     super.dispose();
   }
 
@@ -123,14 +124,14 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
         : '$whole.${frac.toString().padLeft(2, '0')}'.replaceAll(RegExp(r'0$'), '');
   }
 
-  int get _cents => ((double.tryParse(_amount) ?? 0) * 100).round();
+  int get _cents => ((double.tryParse(_amount.text) ?? 0) * 100).round();
 
   void _onNoteChanged(String text) {
     final parsed = QuickEntryParser.parse(text, knownNames: ref.read(settingsProvider).savedGuests);
     final suggester = ref.read(categorySuggesterProvider).value;
     final allowed = {for (final c in ref.read(activeCategoriesProvider)) c.id};
     setState(() {
-      if (parsed.amountCents != null) _amount = _centsToText(parsed.amountCents!);
+      if (parsed.amountCents != null) _amount.text = _centsToText(parsed.amountCents!);
       // The note drives the split until the picker is used.
       if (!_split.isSplit || _splitFromNote) {
         _split = parsed.splitWays > 1
@@ -144,22 +145,6 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
       if (parsed.moneyBack) _moneyBack = true;
       _suggestion = suggester?.suggest(text, allowedIds: allowed);
       if (!_categoryPickedByUser && _suggestion != null) _categoryId = _suggestion!.categoryId;
-    });
-  }
-
-  void _key(String k) {
-    HapticFeedback.selectionClick();
-    setState(() {
-      if (k == '⌫') {
-        _amount = _amount.length > 1 ? _amount.substring(0, _amount.length - 1) : '0';
-      } else if (k == '.') {
-        if (!_amount.contains('.')) _amount += '.';
-      } else {
-        final dot = _amount.indexOf('.');
-        if (dot >= 0 && _amount.length - dot > 2) return;
-        if (_amount.replaceAll('.', '').length >= 9) return;
-        _amount = _amount == '0' ? k : _amount + k;
-      }
     });
   }
 
@@ -313,6 +298,7 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
           Flexible(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 18),
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -341,27 +327,14 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  // Amount
-                  Center(
+                  // Amount: the phone's number pad opens on it.
+                  _AmountField(
                     key: RegionKeys.entryAmount,
-                    child: Text.rich(
-                      TextSpan(
-                        children: [
-                          TextSpan(
-                            text: _moneyBack ? '+${money.symbol}' : money.symbol,
-                            style: TextStyle(fontSize: 30, color: c.muted),
-                          ),
-                          TextSpan(text: _amount),
-                        ],
-                      ),
-                      style: TextStyle(
-                        fontSize: 52,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: -2,
-                        color: _moneyBack ? c.lived : c.ink,
-                        fontFeatures: tabularFigures,
-                      ),
-                    ),
+                    controller: _amount,
+                    symbol: _moneyBack ? '+${money.symbol}' : money.symbol,
+                    color: _moneyBack ? c.lived : c.ink,
+                    autofocus: !_isEditing,
+                    onChanged: (_) => setState(() {}),
                   ),
                   SizedBox(
                     height: 20,
@@ -381,6 +354,8 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
                     key: RegionKeys.quickEntry,
                     controller: _note,
                     onChanged: _onNoteChanged,
+                    groupId: _AmountField.group,
+                    onTapOutside: _AmountField.closeKeyboard,
                     textCapitalization: TextCapitalization.sentences,
                     decoration: InputDecoration(
                       prefixIcon: Icon(Icons.auto_awesome_rounded, color: c.lived, size: 18),
@@ -447,7 +422,6 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  _Keypad(key: RegionKeys.keypad, onKey: _key),
                 ],
               ),
             ),
@@ -532,33 +506,91 @@ class _OptionTile extends StatelessWidget {
   }
 }
 
-class _Keypad extends StatelessWidget {
-  const _Keypad({super.key, required this.onKey});
+/// The big amount at the top of the sheet. A real text field, so the
+/// phone's own number pad opens on it; it grows with the number so the
+/// currency symbol stays right next to it.
+class _AmountField extends StatelessWidget {
+  const _AmountField({
+    super.key,
+    required this.controller,
+    required this.symbol,
+    required this.color,
+    required this.autofocus,
+    required this.onChanged,
+  });
 
-  final ValueChanged<String> onKey;
+  /// Shared by the sheet's text fields: tapping from one to the other keeps
+  /// the keyboard up, tapping anywhere else puts it away.
+  static const group = _AmountField;
+
+  static void closeKeyboard(PointerDownEvent _) => FocusManager.instance.primaryFocus?.unfocus();
+
+  final TextEditingController controller;
+  final String symbol;
+  final Color color;
+  final bool autofocus;
+  final ValueChanged<String> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', '⌫'];
-    return GridView.count(
-      crossAxisCount: 3,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      childAspectRatio: 2.6,
-      mainAxisSpacing: 4,
-      crossAxisSpacing: 4,
+    final c = context.colors;
+    final style = TextStyle(
+      fontSize: 52,
+      fontWeight: FontWeight.w600,
+      letterSpacing: -2,
+      color: color,
+      fontFeatures: tabularFigures,
+    );
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
       children: [
-        for (final k in keys)
-          InkWell(
-            borderRadius: BorderRadius.circular(14),
-            onTap: () => onKey(k),
-            child: Center(
-              child: k == '⌫'
-                  ? const Icon(Icons.backspace_outlined, size: 22)
-                  : Text(k, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w500)),
+        Text(symbol, style: TextStyle(fontSize: 30, color: c.muted)),
+        Flexible(
+          child: IntrinsicWidth(
+            child: TextField(
+              controller: controller,
+              autofocus: autofocus,
+              onChanged: onChanged,
+              groupId: group,
+              onTapOutside: closeKeyboard,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              textInputAction: TextInputAction.done,
+              inputFormatters: const [AmountInputFormatter()],
+              style: style,
+              cursorColor: c.lived,
+              cursorHeight: 44,
+              decoration: InputDecoration(
+                hintText: '0',
+                hintStyle: style.copyWith(color: c.line),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                filled: false,
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 2),
+              ),
             ),
           ),
+        ),
       ],
     );
+  }
+}
+
+/// Keeps the amount to digits and one decimal point with up to two places
+/// (at most 9 digits before it). A comma, which some number pads show as the
+/// decimal key, is read as a point.
+class AmountInputFormatter extends TextInputFormatter {
+  const AmountInputFormatter();
+
+  static final _valid = RegExp(r'^\d{0,9}(\.\d{0,2})?$');
+
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    final text = newValue.text.replaceAll(',', '.');
+    if (!_valid.hasMatch(text)) return oldValue;
+    return newValue.copyWith(text: text);
   }
 }

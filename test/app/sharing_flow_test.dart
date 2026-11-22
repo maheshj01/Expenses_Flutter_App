@@ -11,6 +11,7 @@ import 'package:three_bucks/data/local/app_database.dart';
 import 'package:three_bucks/domain/social/account.dart';
 import 'package:three_bucks/domain/social/settlement.dart';
 import 'package:three_bucks/domain/social/shared_bill.dart';
+import 'package:three_bucks/shared/region_keys.dart';
 
 import '../support/fake_connectivity.dart';
 import '../support/fake_social.dart';
@@ -99,7 +100,7 @@ void main() {
     // 3. Split a $60 dinner with Sam from the normal add sheet.
     await tester.tap(find.byTooltip('Add entry'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).first, 'dinner 60');
+    await tester.enterText(find.byKey(RegionKeys.quickEntry), 'dinner 60');
     await tester.tap(find.text('🛒  Food'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Split bill'));
@@ -140,10 +141,10 @@ void main() {
     await tester.tap(find.text('Edit to resolve'));
     await tester.pumpAndSettle();
     expect(find.text('Edit shared bill'), findsOneWidget);
-    await tester.tap(find.byIcon(Icons.backspace_outlined));
-    await tester.tap(find.byIcon(Icons.backspace_outlined));
-    await tester.tap(find.text('5').last);
-    await tester.tap(find.text('0').last);
+    await tester.enterText(
+      find.descendant(of: find.byKey(RegionKeys.entryAmount), matching: find.byType(TextField)),
+      '50',
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.text('Share \$25.00 · Food'));
     await tester.pumpAndSettle();

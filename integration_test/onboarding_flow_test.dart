@@ -302,8 +302,8 @@ void main() {
 
     await tester.tap(find.byTooltip('Add entry'));
     await settle(tester);
-    await tester.enterText(find.byType(TextField).last, 'costco 46 split');
-    // Close the keyboard so the shot shows the app's own keypad.
+    await tester.enterText(find.byKey(RegionKeys.quickEntry), 'costco 46 split');
+    // Close the keyboard: the system keyboard isn't part of the screenshot.
     FocusManager.instance.primaryFocus?.unfocus();
     await shot(
       tester,
@@ -314,7 +314,6 @@ void main() {
         'entry-amount': RegionKeys.entryAmount,
         'quick-entry': RegionKeys.quickEntry,
         'entry-categories': RegionKeys.entryCategories,
-        'keypad': RegionKeys.keypad,
         'save-button': RegionKeys.saveButton,
       },
     );
@@ -506,7 +505,7 @@ void main() {
 
     await tester.tap(find.byTooltip('Add entry'));
     await settle(tester);
-    await tester.enterText(find.byType(TextField).last, 'pizza night 84');
+    await tester.enterText(find.byKey(RegionKeys.quickEntry), 'pizza night 84');
     await tester.tap(find.text('🛒  Food'));
     FocusManager.instance.primaryFocus?.unfocus();
     await settle(tester);
