@@ -1,0 +1,55 @@
+# wharf.yaml — project settings for wharf (https://github.com/maheshj01/wharf)
+# Every key is optional; delete what you don't need.
+# Preview release commands without building: wharf release --dry-run
+
+release:
+  # --dart-define values for every release build (iOS and Android).
+  # dart_defines:
+  #   API_URL: https://api.example.com
+
+  # Yes/no questions asked on each `wharf release`. Each answer becomes
+  # --dart-define=NAME=true|false and is available as ${NAME} in commands.
+  # prompts:
+  #   - name: SHOW_DEBUG_MENU
+  #     prompt: Show debug menu in the app?
+  #     default: false
+
+  ios:
+    # Builds an IPA for `wharf upload ios` (`flutter build ios` makes no IPA).
+    command: flutter build ipa --release
+    # Extra arguments appended to the command.
+    # args:
+    #   - --obfuscate
+    #   - --split-debug-info=build/symbols
+    #   - --export-options-plist=ios/ExportOptions.plist
+    # --dart-define values for iOS only (override release.dart_defines).
+    # dart_defines:
+    #   KEY: Hello
+    # Shell commands run before / after the build (${NAME} is replaced with
+    # dart-define values). A failing `before` stops the release; a failing
+    # `after` only warns.
+    # before:
+    #   - cd ios && pod install
+    # after:
+    #   - make upload_dsym_ios
+
+  android:
+    command: flutter build appbundle --release
+    # args:
+    #   - --obfuscate
+    #   - --split-debug-info=build/symbols
+    # dart_defines:
+    #   KEY: Hello
+    # before: []
+    # after: []
+
+  # Not using flutter build directly? Any shell command works; dart-defines
+  # are then only available as ${NAME}, e.g.
+  #   command: make release_ios SHOW_DEBUG_MENU=${SHOW_DEBUG_MENU}
+
+version:
+  # Files besides pubspec.yaml that hold the app version; {version} marks
+  # where it goes. Rewritten by `wharf version` / `wharf release`.
+  # files:
+  #   - path: lib/constants.dart
+  #     pattern: "static const String appVersion = '{version}';"
