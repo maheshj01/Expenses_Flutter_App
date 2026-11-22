@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "wmlabs",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd /Users/mahesh/Development/wmlabs && BROWSER=none npm start"],
+      "port": 3000
+    }
+  ]
+}
