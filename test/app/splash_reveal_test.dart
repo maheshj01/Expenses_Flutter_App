@@ -9,7 +9,9 @@ Widget _app({bool reduceMotion = false}) => MaterialApp(
     data: MediaQuery.of(context).copyWith(disableAnimations: reduceMotion),
     child: SplashReveal(child: child!),
   ),
-  home: Scaffold(body: TextButton(onPressed: () {}, child: const Text('Home'))),
+  home: Scaffold(
+    body: TextButton(onPressed: () {}, child: const Text('Home')),
+  ),
 );
 
 void main() {

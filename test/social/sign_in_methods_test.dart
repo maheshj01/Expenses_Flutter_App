@@ -5,7 +5,10 @@ import 'package:three_bucks/domain/social/account.dart';
 
 void main() {
   test('iOS offers Apple and Google', () {
-    expect(signInMethodsFor(TargetPlatform.iOS, isWeb: false), [SignInMethod.apple, SignInMethod.google]);
+    expect(signInMethodsFor(TargetPlatform.iOS, isWeb: false), [
+      SignInMethod.apple,
+      SignInMethod.google,
+    ]);
   });
 
   test('Android and other platforms offer Google only', () {
