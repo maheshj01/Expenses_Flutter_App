@@ -2,6 +2,19 @@
 # Every key is optional; delete what you don't need.
 # Preview release commands without building: wharf release --dry-run
 
+# Store credentials live in ~/.wharf/accounts/<name>/ (never in this repo).
+# Pick the account this app uploads with; without it wharf uses "default".
+# account: default
+# Or one per store, when the Apple team and Play account differ:
+# account:
+#   ios: my-apple-team
+#   android: my-play-account
+
+android:
+  # Application ID for Google Play uploads. Defaults to applicationId in
+  # android/app/build.gradle.
+  package_name: com.wml.threebucks
+
 release:
   # --dart-define values for every release build (iOS and Android).
   # dart_defines:
