@@ -48,16 +48,16 @@ capture-screens-raw:
 # Store screenshots, straight into the storeshots projects (raw shots plus a
 # <name>.json description each, in <project>/captures/<LOCALE>/). Also writes
 # the usual screenshots/raw and screenshots/framed output.
-#   make store-shots-ios                  # iPhone 17 Pro Max -> store-assets/
-#   make store-shots-android              # Pixel emulator   -> store-assets-android/
+#   make store-shots-ios                  # iPhone 17 Pro Max -> store-assets/ios/
+#   make store-shots-android              # Pixel emulator   -> store-assets/android/
 #   make store-shots-ios LOCALE=de
 LOCALE ?= en
 
 store-shots-ios:
-	LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 LOCALE=$(LOCALE) bash tool/store_shots.sh ios store-assets
+	LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 LOCALE=$(LOCALE) bash tool/store_shots.sh ios store-assets/ios
 
 store-shots-android:
-	LOCALE=$(LOCALE) bash tool/store_shots.sh android store-assets-android
+	LOCALE=$(LOCALE) bash tool/store_shots.sh android store-assets/android
 
 # Build a release for a physical iPhone and install it over the paired
 # connection. On a free Personal Team, blank the Sign in with Apple
