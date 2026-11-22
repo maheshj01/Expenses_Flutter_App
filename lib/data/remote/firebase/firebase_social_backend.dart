@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io' show Platform;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -11,6 +10,13 @@ import '../../../domain/social/connection.dart';
 import '../../../domain/social/settlement.dart';
 import '../../../domain/social/shared_bill.dart';
 import '../../../domain/social/social_backend.dart';
+
+/// Sign in with Apple is offered on iOS only; Google on every platform.
+@visibleForTesting
+List<SignInMethod> signInMethodsFor(TargetPlatform platform, {bool isWeb = kIsWeb}) => [
+  if (!isWeb && platform == TargetPlatform.iOS) SignInMethod.apple,
+  SignInMethod.google,
+];
 
 /// [SocialBackend] on Firebase Auth + Cloud Firestore.
 ///
@@ -36,10 +42,7 @@ class FirebaseSocialBackend implements SocialBackend {
   String get displayName => 'Firebase';
 
   @override
-  List<SignInMethod> get signInMethods => [
-    if (!kIsWeb && (Platform.isIOS || Platform.isMacOS)) SignInMethod.apple,
-    SignInMethod.google,
-  ];
+  List<SignInMethod> get signInMethods => signInMethodsFor(defaultTargetPlatform);
 
   String get _uid {
     final account = currentAccount;
