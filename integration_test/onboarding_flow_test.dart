@@ -59,24 +59,25 @@ Future<void> _seed(AppDatabase db) async {
 
   DateTime day(int d) => DateTime(now.year, now.month, d.clamp(1, now.day));
 
-  // This month
-  await add(day(1), 1166, 'housing', 'Rent and water');
-  await add(day(1), 3605, 'salary', 'Paycheck');
-  await add(day(2), 40, 'productivity', 'Wifi');
-  await add(day(3), 1250, 'investment', 'VOO and QQQ');
-  await add(day(5), -500, 'housing', 'Rent share back');
-  await add(day(6), 46.10, 'food', 'Costco', split: 2);
-  await add(day(8), 33.67, 'electricity', 'Electricity');
-  await add(day(9), 10.50, 'food', 'Dominos');
-  await add(day(11), 41.20, 'car', 'Gas · 10 gal');
-  await add(day(13), 18.42, 'food', 'Kroger');
-  await add(day(14), 28, 'productivity', 'Verizon');
-  await add(day(15), 14, 'entertainment', 'Movie');
-  await add(day(16), 3605, 'salary', 'Paycheck');
+  // This month. Made-up numbers: these screens appear on the public
+  // product page and in store listings.
+  await add(day(1), 1450, 'housing', 'Rent');
+  await add(day(1), 2100, 'salary', 'Paycheck');
+  await add(day(2), 55, 'productivity', 'Internet');
+  await add(day(3), 400, 'investment', 'Index fund');
+  await add(day(5), -45, 'electricity', 'Utilities share back');
+  await add(day(6), 52.80, 'food', 'Costco', split: 2);
+  await add(day(8), 61.25, 'electricity', 'Electricity');
+  await add(day(9), 14.75, 'food', 'Thai takeout');
+  await add(day(11), 38.60, 'car', 'Gas');
+  await add(day(13), 23.80, 'food', 'Trader Joe’s');
+  await add(day(14), 32, 'productivity', 'Phone plan');
+  await add(day(15), 18, 'entertainment', 'Movie');
+  await add(day(16), 2100, 'salary', 'Paycheck');
 
   // Earlier months this year, and last year, as monthly totals.
-  const lived = [1416, 1253, 1427, 1211, 1057, 1041, 1404, 1217, 1915, 1569, 1300, 1280];
-  const invested = [305, 300, 2750, 3810, 944, 3788, 4226, 2789, 6109, 4944, 3000, 2500];
+  const lived = [1520, 1380, 1610, 1450, 1290, 1340, 1705, 1470, 1820, 1560, 1490, 1430];
+  const invested = [400, 400, 600, 400, 900, 400, 1200, 400, 800, 400, 1500, 400];
   for (var back = 1; back <= 14; back++) {
     final m = DateTime(now.year, now.month - back, 10);
     final i = (m.month - 1) % 12;
@@ -84,7 +85,7 @@ Future<void> _seed(AppDatabase db) async {
     await add(m, lived[i] * 0.30, 'food', 'Groceries');
     await add(m, lived[i] * 0.15, 'car', 'Gas');
     await add(m, invested[i].toDouble(), 'investment', 'Index funds');
-    await add(m, 7210, 'salary', 'Paychecks');
+    await add(m, 4200, 'salary', 'Paychecks');
   }
 }
 
@@ -228,7 +229,7 @@ void main() {
     await next(tester, 'Let’s go');
 
     await tapText(tester, 'Every 2 weeks');
-    await tester.enterText(find.byType(TextField), '1800');
+    await tester.enterText(find.byType(TextField), '2100');
     await shot(
       tester,
       '02_income',
@@ -237,7 +238,7 @@ void main() {
     );
     await next(tester, 'Continue');
 
-    await tapText(tester, '60% · \$2,340');
+    await tapText(tester, '60% · \$2,730');
     await shot(
       tester,
       '03_spending',
@@ -369,7 +370,7 @@ void main() {
       'name': 'Maya',
       'splitsBills': true,
       'savedGuests': ['Alex'],
-      'monthlyBudgetCents': 240000,
+      'monthlyBudgetCents': 273000,
     });
     final prefs = await SharedPreferences.getInstance();
     final db = AppDatabase(NativeDatabase.memory());
@@ -740,8 +741,8 @@ String _sampleCsv() {
   final now = DateTime.now();
   final rows = <String>['Date,Amount,Category,Description'];
   final items = [
-    (1, 1166.0, 'Housing', 'Rent'),
-    (2, 46.10, 'Groceries', 'Costco'),
+    (1, 1450.0, 'Housing', 'Rent'),
+    (2, 52.80, 'Groceries', 'Costco'),
     (3, 13.0, 'Productivity', 'Wifi'),
     (4, 600.0, 'Investments', 'VOO'),
     (6, 22.20, 'Car', 'Fuel'),
@@ -749,7 +750,7 @@ String _sampleCsv() {
     (12, 32.50, 'Entertainment', 'Zoo'),
     (15, 47.0, 'Electricity', 'Power bill'),
     (18, 9.99, 'Subscriptions', 'Music'),
-    (21, -500.0, 'Housing', 'Rent from roommate'),
+    (21, -45.0, 'Electricity', 'Utilities from roommate'),
     (24, 64.0, 'Eating out', 'Dinner'),
   ];
   for (var back = 5; back >= 1; back--) {
