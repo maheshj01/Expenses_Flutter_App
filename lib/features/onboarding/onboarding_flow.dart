@@ -71,7 +71,9 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
 
   String get _cta => switch (_step) {
     OnboardingStep.welcome => 'Let’s go',
-    OnboardingStep.income when _draft.incomeCents == 0 => 'Skip for now',
+    OnboardingStep.income when _draft.incomeKind == null => 'Skip for now',
+    OnboardingStep.income when _draft.incomeKind != IncomeKind.none && _draft.incomeCents == 0 =>
+      'Skip for now',
     OnboardingStep.spending when _draft.spendingCents == 0 => 'Skip for now',
     OnboardingStep.sharing when _draft.sharesBills == null => 'Skip',
     OnboardingStep.categories when !_canContinue => 'Pick at least one',

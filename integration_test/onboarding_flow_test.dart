@@ -228,12 +228,14 @@ void main() {
     await tester.enterText(find.byType(TextField), 'Maya');
     await next(tester, 'Let’s go');
 
+    await tapText(tester, 'Yes, about the same each time');
     await tapText(tester, 'Every 2 weeks');
     await tester.enterText(find.byType(TextField), '2100');
     await shot(
       tester,
       '02_income',
-      description: 'Take-home pay with pay frequency and the monthly equivalent',
+      description:
+          'Whether money comes in regularly, then take-home pay with its monthly equivalent',
       feature: 'onboarding',
     );
     await next(tester, 'Continue');
@@ -247,7 +249,7 @@ void main() {
     );
     await next(tester, 'Continue');
 
-    await tapText(tester, 'Invest more');
+    await tapText(tester, 'Save or invest more');
     await tapText(tester, 'Build an emergency fund');
     await shot(
       tester,
@@ -280,7 +282,7 @@ void main() {
     await shot(
       tester,
       '07_plan',
-      description: 'Monthly plan summary: income split into live on, set aside, unplanned',
+      description: 'Monthly plan summary: income split into spend, save, unplanned',
       feature: 'onboarding',
       regions: {'plan-card': RegionKeys.planCard},
     );

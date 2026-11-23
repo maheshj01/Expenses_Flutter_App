@@ -71,14 +71,12 @@ class _GoalsStepState extends State<GoalsStep> {
           ],
         ),
         const SizedBox(height: 16),
-        const Text(
-          'Set aside each month',
-          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
-        ),
+        const Text('Save each month', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
         Padding(
           padding: const EdgeInsets.only(top: 4, bottom: 8),
           child: Text(
-            'Investing or saving, it all counts. We’ll show your progress on Home.',
+            'A savings account, an emergency fund or investments: it all counts. '
+            'Leave it at 0 if saving isn’t the plan right now.',
             style: TextStyle(color: c.muted, fontSize: 13.5),
           ),
         ),

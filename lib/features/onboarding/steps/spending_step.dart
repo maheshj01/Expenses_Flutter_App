@@ -22,9 +22,11 @@ class SpendingStep extends StatelessWidget {
     final spend = draft.spendingCents;
 
     return StepLayout(
-      title: 'How much do you spend in a month?',
+      title: draft.hasIncome
+          ? 'How much do you spend in a month?'
+          : 'How much do you want to spend a month?',
       subtitle:
-          'Rent, food, bills, fun: everything except investing. '
+          'Groceries, bills, rent, fun: everything except savings. '
           'A rough guess is fine. This becomes your monthly budget.',
       children: [
         AmountInput(
@@ -76,7 +78,7 @@ class SpendingStep extends StatelessWidget {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Expanded(child: _Figure('You live on', spend, c.lived, money)),
+                    Expanded(child: _Figure('You spend', spend, c.lived, money)),
                     Expanded(
                       child: _Figure(
                         spend > income ? 'Over by' : 'Left to save',

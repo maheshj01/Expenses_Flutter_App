@@ -52,7 +52,9 @@ void main() {
     await tapCta('Let’s go');
 
     // Income: biweekly pay converts to a monthly figure.
-    expect(find.text('How much do you take home?'), findsOneWidget);
+    expect(find.text('Does money come in regularly?'), findsOneWidget);
+    await tester.tap(find.text('Yes, about the same each time'));
+    await settle();
     await tester.tap(find.text('Every 2 weeks'));
     await tester.enterText(find.byType(TextField), '1800');
     await settle();
@@ -66,7 +68,7 @@ void main() {
     await tapCta('Continue');
 
     // Goals: savings target is pre-filled with what is left.
-    await tester.tap(find.text('Invest more'));
+    await tester.tap(find.text('Save or invest more'));
     await settle();
     await tester.scrollUntilVisible(
       find.byType(TextField),
@@ -100,13 +102,13 @@ void main() {
 
     // Plan summary
     expect(find.text('Here’s your plan, Mahesh'), findsOneWidget);
-    expect(find.text('Live on'), findsOneWidget);
+    expect(find.text('Spend'), findsOneWidget);
     await tapCta('Start tracking');
     await settle();
 
     // Landed in the app with everything applied.
     expect(find.textContaining('Mahesh'), findsWidgets);
-    expect(find.text('Set aside this month'), findsOneWidget);
+    expect(find.text('Saved this month'), findsOneWidget);
 
     final s = container.read(settingsProvider);
     expect(s.onboarded, isTrue);
@@ -124,6 +126,80 @@ void main() {
     expect(active('pets'), isTrue, reason: 'picked extra is created');
     expect(active('travel'), isFalse, reason: 'unpicked starter is archived');
     expect(active('investment') && active('salary'), isTrue);
+
+    await tester.pumpWidget(const SizedBox());
+    container.dispose();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.runAsync(db.close);
+  });
+
+  testWidgets('people without an income set a spending budget instead', (tester) async {
+    tester.view.physicalSize = const Size(1170, 2532);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final db = AppDatabase(NativeDatabase.memory());
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        databaseProvider.overrideWithValue(db),
+        connectivityProvider.overrideWithValue(FakeConnectivity()),
+      ],
+    );
+
+    Future<void> settle() async {
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> tapCta(String label) async {
+      await tester.tap(find.widgetWithText(FilledButton, label));
+      await settle();
+    }
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(container: container, child: const ThreeBucksApp()),
+    );
+    await settle();
+    await tapCta('Let’s go');
+
+    // Income: no amount to enter, so there's nothing to skip.
+    expect(find.widgetWithText(FilledButton, 'Skip for now'), findsOneWidget);
+    await tester.tap(find.text('No regular income'));
+    await settle();
+    expect(find.byType(TextField), findsNothing);
+    await tapCta('Continue');
+
+    // Spending: a budget to aim for, with no share of income to compare.
+    expect(find.text('How much do you want to spend a month?'), findsOneWidget);
+    expect(find.textContaining('%'), findsNothing);
+    await tester.enterText(find.byType(TextField), '800');
+    await settle();
+    await tapCta('Continue');
+
+    // Goals: nothing pre-filled, since there's no income to save from.
+    await tester.scrollUntilVisible(
+      find.byType(TextField),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, isEmpty);
+    await tapCta('Continue');
+    await tapCta('Continue'); // categories
+    await tapCta('Skip'); // sharing
+
+    expect(find.text('Coming in each month'), findsNothing);
+    expect(find.text('Left unplanned'), findsNothing);
+    await tapCta('Start tracking');
+    await settle();
+
+    final s = container.read(settingsProvider);
+    expect(s.onboarded, isTrue);
+    expect(s.incomeCents, 0);
+    expect(s.monthlyBudgetCents, 80000);
+    expect(s.savingsGoalCents, 0);
 
     await tester.pumpWidget(const SizedBox());
     container.dispose();

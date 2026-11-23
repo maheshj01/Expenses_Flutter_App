@@ -1,6 +1,18 @@
 import '../../domain/entities/app_settings.dart';
 import '../../domain/entities/category.dart';
 
+/// How money comes in, asked before any amounts.
+enum IncomeKind {
+  /// A paycheck, pension or allowance of about the same size.
+  regular,
+
+  /// Freelance, commission, seasonal: asked as a typical month.
+  varies,
+
+  /// No income of their own, e.g. a home maker or student.
+  none,
+}
+
 /// Answers collected during onboarding, applied all at once at the end.
 class OnboardingDraft {
   OnboardingDraft.from(AppSettings s)
@@ -11,6 +23,8 @@ class OnboardingDraft {
       spendingCents = s.monthlyBudgetCents,
       savingsCents = s.savingsGoalCents,
       goals = {...s.goals},
+      // A returning user with no income said so before.
+      incomeKind = s.onboarded ? (s.incomeCents > 0 ? IncomeKind.regular : IncomeKind.none) : null,
       // Asked again on first run; shown as answered when editing the plan.
       sharesBills = s.onboarded ? s.splitsBills : null;
 
@@ -23,6 +37,12 @@ class OnboardingDraft {
   Set<MoneyGoal> goals;
 
   /// null until the user answers.
+  IncomeKind? incomeKind;
+
+  /// Whether amounts can be compared with an income.
+  bool get hasIncome => monthlyIncomeCents > 0;
+
+  /// null until the user answers.
   bool? sharesBills;
 
   /// Spending categories to keep. null until the categories step is shown.
@@ -31,14 +51,18 @@ class OnboardingDraft {
   /// Set once the savings field was pre-filled, so it is not overwritten.
   bool savingsSuggested = false;
 
-  int get monthlyIncomeCents => payFrequency.toMonthly(incomeCents);
+  int get monthlyIncomeCents => switch (incomeKind) {
+    IncomeKind.none => 0,
+    IncomeKind.varies => incomeCents,
+    _ => payFrequency.toMonthly(incomeCents),
+  };
 
   AppSettings applyTo(AppSettings s) => s.copyWith(
     onboarded: true,
     name: name.trim(),
     currencyCode: currencyCode,
-    incomeCents: incomeCents,
-    payFrequency: payFrequency,
+    incomeCents: incomeKind == IncomeKind.none ? 0 : incomeCents,
+    payFrequency: incomeKind == IncomeKind.varies ? PayFrequency.monthly : payFrequency,
     monthlyBudgetCents: spendingCents,
     savingsGoalCents: savingsCents,
     goals: goals,

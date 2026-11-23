@@ -59,7 +59,10 @@ class PlanStep extends StatelessWidget {
 
     return StepLayout(
       title: name.isEmpty ? 'Here’s your plan' : 'Here’s your plan, $name',
-      subtitle: 'Three buckets for every month: what you live on, what you build, what you earn.',
+      subtitle: income > 0
+          ? 'Three buckets for every month: what you spend, what you save, and what comes in.'
+          : 'Track what you spend and what you save. Log money that comes in, like a gift, '
+                'whenever it arrives.',
       children: [
         AppCard(
           key: RegionKeys.planCard,
@@ -90,8 +93,8 @@ class PlanStep extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
               ],
-              row(0, 'Live on', plan.spendingCents, c.lived),
-              row(1, 'Set aside', plan.savingsCents, c.invested),
+              row(0, 'Spend', plan.spendingCents, c.lived),
+              row(1, 'Save', plan.savingsCents, c.invested),
               if (income > 0)
                 row(
                   2,
