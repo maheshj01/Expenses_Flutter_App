@@ -14,7 +14,7 @@ import 'entry_editor_sheet.dart';
 enum EntryFilter {
   all('All'),
   spending('Spending'),
-  investing('Investing'),
+  investing('Saving'),
   income('Income'),
   split('Split'),
   moneyBack('Money back');
@@ -129,8 +129,8 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
                   ),
                   Row(
                     children: [
-                      _Total('Lived', money.whole(summary.livedCents), c.lived),
-                      _Total('Invested', money.whole(summary.investedCents), c.invested),
+                      _Total('Spent', money.whole(summary.livedCents), c.lived),
+                      _Total('Saved', money.whole(summary.investedCents), c.invested),
                       _Total('Earned', money.whole(summary.earnedCents), c.earned),
                     ],
                   ),

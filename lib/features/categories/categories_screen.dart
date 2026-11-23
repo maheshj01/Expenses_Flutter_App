@@ -39,7 +39,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
             if (active.any((x) => x.kind == kind)) ...[
               SectionHeader(switch (kind) {
                 CategoryKind.spending => 'Spending',
-                CategoryKind.investing => 'Investing',
+                CategoryKind.investing => 'Saving & investing',
                 CategoryKind.income => 'Income',
               }),
               _CategoryList(active.where((x) => x.kind == kind).toList()),

@@ -170,7 +170,7 @@ class _BudgetHero extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Label('Living spend · ${DateFormat.MMMM().format(month.firstDay)}'),
+          Label('Spent · ${DateFormat.MMMM().format(month.firstDay)}'),
           const SizedBox(height: 6),
           AnimatedAmount(
             cents: lived,
@@ -341,9 +341,9 @@ class _FlowTiles extends StatelessWidget {
     );
     return Row(
       children: [
-        tile('Lived', summary.livedCents, c.lived, c.livedSoft),
+        tile('Spent', summary.livedCents, c.lived, c.livedSoft),
         const SizedBox(width: 8),
-        tile('Invested', summary.investedCents, c.invested, c.investedSoft),
+        tile('Saved', summary.investedCents, c.invested, c.investedSoft),
         const SizedBox(width: 8),
         tile('Earned', summary.earnedCents, c.earned, c.earnedSoft),
       ],
@@ -473,7 +473,7 @@ class _GoalCard extends ConsumerWidget {
             children: [
               Row(
                 children: [
-                  const Expanded(child: Label('Set aside this month')),
+                  const Expanded(child: Label('Saved this month')),
                   if (emojis.isNotEmpty) Text(emojis, style: const TextStyle(fontSize: 14)),
                 ],
               ),

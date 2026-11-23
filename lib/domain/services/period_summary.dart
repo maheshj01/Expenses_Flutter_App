@@ -2,7 +2,7 @@ import '../entities/category.dart';
 import '../entities/ledger_entry.dart';
 
 /// Totals for any period (a month, a year), split into the three buckets
-/// the app is built around: what you lived on, invested, and earned.
+/// the app is built around: what you spent, saved, and earned.
 class PeriodSummary {
   const PeriodSummary({
     this.livedCents = 0,

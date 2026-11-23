@@ -159,7 +159,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
             SegmentedButton<CategoryKind>(
               segments: const [
                 ButtonSegment(value: CategoryKind.spending, label: Text('Spending')),
-                ButtonSegment(value: CategoryKind.investing, label: Text('Investing')),
+                ButtonSegment(value: CategoryKind.investing, label: Text('Saving')),
                 ButtonSegment(value: CategoryKind.income, label: Text('Income')),
               ],
               selected: {_kind},
@@ -169,9 +169,9 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 6, 4, 0),
               child: Text(switch (_kind) {
-                CategoryKind.spending => 'Counts toward your living spend and budget.',
-                CategoryKind.investing => 'Money you put to work. Not counted as spending.',
-                CategoryKind.income => 'Money you earn, like salary or side income.',
+                CategoryKind.spending => 'Counts toward your spending and budget.',
+                CategoryKind.investing => 'Savings or investments. Not counted as spending.',
+                CategoryKind.income => 'Money coming in: salary, allowance, pension, gifts.',
               }, style: TextStyle(fontSize: 12, color: c.muted)),
             ),
             const SizedBox(height: 16),

@@ -386,7 +386,7 @@ Future<Category?> showCategoryTargetPicker(
 
 String _kind(CategoryKind kind) => switch (kind) {
   CategoryKind.spending => 'Spending',
-  CategoryKind.investing => 'Investing',
+  CategoryKind.investing => 'Saving & investing',
   CategoryKind.income => 'Income',
 };
 

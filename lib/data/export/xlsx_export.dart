@@ -33,7 +33,7 @@ const _months = [
 
 /// Builds an .xlsx workbook: an "Entries" sheet with one row per entry
 /// (which Three Bucks can import again) and a "Summary" sheet per year with
-/// what you spent, invested and earned per category and month.
+/// what you spent, saved and earned per category and month.
 ///
 /// Pure Dart, so it can run in a background isolate.
 Uint8List buildExportWorkbook(ExportData data) {
@@ -157,8 +157,8 @@ Uint8List buildExportWorkbook(ExportData data) {
 }
 
 String _kindLabel(CategoryKind kind) => switch (kind) {
-  CategoryKind.spending => 'Lived',
-  CategoryKind.investing => 'Invested',
+  CategoryKind.spending => 'Spent',
+  CategoryKind.investing => 'Saved',
   CategoryKind.income => 'Earned',
 };
 

@@ -85,7 +85,7 @@ void main() {
         summary.rows.firstWhere((r) => r.isNotEmpty && r.first == label);
     expect(row('Food')[4], 0.72, reason: 'April column');
     expect(row('Housing')[1], -500, reason: 'money back lowers January');
-    expect(row('Invested total').last, 2400);
+    expect(row('Saved total').last, 2400);
   });
 
   test('file names are safe', () {

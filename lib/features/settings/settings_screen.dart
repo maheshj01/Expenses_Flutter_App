@@ -66,7 +66,7 @@ class SettingsScreen extends ConsumerWidget {
                 const Divider(indent: 56),
                 _Item(
                   icon: Icons.savings_outlined,
-                  title: 'Monthly living budget',
+                  title: 'Monthly spending budget',
                   value: settings.hasBudget ? money.whole(settings.monthlyBudgetCents) : 'Not set',
                   onTap: () => showBudgetDialog(context, ref),
                 ),

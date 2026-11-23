@@ -27,7 +27,7 @@ enum PayFrequency {
 /// What the user is working towards. Shapes suggestions and the home screen.
 enum MoneyGoal {
   emergencyFund('🛟', 'Build an emergency fund'),
-  investMore('📈', 'Invest more'),
+  investMore('📈', 'Save or invest more'),
   payOffDebt('💳', 'Pay off debt'),
   bigPurchase('🏡', 'Save for something big'),
   spendLess('✂️', 'Spend less'),

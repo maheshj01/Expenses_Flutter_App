@@ -66,8 +66,8 @@ class WelcomeStep extends StatelessWidget {
           child: Row(
             children: [
               for (final (label, color) in [
-                ('Lived', c.lived),
-                ('Invested', c.invested),
+                ('Spent', c.lived),
+                ('Saved', c.invested),
                 ('Earned', c.earned),
               ]) ...[
                 Container(

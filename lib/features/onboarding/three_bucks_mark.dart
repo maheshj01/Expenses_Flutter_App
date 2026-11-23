@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../app/theme.dart';
 import '../../shared/animations/motion.dart';
 
-/// The app mark: three bars for Lived, Invested and Earned that rise in
+/// The app mark: three bars for Spent, Saved and Earned that rise in
 /// one after another.
 class ThreeBucksMark extends StatefulWidget {
   const ThreeBucksMark({super.key, this.size = 88});

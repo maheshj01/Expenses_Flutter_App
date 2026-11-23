@@ -13,12 +13,12 @@ Future<void> showBudgetDialog(BuildContext context, WidgetRef ref) async {
   final result = await showDialog<int>(
     context: context,
     builder: (context) => AlertDialog(
-      title: const Text('Monthly living budget'),
+      title: const Text('Monthly spending budget'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Spending only. Investments and income don’t count against it.'),
+          const Text('Spending only. Savings and income don’t count against it.'),
           const SizedBox(height: 16),
           TextField(
             controller: controller,

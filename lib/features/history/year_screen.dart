@@ -72,8 +72,8 @@ class YearScreen extends ConsumerWidget {
                 const SizedBox(height: 10),
                 Row(
                   children: [
-                    _Legend('Lived', c.lived),
-                    _Legend('Invested', c.invested),
+                    _Legend('Spent', c.lived),
+                    _Legend('Saved', c.invested),
                     _Legend('Earned', c.earned),
                   ],
                 ),
@@ -84,8 +84,8 @@ class YearScreen extends ConsumerWidget {
           AppCard(
             child: Column(
               children: [
-                _Row('Lived', money(year$.livedCents), c.lived),
-                _Row('Invested', money(year$.investedCents), c.invested),
+                _Row('Spent', money(year$.livedCents), c.lived),
+                _Row('Saved', money(year$.investedCents), c.invested),
                 _Row('Earned', money(year$.earnedCents), c.earned),
                 const Divider(height: 20),
                 _Row('Kept as cash', money(year$.keptCents), null),
@@ -129,7 +129,7 @@ class YearScreen extends ConsumerWidget {
                     subtitle: Text(
                       monthSummaries[m - 1].entryCount == 0
                           ? 'No entries'
-                          : '${money.whole(monthSummaries[m - 1].investedCents)} invested',
+                          : '${money.whole(monthSummaries[m - 1].investedCents)} saved',
                       style: TextStyle(color: c.muted, fontSize: 12.5),
                     ),
                     trailing: Text(

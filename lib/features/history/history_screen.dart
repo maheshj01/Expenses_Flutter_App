@@ -62,8 +62,8 @@ class _YearCard extends ConsumerWidget {
       final before = prev.livedCents / months(previous!);
       final pct = ((now - before) / before * 100).round();
       change = pct == 0
-          ? 'Same monthly living cost as $previous'
-          : '${pct > 0 ? '↑' : '↓'} ${pct.abs()}% a month on living vs $previous';
+          ? 'Same monthly spending as $previous'
+          : '${pct > 0 ? '↑' : '↓'} ${pct.abs()}% a month on spending vs $previous';
     }
 
     Widget figure(String label, int cents, Color color) => Expanded(
@@ -145,8 +145,8 @@ class _YearCard extends ConsumerWidget {
             const SizedBox(height: 12),
             Row(
               children: [
-                figure('Lived', s.livedCents, c.lived),
-                figure('Invested', s.investedCents, c.invested),
+                figure('Spent', s.livedCents, c.lived),
+                figure('Saved', s.investedCents, c.invested),
                 figure('Earned', s.earnedCents, c.earned),
               ],
             ),
