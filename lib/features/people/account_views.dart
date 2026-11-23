@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app/account_flow.dart';
 import '../../app/providers.dart';
 import '../../app/social_providers.dart';
 import '../../app/theme.dart';
@@ -29,7 +30,7 @@ class _SignInViewState extends ConsumerState<SignInView> {
       _error = null;
     });
     try {
-      await ref.read(socialBackendProvider)!.signIn(method);
+      await ref.read(accountFlowProvider.notifier).signIn(method);
     } on SignInCancelled {
       // Nothing to say.
     } catch (e) {

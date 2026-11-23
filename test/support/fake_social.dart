@@ -24,6 +24,13 @@ class FakeSocialServer {
   /// Who blocked whom: blocker uid -> blocked uid -> person.
   final blocks = <String, Map<String, BlockedPerson>>{};
 
+  /// Accounts frozen while waiting to be deleted (see `FakeAccountDeletion`):
+  /// they can't be looked up or asked to connect.
+  final frozen = <String>{};
+
+  /// Accounts deleted for good: signing in to them fails.
+  final deletedAccounts = <String>{};
+
   /// Reports sent, with the reporter's uid.
   final reports = <(String reporter, Report report)>[];
   final _changes = StreamController<void>.broadcast();
@@ -118,6 +125,9 @@ class FakeSocialBackend implements SocialBackend {
       cancelNextSignIn = false;
       throw const SignInCancelled();
     }
+    if (server.deletedAccounts.contains(signInAs.uid)) {
+      throw const SocialError('This account was deleted');
+    }
     _account = signInAs;
     _accountChanges.add(_account);
   }
@@ -126,25 +136,6 @@ class FakeSocialBackend implements SocialBackend {
   Future<void> signOut() async {
     _account = null;
     _accountChanges.add(null);
-  }
-
-  /// Set to make confirming who you are, before deleting, look cancelled.
-  bool cancelNextConfirm = false;
-
-  @override
-  Future<void> deleteAccount({Future<void> Function()? eraseData}) async {
-    final me = _me;
-    if (cancelNextConfirm) {
-      cancelNextConfirm = false;
-      throw const SignInCancelled();
-    }
-    await eraseData?.call();
-    final profile = server.profiles.remove(me);
-    if (profile != null) server.handles.remove(profile.handle);
-    server.connections.removeWhere((_, c) => c.members.contains(me));
-    server.blocks.remove(me);
-    server.changed();
-    await signOut();
   }
 
   @override
@@ -166,7 +157,9 @@ class FakeSocialBackend implements SocialBackend {
   Future<Profile?> findByHandle(String handle) async {
     _me;
     final uid = server.handles[handle];
-    if (uid == null || server.blocked(uid, _me)) return null;
+    // Like the rules: hidden from people they blocked, and while waiting to
+    // be deleted.
+    if (uid == null || server.blocked(uid, _me) || server.frozen.contains(uid)) return null;
     return server.profiles[uid];
   }
 
@@ -191,6 +184,7 @@ class FakeSocialBackend implements SocialBackend {
   Future<void> requestConnection(Profile me, Profile other) async {
     // Like the rules: refused when either side blocked the other.
     if (server.blocked(me.uid, other.uid) || server.blocked(other.uid, me.uid)) return;
+    if (server.frozen.contains(me.uid) || server.frozen.contains(other.uid)) return;
     final id = Connection.pairId(me.uid, other.uid);
     final existing = server.connections[id];
     if (existing != null) {

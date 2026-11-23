@@ -4,16 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../app/account_deletion.dart';
 import '../../app/providers.dart';
 import '../../app/shell.dart';
 import '../../app/social_providers.dart';
 import '../../app/support.dart';
 import '../../app/theme.dart';
 import '../../data/sync/sync_status.dart';
-import '../../domain/social/social_backend.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/currency_picker.dart';
+import '../account/delete_account_page.dart';
 import '../categories/categories_screen.dart';
 import '../data_io/export_sheet.dart';
 import '../data_io/import_screen.dart';
@@ -120,6 +119,11 @@ class SettingsScreen extends ConsumerWidget {
                   value: 'Email',
                   onTap: () => showExportSheet(context),
                 ),
+                // Signed in, it's under Account as "Delete account".
+                if (ref.watch(accountProvider).value == null) ...[
+                  const Divider(indent: 56),
+                  const DeleteAccountTile(),
+                ],
               ],
             ),
           ),
@@ -286,41 +290,6 @@ class _SyncCard extends ConsumerWidget {
 class _AccountCard extends ConsumerWidget {
   const _AccountCard();
 
-  Future<void> _deleteAccount(BuildContext context, WidgetRef ref) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete your account?'),
-        content: const Text(
-          'Your account, username, connections and online backup are deleted '
-          'and can’t be recovered. Bills already shared stay visible to the '
-          'others on them. Everything you track stays on this device.',
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: context.colors.warn),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-    if (ok != true) return;
-    try {
-      await deleteAccountAndData(
-        sync: ref.read(syncEngineProvider),
-        social: ref.read(socialBackendProvider)!,
-      );
-    } on SignInCancelled {
-      // Backed out of confirming who they are; nothing was deleted.
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.colors;
@@ -390,11 +359,7 @@ class _AccountCard extends ConsumerWidget {
             onTap: backend.signOut,
           ),
           const Divider(indent: 56),
-          ListTile(
-            leading: Icon(Icons.delete_outline_rounded, color: c.warn),
-            title: Text('Delete account', style: TextStyle(color: c.warn)),
-            onTap: () => _deleteAccount(context, ref),
-          ),
+          const DeleteAccountTile(),
         ],
       ),
     );

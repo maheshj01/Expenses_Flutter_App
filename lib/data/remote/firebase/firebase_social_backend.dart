@@ -32,6 +32,8 @@ List<SignInMethod> signInMethodsFor(TargetPlatform platform, {bool isWeb = kIsWe
 /// - `settlements/{id}`: readable by `from` and `to`
 /// - `blocks/{blocker_blocked}`: `{blocker, blocked, profile, at}`
 /// - `reports/{id}`: write-only, read by moderators in the Firebase console
+/// - `users/{uid}.deletion`: set by the account deletion functions, never by
+///   the app (see `FirebaseAccountDeletion`)
 ///
 /// Writes are not awaited past the local cache: Firestore applies them
 /// locally at once and sends them when online, which keeps sharing usable
@@ -118,48 +120,6 @@ class FirebaseSocialBackend implements SocialBackend {
 
   @override
   Future<void> signOut() => _auth.signOut();
-
-  @override
-  Future<void> deleteAccount({Future<void> Function()? eraseData}) async {
-    final user = _auth.currentUser;
-    if (user == null) return;
-    final method = currentAccount?.method ?? SignInMethod.google;
-    // Deleting needs a recent sign-in, and Apple wants its token revoked,
-    // which takes a fresh authorization code. So confirm first, before
-    // anything is deleted.
-    final UserCredential confirmed;
-    try {
-      confirmed = await user.reauthenticateWithProvider(_provider(method));
-    } on FirebaseAuthException catch (e) {
-      if (_isCancel(e)) throw const SignInCancelled();
-      throw SocialError(e.message ?? 'Couldn’t confirm it’s you (${e.code})');
-    }
-    await eraseData?.call();
-    final uid = user.uid;
-    final profile = await _db.collection('profiles').doc(uid).get();
-    final handle = profile.data()?['handle'] as String?;
-    final connections = await _db
-        .collection('connections')
-        .where('members', arrayContains: uid)
-        .get();
-    final blocks = await _blocks.where('blocker', isEqualTo: uid).get();
-    final batch = _db.batch();
-    for (final doc in [...connections.docs, ...blocks.docs]) {
-      batch.delete(doc.reference);
-    }
-    if (handle != null) batch.delete(_db.collection('handles').doc(handle));
-    batch.delete(profile.reference);
-    await batch.commit();
-    final appleCode = confirmed.additionalUserInfo?.authorizationCode;
-    if (method == SignInMethod.apple && appleCode != null) {
-      try {
-        await _auth.revokeTokenWithAuthorizationCode(appleCode);
-      } on FirebaseAuthException catch (e) {
-        debugPrint('Couldn’t revoke the Apple token: $e');
-      }
-    }
-    await user.delete();
-  }
 
   // ---- profile ----
 

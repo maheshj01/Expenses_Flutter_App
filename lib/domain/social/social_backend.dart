@@ -7,7 +7,7 @@ import 'shared_bill.dart';
 
 /// Everything sharing needs from a backend: accounts, usernames,
 /// connections, shared bills and their edit history, settlements, and
-/// blocking and reporting.
+/// blocking and reporting. Deleting the account is `AccountDeletion`'s job.
 ///
 /// Like `RemoteStore` for personal data, the app only talks to this
 /// interface, so Firebase can be swapped for another backend by writing one
@@ -31,18 +31,12 @@ abstract interface class SocialBackend {
 
   /// Signs in, keeping data made before signing in. Throws
   /// [SignInCancelled] if the user backs out.
+  ///
+  /// The account may be waiting to be deleted; see `AccountDeletion`.
   Future<void> signIn(SignInMethod method);
 
   /// Signs out. Personal data stays on this device.
   Future<void> signOut();
-
-  /// Deletes the account, username, connections and blocks. Bills already
-  /// shared with others stay visible to them.
-  ///
-  /// Asks the user to confirm who they are first (throwing
-  /// [SignInCancelled] if they back out, with nothing deleted), then runs
-  /// [eraseData] to delete their other data before the sign-in itself goes.
-  Future<void> deleteAccount({Future<void> Function()? eraseData});
 
   // ---- profile ----
 

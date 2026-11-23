@@ -56,15 +56,6 @@ class InMemoryRemoteStore implements RemoteStore {
     );
   }
 
-  @override
-  Future<void> erase(String collection) async {
-    if (failNext) {
-      failNext = false;
-      throw StateError('server unavailable');
-    }
-    _data.remove(collection);
-  }
-
   int count(String collection) => _data[collection]?.length ?? 0;
 
   SyncRecord? get(String collection, String id) => _data[collection]?[id]?.$2;

@@ -126,6 +126,19 @@ class AppDatabase extends _$AppDatabase implements SyncCursorStore {
     });
   }
 
+  /// Deletes everything on this phone and puts back the default
+  /// categories, as on a fresh install. Used when the account is deleted.
+  /// Rows are removed outright, not soft-deleted, so nothing syncs out.
+  Future<void> clearForNewUser() {
+    return transaction(() async {
+      await delete(entryEdits).go();
+      await delete(entries).go();
+      await delete(categories).go();
+      await delete(syncCursors).go();
+      await _seedCategories();
+    });
+  }
+
   @override
   Future<String?> readCursor(String collection) async {
     final row = await (select(

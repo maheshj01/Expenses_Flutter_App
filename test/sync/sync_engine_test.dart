@@ -175,48 +175,4 @@ void main() {
     expect(await phone.entries.pendingChanges(), isEmpty);
     expect(await phone.db.readCursor(SyncEngine.accountKey), 'user-2');
   });
-
-  group('erasing the backup', () {
-    test('deletes every collection and pauses sync until resumed', () async {
-      await phone.entries.save(entry('a', 100));
-      await phone.categories.save(const Category(id: 'pets', name: 'Pets', emoji: '🐶', color: 1));
-      await phone.engine.syncNow();
-      expect(remote.count('entries'), 1);
-
-      await phone.engine.eraseRemote();
-      expect(remote.count('entries'), 0);
-      expect(remote.count('categories'), 0);
-
-      // Nothing goes back up while the account is being deleted.
-      await phone.entries.save(entry('b', 100));
-      await phone.engine.syncNow();
-      expect(remote.count('entries'), 0);
-      expect((await phone.all()).map((e) => e.id), containsAll(['a', 'b']), reason: 'local stays');
-
-      await phone.engine.resumeAfterErase(restore: false);
-      await phone.engine.syncNow();
-      expect(remote.get('entries', 'b'), isNotNull, reason: 'new edits sync again');
-      expect(remote.get('entries', 'a'), isNull, reason: 'erased records stay erased');
-    });
-
-    test('restoring pushes everything back', () async {
-      await phone.entries.save(entry('a', 100));
-      await phone.engine.syncNow();
-      await phone.engine.eraseRemote();
-
-      await phone.engine.resumeAfterErase(restore: true);
-      await phone.engine.syncNow();
-      expect(remote.get('entries', 'a'), isNotNull);
-    });
-
-    test('refuses while offline and erases nothing', () async {
-      await phone.entries.save(entry('a', 100));
-      await phone.engine.syncNow();
-      phone.network.online = false;
-
-      await expectLater(phone.engine.eraseRemote(), throwsA(isA<EraseFailed>()));
-      expect(remote.get('entries', 'a'), isNotNull);
-      await phone.engine.resumeAfterErase(restore: true);
-    });
-  });
 }

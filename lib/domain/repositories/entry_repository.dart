@@ -14,6 +14,9 @@ abstract interface class EntryRepository {
   /// The entry with [id], unless it doesn't exist or was deleted.
   Future<LedgerEntry?> byId(String id);
 
+  /// How many entries there are, shares of bills included.
+  Future<int> count();
+
   /// Every entry that is a share of a bill split with people on the app.
   Future<List<LedgerEntry>> sharedEntries();
 

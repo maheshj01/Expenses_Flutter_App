@@ -27,9 +27,32 @@ service cloud.firestore {
       return hasBlocked(a, b) || hasBlocked(b, a);
     }
 
+    // True while [uid]'s account waits to be deleted. Only the deletion
+    // functions (functions/src/accountDeletion.ts) set or clear
+    // users/{uid}.deletion; while it's there the account is frozen, so a
+    // second phone still signed in can't refill it.
+    function deleting(uid) {
+      let path = /databases/$(database)/documents/users/$(uid);
+      return exists(path) && get(path).data.get('deletion', null) != null;
+    }
+
     // ---- personal data: each user can only read and write their own ----
+    // The account document holds the deletion marker, which the app can read
+    // but never set or clear.
+    match /users/{uid} {
+      allow read: if signedIn() && me() == uid;
+      allow create: if signedIn() && me() == uid
+        && request.resource.data.get('deletion', null) == null;
+      allow update: if signedIn() && me() == uid
+        && resource.data.get('deletion', null) == null
+        && request.resource.data.get('deletion', null) == null;
+      allow delete: if signedIn() && me() == uid
+        && (resource == null || resource.data.get('deletion', null) == null);
+    }
+
     match /users/{uid}/{collection}/{recordId} {
-      allow read, write: if signedIn() && me() == uid;
+      allow read: if signedIn() && me() == uid;
+      allow write: if signedIn() && me() == uid && !deleting(uid);
     }
 
     // ---- usernames ----
@@ -44,9 +67,11 @@ service cloud.firestore {
       allow delete: if hasAccount() && resource.data.uid == me();
     }
 
-    // Someone who blocked you can't be looked up by you.
+    // Someone who blocked you can't be looked up by you, and nobody can look
+    // up an account that's waiting to be deleted.
     match /profiles/{uid} {
-      allow get: if hasAccount() && !hasBlocked(uid, me());
+      allow get: if hasAccount()
+        && (me() == uid || (!hasBlocked(uid, me()) && !deleting(uid)));
       allow create, update: if hasAccount() && me() == uid
         && request.resource.data.keys().hasOnly(['handle', 'name'])
         && request.resource.data.name is string
@@ -70,7 +95,9 @@ service cloud.firestore {
         && me() in request.resource.data.members
         && request.resource.data.members[0] < request.resource.data.members[1]
         && id == request.resource.data.members[0] + '_' + request.resource.data.members[1]
-        && !blockedEitherWay(request.resource.data.members[0], request.resource.data.members[1]);
+        && !blockedEitherWay(request.resource.data.members[0], request.resource.data.members[1])
+        && !deleting(request.resource.data.members[0])
+        && !deleting(request.resource.data.members[1]);
       allow update: if hasAccount()
         && me() in resource.data.members
         && me() != resource.data.requestedBy

@@ -1,0 +1,25 @@
+{
+  "name": "three-bucks-functions",
+  "description": "Account deletion, the nightly janitor and account emails for Three Bucks",
+  "private": true,
+  "main": "lib/index.js",
+  "engines": {
+    "node": "22"
+  },
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "test": "npm run build && node --test \"test/**/*.test.mjs\"",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.5.1",
+    "firebase-functions": "^7.4.0",
+    "resend": "^6.39.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "typescript": "^5.9.3"
+  }
+}

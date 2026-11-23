@@ -4,17 +4,24 @@ Things left open, roughly in the order they matter.
 
 ## Before release
 
-- [x] **Delete account should erase the backup.** It now erases `users/{uid}` too.
-- [ ] Drop the "email us" deletion line from the privacy policy and mention reports and blocks
-      (`wmlabs/src/routes/three-bucks/privacy/ThreeBucksPrivacy.tsx`).
+- [x] **Delete account should erase the backup.** Works like Epoch: server-side, frozen for
+      30 days, then purged by the nightly `janitor` (`functions/`).
+- [ ] **Deploy the functions** (Blaze plan): `firebase functions:secrets:set RESEND_API_KEY`,
+      then `firebase deploy --only firestore:rules,firestore:indexes,functions`. Check the
+      janitor's first runs in `firebase functions:log`.
+- [ ] Register `support@widgetmedialabs.com` with Apple's private email relay, so deletion
+      emails reach people who hid their email with Sign in with Apple (skipped until then).
+- [ ] Add App Check, then turn on `enforceAppCheck` for the two deletion callables.
+- [ ] Privacy policy (`wmlabs/src/routes/three-bucks/privacy/ThreeBucksPrivacy.tsx`): drop
+      the "email us" deletion line; say accounts are deleted 30 days after the request and
+      after two years unopened; mention Resend emails, reports, blocks and edit history.
 - [x] Fill in the support email and privacy policy URL in `lib/app/support.dart`.
 - [ ] Check reports (Firestore → `reports`) daily once live.
 - [ ] Multiple device login should keep data consistent across devices. Or We should allow Single Sign In?
 - [ ] **Delete-account web page** at `/three-bucks/delete-account` on the wmlabs site, like
       Epoch's. Google Play requires one outside the app.
-- [ ] **Backups from abandoned installs.** Without sign-in, uninstalling leaves an anonymous
-      backup nobody can reach. Decide on a cleanup (e.g. delete accounts not opened in two
-      years, as Epoch does) and add it to the privacy policy.
+- [x] **Backups from abandoned installs.** The janitor erases anonymous accounts unopened for
+      two years, and marks signed-in ones for deletion (with a warning email).
 - [ ] **Firebase console setup for sharing**
   - [ ] Authentication → enable Apple and Google sign-in
   - [ ] Xcode → Runner → Signing & Capabilities → add Sign in with Apple (paid team)

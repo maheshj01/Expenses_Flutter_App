@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'app/account_flow.dart';
 import 'app/app.dart';
 import 'app/backend.dart';
 import 'app/providers.dart';
@@ -31,6 +32,7 @@ Future<void> main() async {
         databaseProvider.overrideWithValue(database),
         remoteStoreProvider.overrideWithValue(backend.remote),
         socialBackendProvider.overrideWithValue(backend.social),
+        accountDeletionProvider.overrideWithValue(backend.deletion),
       ],
       child: const _SyncBootstrap(
         child: _InviteLinks(child: ThreeBucksApp(revealFromSplash: true)),

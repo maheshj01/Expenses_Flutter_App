@@ -136,6 +136,40 @@ Personal data is stored at `users/{uid}/categories/{id}`, `users/{uid}/entries/{
 `settlements/`, `blocks/` and `reports/`. Pulls of personal data
 always read from the server; Firestore's offline cache is on so sharing works offline too.
 
+### Set up account deletion and the janitor
+
+Deleting an account works like Epoch's and is done on the server
+([`functions/src/accountDeletion.ts`](functions/src/accountDeletion.ts)), so the grace period
+can't be bent by a client:
+
+- **Settings → Delete account** (or **Erase my data** without signing in) opens a page listing what
+  goes, and asks you to *hold* the button. Signed in, the `requestAccountDeletion` function marks
+  `users/{uid}.deletion` and the account is frozen for 30 days: the rules refuse writes to its
+  backup, and nobody can look it up or ask to connect. Not signed in, the backup is erased at once.
+  Either way the phone is cleared and a goodbye page leads back to onboarding.
+- Signing in again within 30 days asks whether to restore it (`restoreAccount`). A phone still
+  signed in to a frozen account shows a page with the days left, Restore, or Continue deleting.
+- Emails go out when an account is paused and when it's restored (`onAccountDeletionChanged`, via
+  Resend).
+
+A nightly `janitor` function runs three chores in order, each on its own, so one failing never
+stops the others:
+
+1. `inactiveAccounts`: accounts unopened for two years. Anonymous ones are erased; signed-in ones
+   are marked for deletion like a request (with a warning email), and opening the app cancels it.
+2. `deletedAccounts`: accounts whose 30 days are up are deleted: the sign-in, profile, username,
+   connections, blocks and everything under `users/{uid}`. Shared bills, settlements and reports
+   stay.
+3. `deletedRecords`: soft-deleted entries, categories and entry edits older than 90 days.
+
+Functions need the **Blaze** (pay as you go) plan and a [Resend](https://resend.com) API key:
+
+```bash
+firebase functions:secrets:set RESEND_API_KEY
+(cd functions && npm install && npm test)
+firebase deploy --only firestore:rules,firestore:indexes,functions
+```
+
 ### Set up sign-in for sharing
 
 1. **Firebase console → Authentication → Sign-in method:** enable **Apple** and **Google**.
@@ -159,7 +193,8 @@ flutter test
 
 Tests cover the money logic, the quick-entry parser, the local repositories, two-device sync
 (conflicts, deletes, offline queueing, failures, switching accounts), balances and the inbox, the
-shared-bill ledger projection, and end-to-end add / edit, onboarding and sharing flows.
+shared-bill ledger projection, edit history, account deletion, blocking and reporting, and
+end-to-end add / edit, onboarding, sharing and settle-up flows.
 
 ### App icon
 

@@ -68,6 +68,15 @@ class DriftEntryRepository implements EntryRepository, LocalSyncSource {
   }
 
   @override
+  Future<int> count() async {
+    final n = _t.id.count();
+    final query = _db.selectOnly(_t)
+      ..addColumns([n])
+      ..where(_t.deleted.equals(false));
+    return (await query.getSingle()).read(n) ?? 0;
+  }
+
+  @override
   Stream<Set<String>> watchSharedBillIds() {
     final query = _db.selectOnly(_t)
       ..addColumns([_t.billId])
