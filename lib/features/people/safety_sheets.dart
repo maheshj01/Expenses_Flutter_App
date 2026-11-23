@@ -118,6 +118,7 @@ class _ReportSheet extends ConsumerStatefulWidget {
 class _ReportSheetState extends ConsumerState<_ReportSheet> {
   ReportReason? _reason;
   bool _block = true;
+  bool _sending = false;
   final _note = TextEditingController();
 
   @override
@@ -128,7 +129,8 @@ class _ReportSheetState extends ConsumerState<_ReportSheet> {
 
   Future<void> _send() async {
     final reason = _reason;
-    if (reason == null) return;
+    if (reason == null || _sending) return;
+    setState(() => _sending = true);
     final backend = ref.read(socialBackendProvider)!;
     final messenger = ScaffoldMessenger.of(context);
     await backend.report(
@@ -208,7 +210,7 @@ class _ReportSheetState extends ConsumerState<_ReportSheet> {
             const SizedBox(height: 8),
             FilledButton.icon(
               style: FilledButton.styleFrom(backgroundColor: c.warn),
-              onPressed: _reason == null ? null : _send,
+              onPressed: _reason == null || _sending ? null : _send,
               icon: const Icon(Icons.outlined_flag_rounded, size: 18),
               label: const Text('Send report'),
             ),
