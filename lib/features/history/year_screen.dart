@@ -90,7 +90,7 @@ class YearScreen extends ConsumerWidget {
                 const Divider(height: 20),
                 _Row('Kept as cash', money(year$.keptCents), null),
                 if (activeMonths > 0)
-                  _Row('Average lived / month', money(year$.livedCents ~/ activeMonths), null),
+                  _Row('Average spent / month', money(year$.livedCents ~/ activeMonths), null),
               ],
             ),
           ),
