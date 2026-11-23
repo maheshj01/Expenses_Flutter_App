@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/year_month.dart';
 import '../data/local/app_database.dart';
 import '../data/local/drift_category_repository.dart';
+import '../data/local/drift_entry_edit_sync.dart';
 import '../data/local/drift_entry_repository.dart';
 import '../data/local/prefs_settings_repository.dart';
 import '../data/sync/connectivity_monitor.dart';
@@ -14,6 +15,7 @@ import '../data/sync/sync_status.dart';
 import '../domain/entities/app_settings.dart';
 import '../domain/entities/category.dart';
 import '../domain/entities/ledger_entry.dart';
+import '../domain/history/edit.dart';
 import '../domain/repositories/category_repository.dart';
 import '../domain/repositories/entry_repository.dart';
 import '../domain/repositories/settings_repository.dart';
@@ -50,6 +52,10 @@ final _driftEntries = Provider<DriftEntryRepository>(
   (ref) => DriftEntryRepository(ref.watch(databaseProvider), ref.watch(localChangesProvider)),
 );
 
+final _driftEntryEdits = Provider<DriftEntryEditSync>(
+  (ref) => DriftEntryEditSync(ref.watch(databaseProvider)),
+);
+
 // ---------------------------------------------------------------------------
 // Repositories: the UI only sees the domain interfaces.
 // ---------------------------------------------------------------------------
@@ -71,7 +77,7 @@ final settingsRepositoryProvider = Provider<SettingsRepository>(
 final syncEngineProvider = Provider<SyncEngine>((ref) {
   final engine = SyncEngine(
     remote: ref.watch(remoteStoreProvider),
-    sources: [ref.watch(_driftCategories), ref.watch(_driftEntries)],
+    sources: [ref.watch(_driftCategories), ref.watch(_driftEntries), ref.watch(_driftEntryEdits)],
     cursors: ref.watch(databaseProvider),
     connectivity: ref.watch(connectivityProvider),
     changes: ref.watch(localChangesProvider),
@@ -121,6 +127,11 @@ final activeCategoriesProvider = Provider<List<Category>>(
 
 final categoryMapProvider = Provider<Map<String, Category>>(
   (ref) => {for (final c in ref.watch(categoriesProvider).value ?? const <Category>[]) c.id: c},
+);
+
+/// Recorded edits of one of your own entries, newest first.
+final entryEditsProvider = StreamProvider.family<List<Edit>, String>(
+  (ref, entryId) => ref.watch(entryRepositoryProvider).watchEdits(entryId),
 );
 
 final monthEntriesProvider = StreamProvider.family<List<LedgerEntry>, YearMonth>(

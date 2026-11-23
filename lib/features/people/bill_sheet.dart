@@ -13,6 +13,7 @@ import '../../shared/animations/fade_slide_in.dart';
 import '../../shared/animations/motion.dart';
 import '../../shared/money_format.dart';
 import '../../shared/widgets/category_avatar.dart';
+import '../entries/edit_history_sheet.dart';
 import '../entries/entry_editor_sheet.dart';
 import 'people_widgets.dart';
 import 'safety_sheets.dart';
@@ -129,6 +130,17 @@ class BillSheet extends ConsumerWidget {
                 style: TextStyle(color: c.muted),
               ),
             ),
+          EditHistoryLink(
+            edits: ref.watch(billEditsProvider(bill.id)).value ?? const [],
+            onTap: () => showEditHistorySheet(
+              context,
+              edits: ref.read(billEditsProvider(bill.id)).value ?? const [],
+              currencyCode: bill.currencyCode,
+              nameOf: who,
+              created:
+                  'Created ${DateFormat.yMMMd().format(bill.createdAt)} by ${who(bill.createdBy)}',
+            ),
+          ),
           const SizedBox(height: 16),
           if (mine) ...[
             FilledButton.icon(

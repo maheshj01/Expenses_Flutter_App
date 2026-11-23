@@ -1,3 +1,4 @@
+import '../history/edit.dart';
 import 'account.dart';
 import 'connection.dart';
 import 'safety.dart';
@@ -5,7 +6,8 @@ import 'settlement.dart';
 import 'shared_bill.dart';
 
 /// Everything sharing needs from a backend: accounts, usernames,
-/// connections, shared bills, settlements, and blocking and reporting.
+/// connections, shared bills and their edit history, settlements, and
+/// blocking and reporting.
 ///
 /// Like `RemoteStore` for personal data, the app only talks to this
 /// interface, so Firebase can be swapped for another backend by writing one
@@ -74,7 +76,13 @@ abstract interface class SocialBackend {
 
   /// Creates or updates a bill you created, flags included: editing the
   /// amount or people should clear them (see [SharedBill.edited]).
+  ///
+  /// Updating a bill also records what changed (see [billChanges]), which
+  /// every member can read with [watchBillEdits] and nobody can alter.
   Future<void> saveBill(SharedBill bill);
+
+  /// Every recorded edit of the bill with [billId], newest first.
+  Stream<List<Edit>> watchBillEdits(String billId);
 
   /// Flags (or with null, un-flags) your own share of a bill.
   Future<void> setFlag(String billId, BillFlag? flag);

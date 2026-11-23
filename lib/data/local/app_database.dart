@@ -55,6 +55,22 @@ class Entries extends Table with SyncColumns {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+/// One edit of an entry: what changed, as a JSON map of field name to
+/// `{from, to}` (see `Edit`). Written once, never updated.
+@DataClassName('EntryEditRow')
+@TableIndex(name: 'entry_edits_entry', columns: {#entryId})
+class EntryEdits extends Table with SyncColumns {
+  TextColumn get id => text()();
+  TextColumn get entryId => text()();
+
+  /// Milliseconds since epoch.
+  IntColumn get at => integer()();
+  TextColumn get changes => text()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 /// Where each collection's last pull from the remote store stopped.
 @DataClassName('SyncCursorRow')
 class SyncCursors extends Table {
@@ -65,7 +81,7 @@ class SyncCursors extends Table {
   Set<Column<Object>> get primaryKey => {collection};
 }
 
-@DriftDatabase(tables: [Categories, Entries, SyncCursors])
+@DriftDatabase(tables: [Categories, Entries, EntryEdits, SyncCursors])
 class AppDatabase extends _$AppDatabase implements SyncCursorStore {
   AppDatabase(super.executor);
 
@@ -73,7 +89,7 @@ class AppDatabase extends _$AppDatabase implements SyncCursorStore {
   factory AppDatabase.open() => AppDatabase(driftDatabase(name: 'three_bucks'));
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -84,6 +100,10 @@ class AppDatabase extends _$AppDatabase implements SyncCursorStore {
     onUpgrade: (m, from, to) async {
       if (from < 2) await m.addColumn(entries, entries.billId);
       if (from < 3) await m.addColumn(entries, entries.guestNames);
+      if (from < 4) {
+        await m.createTable(entryEdits);
+        await m.createIndex(entryEditsEntry);
+      }
     },
   );
 

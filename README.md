@@ -130,8 +130,10 @@ synced. You can also force it with `--dart-define=SYNC_BACKEND=none`.
    firebase deploy --only firestore:rules
    ```
 
-Personal data is stored at `users/{uid}/categories/{id}` and `users/{uid}/entries/{id}`. Sharing
-uses `handles/`, `profiles/`, `connections/`, `bills/` and `settlements/`. Pulls of personal data
+Personal data is stored at `users/{uid}/categories/{id}`, `users/{uid}/entries/{id}` and
+`users/{uid}/entry_edits/{id}` (what each edit of an entry changed). Sharing uses `handles/`,
+`profiles/`, `connections/`, `bills/` (with each bill's edit history in `bills/{id}/edits/`),
+`settlements/`, `blocks/` and `reports/`. Pulls of personal data
 always read from the server; Firestore's offline cache is on so sharing works offline too.
 
 ### Set up sign-in for sharing

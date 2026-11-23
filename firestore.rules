@@ -104,6 +104,28 @@ service cloud.firestore {
           && request.resource.data.flags.diff(resource.data.flags).affectedKeys().hasOnly([me()]))
       );
       allow delete: if false;
+
+      // ---- edit history ----
+      // What each of the payer's edits changed. Written in the same batch as
+      // the bill (so `at` matches the bill's new editedAt), readable by its
+      // members, and never changed or deleted.
+      match /edits/{editId} {
+        function billAfter() {
+          return getAfter(/databases/$(database)/documents/bills/$(id)).data;
+        }
+
+        allow read: if hasAccount()
+          && me() in get(/databases/$(database)/documents/bills/$(id)).data.members;
+        allow create: if hasAccount()
+          && request.resource.data.keys().hasOnly(['by', 'at', 'changes'])
+          && request.resource.data.by == me()
+          && billAfter().createdBy == me()
+          && request.resource.data.at is int
+          && request.resource.data.at == billAfter().editedAt
+          && request.resource.data.changes is map
+          && request.resource.data.changes.size() <= 12;
+        allow update, delete: if false;
+      }
     }
 
     // ---- settlements ----

@@ -1196,6 +1196,419 @@ class EntriesCompanion extends UpdateCompanion<EntryRow> {
   }
 }
 
+class $EntryEditsTable extends EntryEdits with TableInfo<$EntryEditsTable, EntryEditRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $EntryEditsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deletedMeta = const VerificationMeta('deleted');
+  @override
+  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('CHECK ("deleted" IN (0, 1))'),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _dirtyMeta = const VerificationMeta('dirty');
+  @override
+  late final GeneratedColumn<bool> dirty = GeneratedColumn<bool>(
+    'dirty',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('CHECK ("dirty" IN (0, 1))'),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _entryIdMeta = const VerificationMeta('entryId');
+  @override
+  late final GeneratedColumn<String> entryId = GeneratedColumn<String>(
+    'entry_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _atMeta = const VerificationMeta('at');
+  @override
+  late final GeneratedColumn<int> at = GeneratedColumn<int>(
+    'at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _changesMeta = const VerificationMeta('changes');
+  @override
+  late final GeneratedColumn<String> changes = GeneratedColumn<String>(
+    'changes',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [updatedAt, deleted, dirty, id, entryId, at, changes];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'entry_edits';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<EntryEditRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('deleted')) {
+      context.handle(_deletedMeta, deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta));
+    }
+    if (data.containsKey('dirty')) {
+      context.handle(_dirtyMeta, dirty.isAcceptableOrUnknown(data['dirty']!, _dirtyMeta));
+    }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('entry_id')) {
+      context.handle(_entryIdMeta, entryId.isAcceptableOrUnknown(data['entry_id']!, _entryIdMeta));
+    } else if (isInserting) {
+      context.missing(_entryIdMeta);
+    }
+    if (data.containsKey('at')) {
+      context.handle(_atMeta, at.isAcceptableOrUnknown(data['at']!, _atMeta));
+    } else if (isInserting) {
+      context.missing(_atMeta);
+    }
+    if (data.containsKey('changes')) {
+      context.handle(_changesMeta, changes.isAcceptableOrUnknown(data['changes']!, _changesMeta));
+    } else if (isInserting) {
+      context.missing(_changesMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  EntryEditRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return EntryEditRow(
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}deleted'],
+      )!,
+      dirty: attachedDatabase.typeMapping.read(DriftSqlType.bool, data['${effectivePrefix}dirty'])!,
+      id: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      entryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}entry_id'],
+      )!,
+      at: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}at'])!,
+      changes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}changes'],
+      )!,
+    );
+  }
+
+  @override
+  $EntryEditsTable createAlias(String alias) {
+    return $EntryEditsTable(attachedDatabase, alias);
+  }
+}
+
+class EntryEditRow extends DataClass implements Insertable<EntryEditRow> {
+  /// Milliseconds since epoch of the last edit (local or remote).
+  final int updatedAt;
+
+  /// Soft delete, so deletions can be synced.
+  final bool deleted;
+
+  /// True while the change has not been pushed to the remote store.
+  final bool dirty;
+  final String id;
+  final String entryId;
+
+  /// Milliseconds since epoch.
+  final int at;
+  final String changes;
+  const EntryEditRow({
+    required this.updatedAt,
+    required this.deleted,
+    required this.dirty,
+    required this.id,
+    required this.entryId,
+    required this.at,
+    required this.changes,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['updated_at'] = Variable<int>(updatedAt);
+    map['deleted'] = Variable<bool>(deleted);
+    map['dirty'] = Variable<bool>(dirty);
+    map['id'] = Variable<String>(id);
+    map['entry_id'] = Variable<String>(entryId);
+    map['at'] = Variable<int>(at);
+    map['changes'] = Variable<String>(changes);
+    return map;
+  }
+
+  EntryEditsCompanion toCompanion(bool nullToAbsent) {
+    return EntryEditsCompanion(
+      updatedAt: Value(updatedAt),
+      deleted: Value(deleted),
+      dirty: Value(dirty),
+      id: Value(id),
+      entryId: Value(entryId),
+      at: Value(at),
+      changes: Value(changes),
+    );
+  }
+
+  factory EntryEditRow.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return EntryEditRow(
+      updatedAt: serializer.fromJson<int>(json['updatedAt']),
+      deleted: serializer.fromJson<bool>(json['deleted']),
+      dirty: serializer.fromJson<bool>(json['dirty']),
+      id: serializer.fromJson<String>(json['id']),
+      entryId: serializer.fromJson<String>(json['entryId']),
+      at: serializer.fromJson<int>(json['at']),
+      changes: serializer.fromJson<String>(json['changes']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'updatedAt': serializer.toJson<int>(updatedAt),
+      'deleted': serializer.toJson<bool>(deleted),
+      'dirty': serializer.toJson<bool>(dirty),
+      'id': serializer.toJson<String>(id),
+      'entryId': serializer.toJson<String>(entryId),
+      'at': serializer.toJson<int>(at),
+      'changes': serializer.toJson<String>(changes),
+    };
+  }
+
+  EntryEditRow copyWith({
+    int? updatedAt,
+    bool? deleted,
+    bool? dirty,
+    String? id,
+    String? entryId,
+    int? at,
+    String? changes,
+  }) => EntryEditRow(
+    updatedAt: updatedAt ?? this.updatedAt,
+    deleted: deleted ?? this.deleted,
+    dirty: dirty ?? this.dirty,
+    id: id ?? this.id,
+    entryId: entryId ?? this.entryId,
+    at: at ?? this.at,
+    changes: changes ?? this.changes,
+  );
+  EntryEditRow copyWithCompanion(EntryEditsCompanion data) {
+    return EntryEditRow(
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
+      dirty: data.dirty.present ? data.dirty.value : this.dirty,
+      id: data.id.present ? data.id.value : this.id,
+      entryId: data.entryId.present ? data.entryId.value : this.entryId,
+      at: data.at.present ? data.at.value : this.at,
+      changes: data.changes.present ? data.changes.value : this.changes,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EntryEditRow(')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deleted: $deleted, ')
+          ..write('dirty: $dirty, ')
+          ..write('id: $id, ')
+          ..write('entryId: $entryId, ')
+          ..write('at: $at, ')
+          ..write('changes: $changes')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(updatedAt, deleted, dirty, id, entryId, at, changes);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is EntryEditRow &&
+          other.updatedAt == this.updatedAt &&
+          other.deleted == this.deleted &&
+          other.dirty == this.dirty &&
+          other.id == this.id &&
+          other.entryId == this.entryId &&
+          other.at == this.at &&
+          other.changes == this.changes);
+}
+
+class EntryEditsCompanion extends UpdateCompanion<EntryEditRow> {
+  final Value<int> updatedAt;
+  final Value<bool> deleted;
+  final Value<bool> dirty;
+  final Value<String> id;
+  final Value<String> entryId;
+  final Value<int> at;
+  final Value<String> changes;
+  final Value<int> rowid;
+  const EntryEditsCompanion({
+    this.updatedAt = const Value.absent(),
+    this.deleted = const Value.absent(),
+    this.dirty = const Value.absent(),
+    this.id = const Value.absent(),
+    this.entryId = const Value.absent(),
+    this.at = const Value.absent(),
+    this.changes = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  EntryEditsCompanion.insert({
+    required int updatedAt,
+    this.deleted = const Value.absent(),
+    this.dirty = const Value.absent(),
+    required String id,
+    required String entryId,
+    required int at,
+    required String changes,
+    this.rowid = const Value.absent(),
+  }) : updatedAt = Value(updatedAt),
+       id = Value(id),
+       entryId = Value(entryId),
+       at = Value(at),
+       changes = Value(changes);
+  static Insertable<EntryEditRow> custom({
+    Expression<int>? updatedAt,
+    Expression<bool>? deleted,
+    Expression<bool>? dirty,
+    Expression<String>? id,
+    Expression<String>? entryId,
+    Expression<int>? at,
+    Expression<String>? changes,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deleted != null) 'deleted': deleted,
+      if (dirty != null) 'dirty': dirty,
+      if (id != null) 'id': id,
+      if (entryId != null) 'entry_id': entryId,
+      if (at != null) 'at': at,
+      if (changes != null) 'changes': changes,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  EntryEditsCompanion copyWith({
+    Value<int>? updatedAt,
+    Value<bool>? deleted,
+    Value<bool>? dirty,
+    Value<String>? id,
+    Value<String>? entryId,
+    Value<int>? at,
+    Value<String>? changes,
+    Value<int>? rowid,
+  }) {
+    return EntryEditsCompanion(
+      updatedAt: updatedAt ?? this.updatedAt,
+      deleted: deleted ?? this.deleted,
+      dirty: dirty ?? this.dirty,
+      id: id ?? this.id,
+      entryId: entryId ?? this.entryId,
+      at: at ?? this.at,
+      changes: changes ?? this.changes,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(updatedAt.value);
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<bool>(deleted.value);
+    }
+    if (dirty.present) {
+      map['dirty'] = Variable<bool>(dirty.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (entryId.present) {
+      map['entry_id'] = Variable<String>(entryId.value);
+    }
+    if (at.present) {
+      map['at'] = Variable<int>(at.value);
+    }
+    if (changes.present) {
+      map['changes'] = Variable<String>(changes.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EntryEditsCompanion(')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deleted: $deleted, ')
+          ..write('dirty: $dirty, ')
+          ..write('id: $id, ')
+          ..write('entryId: $entryId, ')
+          ..write('at: $at, ')
+          ..write('changes: $changes, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $SyncCursorsTable extends SyncCursors with TableInfo<$SyncCursorsTable, SyncCursorRow> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -1407,8 +1820,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $CategoriesTable categories = $CategoriesTable(this);
   late final $EntriesTable entries = $EntriesTable(this);
+  late final $EntryEditsTable entryEdits = $EntryEditsTable(this);
   late final $SyncCursorsTable syncCursors = $SyncCursorsTable(this);
   late final Index entriesDay = Index('entries_day', 'CREATE INDEX entries_day ON entries (day)');
+  late final Index entryEditsEntry = Index(
+    'entry_edits_entry',
+    'CREATE INDEX entry_edits_entry ON entry_edits (entry_id)',
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1416,8 +1834,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     categories,
     entries,
+    entryEdits,
     syncCursors,
     entriesDay,
+    entryEditsEntry,
   ];
 }
 
@@ -1945,6 +2365,207 @@ typedef $$EntriesTableProcessedTableManager =
       EntryRow,
       PrefetchHooks Function()
     >;
+typedef $$EntryEditsTableCreateCompanionBuilder = EntryEditsCompanion Function({
+  required int updatedAt,
+  Value<bool> deleted,
+  Value<bool> dirty,
+  required String id,
+  required String entryId,
+  required int at,
+  required String changes,
+  Value<int> rowid,
+});
+typedef $$EntryEditsTableUpdateCompanionBuilder = EntryEditsCompanion Function({
+  Value<int> updatedAt,
+  Value<bool> deleted,
+  Value<bool> dirty,
+  Value<String> id,
+  Value<String> entryId,
+  Value<int> at,
+  Value<String> changes,
+  Value<int> rowid,
+});
+
+class $$EntryEditsTableFilterComposer extends Composer<_$AppDatabase, $EntryEditsTable> {
+  $$EntryEditsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get deleted =>
+      $composableBuilder(column: $table.deleted, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get dirty =>
+      $composableBuilder(column: $table.dirty, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get entryId =>
+      $composableBuilder(column: $table.entryId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get at =>
+      $composableBuilder(column: $table.at, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get changes =>
+      $composableBuilder(column: $table.changes, builder: (column) => ColumnFilters(column));
+}
+
+class $$EntryEditsTableOrderingComposer extends Composer<_$AppDatabase, $EntryEditsTable> {
+  $$EntryEditsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get deleted =>
+      $composableBuilder(column: $table.deleted, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get dirty =>
+      $composableBuilder(column: $table.dirty, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get entryId =>
+      $composableBuilder(column: $table.entryId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get at =>
+      $composableBuilder(column: $table.at, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get changes =>
+      $composableBuilder(column: $table.changes, builder: (column) => ColumnOrderings(column));
+}
+
+class $$EntryEditsTableAnnotationComposer extends Composer<_$AppDatabase, $EntryEditsTable> {
+  $$EntryEditsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get deleted =>
+      $composableBuilder(column: $table.deleted, builder: (column) => column);
+
+  GeneratedColumn<bool> get dirty =>
+      $composableBuilder(column: $table.dirty, builder: (column) => column);
+
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get entryId =>
+      $composableBuilder(column: $table.entryId, builder: (column) => column);
+
+  GeneratedColumn<int> get at => $composableBuilder(column: $table.at, builder: (column) => column);
+
+  GeneratedColumn<String> get changes =>
+      $composableBuilder(column: $table.changes, builder: (column) => column);
+}
+
+class $$EntryEditsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $EntryEditsTable,
+          EntryEditRow,
+          $$EntryEditsTableFilterComposer,
+          $$EntryEditsTableOrderingComposer,
+          $$EntryEditsTableAnnotationComposer,
+          $$EntryEditsTableCreateCompanionBuilder,
+          $$EntryEditsTableUpdateCompanionBuilder,
+          (EntryEditRow, BaseReferences<_$AppDatabase, $EntryEditsTable, EntryEditRow>),
+          EntryEditRow,
+          PrefetchHooks Function()
+        > {
+  $$EntryEditsTableTableManager(_$AppDatabase db, $EntryEditsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () => $$EntryEditsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () => $$EntryEditsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$EntryEditsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> updatedAt = const Value.absent(),
+                Value<bool> deleted = const Value.absent(),
+                Value<bool> dirty = const Value.absent(),
+                Value<String> id = const Value.absent(),
+                Value<String> entryId = const Value.absent(),
+                Value<int> at = const Value.absent(),
+                Value<String> changes = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => EntryEditsCompanion(
+                updatedAt: updatedAt,
+                deleted: deleted,
+                dirty: dirty,
+                id: id,
+                entryId: entryId,
+                at: at,
+                changes: changes,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required int updatedAt,
+                Value<bool> deleted = const Value.absent(),
+                Value<bool> dirty = const Value.absent(),
+                required String id,
+                required String entryId,
+                required int at,
+                required String changes,
+                Value<int> rowid = const Value.absent(),
+              }) => EntryEditsCompanion.insert(
+                updatedAt: updatedAt,
+                deleted: deleted,
+                dirty: dirty,
+                id: id,
+                entryId: entryId,
+                at: at,
+                changes: changes,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$EntryEditsTable, EntryEditRow>(table),
+                  BaseReferences<_$AppDatabase, $EntryEditsTable, EntryEditRow>(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$EntryEditsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $EntryEditsTable,
+      EntryEditRow,
+      $$EntryEditsTableFilterComposer,
+      $$EntryEditsTableOrderingComposer,
+      $$EntryEditsTableAnnotationComposer,
+      $$EntryEditsTableCreateCompanionBuilder,
+      $$EntryEditsTableUpdateCompanionBuilder,
+      (EntryEditRow, BaseReferences<_$AppDatabase, $EntryEditsTable, EntryEditRow>),
+      EntryEditRow,
+      PrefetchHooks Function()
+    >;
 typedef $$SyncCursorsTableCreateCompanionBuilder = SyncCursorsCompanion Function({
   required String collection,
   Value<String?> cursor,
@@ -2069,6 +2690,8 @@ class $AppDatabaseManager {
   $$CategoriesTableTableManager get categories =>
       $$CategoriesTableTableManager(_db, _db.categories);
   $$EntriesTableTableManager get entries => $$EntriesTableTableManager(_db, _db.entries);
+  $$EntryEditsTableTableManager get entryEdits =>
+      $$EntryEditsTableTableManager(_db, _db.entryEdits);
   $$SyncCursorsTableTableManager get syncCursors =>
       $$SyncCursorsTableTableManager(_db, _db.syncCursors);
 }

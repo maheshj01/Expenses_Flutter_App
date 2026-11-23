@@ -1,4 +1,5 @@
 import '../entities/ledger_entry.dart';
+import '../history/edit.dart';
 
 abstract interface class EntryRepository {
   /// Entries whose date is within [from]..[to] (inclusive), newest first.
@@ -16,8 +17,12 @@ abstract interface class EntryRepository {
   /// Every entry that is a share of a bill split with people on the app.
   Future<List<LedgerEntry>> sharedEntries();
 
-  /// Inserts or updates [entry].
+  /// Inserts or updates [entry]. Updating one of your own entries (not a
+  /// share of a bill) records what changed; see [watchEdits].
   Future<void> save(LedgerEntry entry);
+
+  /// Every recorded edit of the entry with [entryId], newest first.
+  Stream<List<Edit>> watchEdits(String entryId);
 
   /// Inserts or updates many entries at once, e.g. from an import.
   Future<void> saveAll(List<LedgerEntry> entries);

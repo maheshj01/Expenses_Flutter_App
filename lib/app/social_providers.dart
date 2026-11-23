@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/social/bill_projector.dart';
+import '../domain/history/edit.dart';
 import '../domain/social/account.dart';
 import '../domain/social/balances.dart';
 import '../domain/social/connection.dart';
@@ -56,6 +57,13 @@ final billsProvider = StreamProvider<BillsSnapshot>((ref) {
   final backend = ref.watch(socialBackendProvider);
   if (backend == null || _uid(ref) == null) return Stream.value(BillsSnapshot.empty);
   return backend.watchBills();
+});
+
+/// Recorded edits of one shared bill, newest first.
+final billEditsProvider = StreamProvider.family<List<Edit>, String>((ref, billId) {
+  final backend = ref.watch(socialBackendProvider);
+  if (backend == null || _uid(ref) == null) return Stream.value(const []);
+  return backend.watchBillEdits(billId);
 });
 
 final billMapProvider = Provider<Map<String, SharedBill>>((ref) {

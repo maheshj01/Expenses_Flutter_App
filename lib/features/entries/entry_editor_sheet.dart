@@ -17,6 +17,7 @@ import '../../shared/region_keys.dart';
 import '../categories/category_editor_sheet.dart';
 import '../people/bill_sheet.dart';
 import '../people/split_picker_sheet.dart';
+import 'edit_history_sheet.dart';
 
 /// Opens an entry: shared bills open their bill details, everything else
 /// the add / edit sheet. Returns true when something was saved or deleted.
@@ -421,6 +422,18 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
                       ),
                     ],
                   ),
+                  if (widget.entry case final entry? when entry.billId == null)
+                    EditHistoryLink(
+                      edits: ref.watch(entryEditsProvider(entry.id)).value ?? const [],
+                      onTap: () => showEditHistorySheet(
+                        context,
+                        edits: ref.read(entryEditsProvider(entry.id)).value ?? const [],
+                        currencyCode: settings.currencyCode,
+                        created: entry.createdAt == null
+                            ? 'Created on this device'
+                            : 'Created ${DateFormat.yMMMd().format(entry.createdAt!)}',
+                      ),
+                    ),
                   const SizedBox(height: 8),
                 ],
               ),

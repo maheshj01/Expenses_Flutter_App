@@ -4,11 +4,14 @@ import 'package:drift/drift.dart';
 
 import '../../core/clock.dart';
 import '../../core/day.dart';
+import '../../core/ids.dart';
 import '../../domain/entities/ledger_entry.dart';
+import '../../domain/history/edit.dart';
 import '../../domain/repositories/entry_repository.dart';
 import '../sync/local_sync_source.dart';
 import '../sync/sync_record.dart';
 import 'app_database.dart';
+import 'drift_entry_edit_sync.dart';
 
 class DriftEntryRepository implements EntryRepository, LocalSyncSource {
   DriftEntryRepository(this._db, this._changes, {this._clock = systemClock});
@@ -81,8 +84,37 @@ class DriftEntryRepository implements EntryRepository, LocalSyncSource {
 
   @override
   Future<void> save(LedgerEntry entry) async {
-    await _db.into(_t).insertOnConflictUpdate(_companion(entry, _now));
+    final now = _now;
+    await _db.transaction(() async {
+      final before = await (_db.select(
+        _t,
+      )..where((t) => t.id.equals(entry.id) & t.deleted.equals(false))).getSingleOrNull();
+      await _db.into(_t).insertOnConflictUpdate(_companion(entry, now));
+      // Shares of bills keep their history on the bill.
+      if (before == null || before.billId != null || entry.billId != null) return;
+      final changes = entryChanges(_toEntity(before), entry);
+      if (changes.isEmpty) return;
+      await _db
+          .into(_db.entryEdits)
+          .insert(
+            EntryEditsCompanion.insert(
+              id: newId(),
+              entryId: entry.id,
+              at: now,
+              changes: jsonEncode(Edit.changesToJson(changes)),
+              updatedAt: now,
+            ),
+          );
+    });
     _changes.notify();
+  }
+
+  @override
+  Stream<List<Edit>> watchEdits(String entryId) {
+    final query = _db.select(_db.entryEdits)
+      ..where((t) => t.entryId.equals(entryId) & t.deleted.equals(false))
+      ..orderBy([(t) => OrderingTerm.desc(t.at)]);
+    return query.watch().map((rows) => rows.map(DriftEntryEditSync.toEdit).toList());
   }
 
   @override

@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:three_bucks/core/ids.dart';
+import 'package:three_bucks/domain/history/edit.dart';
 import 'package:three_bucks/domain/social/account.dart';
 import 'package:three_bucks/domain/social/connection.dart';
 import 'package:three_bucks/domain/social/safety.dart';
@@ -15,6 +17,9 @@ class FakeSocialServer {
   final connections = <String, FakeConnection>{};
   final bills = <String, SharedBill>{};
   final settlements = <String, Settlement>{};
+
+  /// Recorded edits per bill id, oldest first. Write-once, like the rules.
+  final billEdits = <String, List<Edit>>{};
 
   /// Who blocked whom: blocker uid -> blocked uid -> person.
   final blocks = <String, Map<String, BlockedPerson>>{};
@@ -240,8 +245,26 @@ class FakeSocialBackend implements SocialBackend {
     }
     if (existing != null && existing.createdBy != me) throw const SocialError('permission-denied');
     server.bills[bill.id] = bill;
+    if (existing != null) {
+      final changes = billChanges(existing, bill);
+      if (changes.isNotEmpty) {
+        server.billEdits
+            .putIfAbsent(bill.id, () => [])
+            .add(
+              Edit(id: newId(), subjectId: bill.id, at: DateTime.now(), by: me, changes: changes),
+            );
+      }
+    }
     server.changed();
   }
+
+  @override
+  Stream<List<Edit>> watchBillEdits(String billId) => _watch(() {
+    final me = _account?.uid;
+    final bill = server.bills[billId];
+    if (me == null || bill == null || !bill.members.contains(me)) return const <Edit>[];
+    return [...?server.billEdits[billId]].reversed.toList();
+  });
 
   @override
   Future<void> setFlag(String billId, BillFlag? flag) async {

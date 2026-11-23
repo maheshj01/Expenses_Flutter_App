@@ -5,6 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../../core/day.dart';
+import '../../../core/ids.dart';
+import '../../../domain/history/edit.dart';
 import '../../../domain/social/account.dart';
 import '../../../domain/social/connection.dart';
 import '../../../domain/social/safety.dart';
@@ -26,6 +28,7 @@ List<SignInMethod> signInMethodsFor(TargetPlatform platform, {bool isWeb = kIsWe
 /// - `profiles/{uid}`: `{handle, name}`
 /// - `connections/{uidA_uidB}`: `{members, requestedBy, status, people}`
 /// - `bills/{id}`: one shared bill, readable by its `members`
+/// - `bills/{id}/edits/{editId}`: `{by, at, changes}`, what each edit changed; write-once
 /// - `settlements/{id}`: readable by `from` and `to`
 /// - `blocks/{blocker_blocked}`: `{blocker, blocked, profile, at}`
 /// - `reports/{id}`: write-only, read by moderators in the Firebase console
@@ -314,9 +317,20 @@ class FirebaseSocialBackend implements SocialBackend {
 
   @override
   Future<void> saveBill(SharedBill bill) async {
-    _uid; // must be signed in
-    _write(
-      _bills.doc(bill.id).set({
+    final me = _uid; // must be signed in
+    final ref = _bills.doc(bill.id);
+    // The version this device last saw, to record what changed. Bills you're
+    // on are always in the cache (watchBills listens to them), so this works
+    // offline too. A new bill has nothing to compare with.
+    SharedBill? before;
+    try {
+      final cached = await ref.get(const GetOptions(source: Source.cache));
+      if (cached.exists) before = _toBill(cached.id, cached.data()!);
+    } on FirebaseException {
+      before = null;
+    }
+    final batch = _db.batch()
+      ..set(ref, {
         'createdBy': bill.createdBy,
         'members': bill.members,
         'people': {for (final p in bill.people.values) p.uid: p.toJson()},
@@ -332,8 +346,38 @@ class FirebaseSocialBackend implements SocialBackend {
         'createdAt': bill.createdAt.millisecondsSinceEpoch,
         'editedAt': bill.editedAt.millisecondsSinceEpoch,
         'deleted': bill.deleted,
-      }),
-    );
+      });
+    final changes = before == null ? const <EditField, FieldChange>{} : billChanges(before, bill);
+    if (changes.isNotEmpty) {
+      batch.set(ref.collection('edits').doc(newId()), {
+        'by': me,
+        'at': bill.editedAt.millisecondsSinceEpoch,
+        'changes': Edit.changesToJson(changes),
+      });
+    }
+    _write(batch.commit());
+  }
+
+  @override
+  Stream<List<Edit>> watchBillEdits(String billId) {
+    if (currentAccount == null) return Stream.value(const []);
+    return _bills
+        .doc(billId)
+        .collection('edits')
+        .orderBy('at', descending: true)
+        .snapshots()
+        .map(
+          (s) => [
+            for (final doc in s.docs)
+              Edit(
+                id: doc.id,
+                subjectId: billId,
+                at: DateTime.fromMillisecondsSinceEpoch((doc.data()['at'] as num?)?.toInt() ?? 0),
+                by: doc.data()['by'] as String?,
+                changes: Edit.changesFromJson(doc.data()['changes']),
+              ),
+          ],
+        );
   }
 
   @override
