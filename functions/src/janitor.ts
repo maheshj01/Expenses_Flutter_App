@@ -1,6 +1,7 @@
 import * as logger from "firebase-functions/logger";
 import {onSchedule} from "firebase-functions/v2/scheduler";
 import {purgeDeletedAccounts} from "./accountDeletion";
+import {resendKey} from "./accountMail";
 import {runChores} from "./chores";
 import {markInactiveAccounts} from "./inactiveAccounts";
 import {purgeDeletedRecords} from "./recordPurge";
@@ -14,7 +15,8 @@ import {purgeDeletedRecords} from "./recordPurge";
  * Add a new nightly chore here rather than as its own scheduled function.
  */
 export const janitor = onSchedule(
-    {schedule: "every day 03:00", timeZone: "UTC", timeoutSeconds: 540},
+    // Inactive accounts are emailed a warning, so the janitor needs the key.
+    {schedule: "every day 03:00", timeZone: "UTC", timeoutSeconds: 540, secrets: [resendKey], maxInstances: 1},
     async () => {
       const results = await runChores([
         // Accounts first: erasing one takes its records with it. Inactive

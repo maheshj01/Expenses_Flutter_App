@@ -1,57 +1,49 @@
 import {getAuth} from "firebase-admin/auth";
-import {Timestamp} from "firebase-admin/firestore";
 import * as logger from "firebase-functions/logger";
 import {defineSecret} from "firebase-functions/params";
-import {onDocumentWritten} from "firebase-functions/v2/firestore";
 import {Resend} from "resend";
-import {DeletionReason, canEmail, deletionChange, pausedEmail, restoredEmail} from "./accountEmails";
+import {DeletionReason, canEmail, pausedEmail, restoredEmail} from "./accountEmails";
 
-const resendKey = defineSecret("RESEND_API_KEY");
+/** Resend's API key. Functions that send email list it in `secrets`. */
+export const resendKey = defineSecret("RESEND_API_KEY");
+
+/** What happened to the account, and for "paused", when it goes and why. */
+export type AccountNews =
+  | {kind: "paused"; purgeAfter: Date; reason: DeletionReason}
+  | {kind: "restored"};
 
 /**
  * Emails the person when their account is marked for deletion (asked for,
- * or left inactive) and when it is brought back. Watches the marker itself
- * rather than the callables, so every way in and out of a deletion is
- * covered. A purge removes the document and sends nothing.
+ * or left inactive) and when it's brought back. Called by the code that
+ * makes those changes (accountDeletion.ts, inactiveAccounts.ts) rather
+ * than from a Firestore trigger: one function fewer, and no Eventarc.
+ *
+ * Never throws: a missing address or a failed send is logged, and the
+ * deletion or restore it reports on still stands.
+ * @param {string} uid The account.
+ * @param {AccountNews} news What to tell them.
  */
-export const onAccountDeletionChanged = onDocumentWritten(
-    {document: "users/{uid}", secrets: [resendKey]},
-    async (event) => {
-      const change = event.data;
-      if (!change) return;
-      const after = change.after.exists ? change.after.get("deletion") : undefined;
-      const kind = deletionChange(change.before.get("deletion"), after, change.after.exists);
-      if (!kind) return;
-
-      const uid = event.params.uid;
-      let email: string | undefined;
-      try {
-        email = (await getAuth().getUser(uid)).email;
-      } catch (error) {
-        logger.warn("no user to email", {uid, error: String(error)});
-        return;
-      }
-      if (!canEmail(email)) {
-        logger.info("account email skipped: no reachable address", {uid, kind});
-        return;
-      }
-
-      const mail = kind === "paused" ?
-        pausedEmail({
-          to: email,
-          purgeAfter: (after.purgeAfter as Timestamp).toDate(),
-          reason: (after.reason as DeletionReason | undefined) ?? "requested",
-        }) :
-        restoredEmail({to: email});
-      const {data, error} = await new Resend(resendKey.value()).emails.send({
-        from: "Three Bucks <support@widgetmedialabs.com>",
-        to: email,
-        ...mail,
-      });
-      if (error) {
-        logger.error("account email failed", {uid, kind, error: error.message});
-        return;
-      }
-      logger.info("account email sent", {uid, kind, resendId: data?.id});
-    },
-);
+export async function sendAccountEmail(uid: string, news: AccountNews): Promise<void> {
+  try {
+    const email = (await getAuth().getUser(uid)).email;
+    if (!canEmail(email)) {
+      logger.info("account email skipped: no reachable address", {uid, kind: news.kind});
+      return;
+    }
+    const mail = news.kind === "paused" ?
+      pausedEmail({to: email, purgeAfter: news.purgeAfter, reason: news.reason}) :
+      restoredEmail({to: email});
+    const {data, error} = await new Resend(resendKey.value()).emails.send({
+      from: "Three Bucks <support@widgetmedialabs.com>",
+      to: email,
+      ...mail,
+    });
+    if (error) {
+      logger.error("account email failed", {uid, kind: news.kind, error: error.message});
+      return;
+    }
+    logger.info("account email sent", {uid, kind: news.kind, resendId: data?.id});
+  } catch (error) {
+    logger.error("account email failed", {uid, kind: news.kind, error: String(error)});
+  }
+}

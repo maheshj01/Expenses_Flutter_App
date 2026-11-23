@@ -3,6 +3,7 @@ import {DocumentReference, FieldValue, QueryDocumentSnapshot, Timestamp, getFire
 import * as logger from "firebase-functions/logger";
 import {HttpsError, onCall} from "firebase-functions/v2/https";
 import type {DeletionReason} from "./accountEmails";
+import {sendAccountEmail, resendKey} from "./accountMail";
 import {decideDeletion, purgeAfter} from "./deletionPolicy";
 import {cameBack, lastActive} from "./inactivity";
 
@@ -46,7 +47,7 @@ const enforceAppCheck = false;
  * Returns {erased: true} or {purgeAfter: <ms since epoch>}.
  */
 export const requestAccountDeletion = onCall(
-    {enforceAppCheck, timeoutSeconds: 120},
+    {enforceAppCheck, timeoutSeconds: 120, secrets: [resendKey]},
     async (request) => {
       const auth = request.auth;
       if (!auth) throw new HttpsError("unauthenticated", "sign in first");
@@ -59,8 +60,11 @@ export const requestAccountDeletion = onCall(
         return {erased: true};
       }
 
-      const {purgeAfter: when} = await scheduleDeletion(uid, "requested");
+      const {purgeAfter: when, marked} = await scheduleDeletion(uid, "requested");
       logger.info("account scheduled for deletion", {uid, purgeAfter: when.toDate().toISOString()});
+      if (marked) {
+        await sendAccountEmail(uid, {kind: "paused", purgeAfter: when.toDate(), reason: "requested"});
+      }
       return {purgeAfter: when.toMillis()};
     },
 );
@@ -97,12 +101,18 @@ export async function scheduleDeletion(uid: string, reason: DeletionReason):
 
 /** Cancels a pending deletion for the signed-in account. */
 export const restoreAccount = onCall(
-    {enforceAppCheck},
+    {enforceAppCheck, secrets: [resendKey]},
     async (request) => {
       const auth = request.auth;
       if (!auth) throw new HttpsError("unauthenticated", "sign in first");
-      await userDoc(auth.uid).set({deletion: FieldValue.delete()}, {merge: true});
-      logger.info("account restored", {uid: auth.uid});
+      const ref = userDoc(auth.uid);
+      const wasPending = await db().runTransaction(async (tx) => {
+        const pending = (await tx.get(ref)).get("deletion") != null;
+        if (pending) tx.set(ref, {deletion: FieldValue.delete()}, {merge: true});
+        return pending;
+      });
+      logger.info("account restored", {uid: auth.uid, wasPending});
+      if (wasPending) await sendAccountEmail(auth.uid, {kind: "restored"});
       return {restored: true};
     },
 );
@@ -126,6 +136,7 @@ export async function purgeDeletedAccounts(): Promise<number> {
         if (await usedSinceMarkedInactive(doc)) {
           await doc.ref.update({deletion: FieldValue.delete()});
           logger.info("inactive mark lifted: account was used", {uid: doc.id});
+          await sendAccountEmail(doc.id, {kind: "restored"});
           continue;
         }
         await eraseAccount(doc.id);

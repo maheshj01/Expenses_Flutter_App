@@ -1,6 +1,7 @@
 import {getAuth} from "firebase-admin/auth";
 import * as logger from "firebase-functions/logger";
 import {eraseAccount, scheduleDeletion} from "./accountDeletion";
+import {sendAccountEmail} from "./accountMail";
 import {isInactive, lastActive} from "./inactivity";
 
 /** Accounts handled per run, so a backlog spreads over nights, not one timeout. */
@@ -28,8 +29,12 @@ export async function markInactiveAccounts(): Promise<number> {
         if (user.providerData.length === 0) {
           await eraseAccount(user.uid);
           done++;
-        } else if ((await scheduleDeletion(user.uid, "inactive")).marked) {
-          done++;
+        } else {
+          const {purgeAfter, marked} = await scheduleDeletion(user.uid, "inactive");
+          if (marked) {
+            await sendAccountEmail(user.uid, {kind: "paused", purgeAfter: purgeAfter.toDate(), reason: "inactive"});
+            done++;
+          }
         }
       } catch (error) {
         logger.error("inactive account not handled", {uid: user.uid, error: String(error)});

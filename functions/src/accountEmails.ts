@@ -29,21 +29,6 @@ const APP_URL = "https://www.widgetmedialabs.com/three-bucks";
 const DAY = 24 * 60 * 60 * 1000;
 
 /**
- * Which email a change to users/{uid}.deletion calls for: "paused" when
- * the marker appears, "restored" when it is cleared on an account that
- * still exists (a purge removes the whole document, and says nothing).
- * @param {unknown} before The deletion marker before the write.
- * @param {unknown} after The deletion marker after the write.
- * @param {boolean} stillExists Whether users/{uid} exists after the write.
- * @return {"paused" | "restored" | null} The email to send, if any.
- */
-export function deletionChange(before: unknown, after: unknown, stillExists: boolean): "paused" | "restored" | null {
-  if (!before && after) return "paused";
-  if (before && !after && stillExists) return "restored";
-  return null;
-}
-
-/**
  * Whether we can write to this address. Apple's "Hide My Email" relay
  * drops mail from senders not registered with Apple, so it is skipped
  * until one is.

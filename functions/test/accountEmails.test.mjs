@@ -1,16 +1,6 @@
 import assert from "node:assert/strict";
 import {test} from "node:test";
-import {canEmail, deletionChange, pausedEmail, restoredEmail} from "../lib/accountEmails.js";
-
-const marker = {purgeAfter: "x"};
-
-test("a new mark pauses, a cleared one restores, a purge says nothing", () => {
-  assert.equal(deletionChange(undefined, marker, true), "paused");
-  assert.equal(deletionChange(marker, undefined, true), "restored");
-  assert.equal(deletionChange(marker, undefined, false), null);
-  assert.equal(deletionChange(marker, marker, true), null);
-  assert.equal(deletionChange(undefined, undefined, true), null);
-});
+import {canEmail, pausedEmail, restoredEmail} from "../lib/accountEmails.js";
 
 test("Apple's hidden relay addresses and missing emails are skipped", () => {
   assert.equal(canEmail("a@example.com"), true);

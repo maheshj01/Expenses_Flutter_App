@@ -149,8 +149,8 @@ can't be bent by a client:
   Either way the phone is cleared and a goodbye page leads back to onboarding.
 - Signing in again within 30 days asks whether to restore it (`restoreAccount`). A phone still
   signed in to a frozen account shows a page with the days left, Restore, or Continue deleting.
-- Emails go out when an account is paused and when it's restored (`onAccountDeletionChanged`, via
-  Resend).
+- Emails go out when an account is paused and when it's restored, via Resend. The functions that
+  make those changes send them; there's no Firestore trigger.
 
 A nightly `janitor` function runs three chores in order, each on its own, so one failing never
 stops the others:
@@ -161,6 +161,12 @@ stops the others:
    connections, blocks and everything under `users/{uid}`. Shared bills, settlements and reports
    stay.
 3. `deletedRecords`: soft-deleted entries, categories and entry edits older than 90 days.
+
+There are three functions in all: the two callables and the janitor. To keep the bill near zero
+([`functions/src/options.ts`](functions/src/options.ts)), each runs in `us-central1` (next to
+Firestore) with 256 MiB, no warm instances and at most two instances (one for the janitor), and
+container images are kept for a day. At Three Bucks' scale this stays inside the free tiers of
+Cloud Functions, Cloud Scheduler (one job), Secret Manager and Resend.
 
 Functions need the **Blaze** (pay as you go) plan and a [Resend](https://resend.com) API key:
 
