@@ -53,7 +53,7 @@ class CategoriesStep extends StatelessWidget {
         ),
         const SizedBox(height: 18),
         Text(
-          '📈 Investment and 💼 Salary are always included.',
+          '🐷 Savings, 📈 Investment and 💼 Salary are always included.',
           style: TextStyle(color: c.muted, fontSize: 13),
         ),
       ],

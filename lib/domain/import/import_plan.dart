@@ -397,8 +397,9 @@ abstract final class ImportPlanner {
   }
 
   static CategoryKind _kindFor(String key) {
-    if (RegExp(r'invest|stock|share|crypto|401k|\bira\b|brokerage|etf|mutual|\bsip\b|retire')
-        .hasMatch(key)) {
+    if (RegExp(
+      r'invest|saving|emergency fund|fixed deposit|stock|share|crypto|401k|\bira\b|brokerage|etf|mutual|\bsip\b|retire',
+    ).hasMatch(key)) {
       return CategoryKind.investing;
     }
     if (RegExp(r'salary|income|paycheck|payroll|wage|bonus|dividend|interest earned')
@@ -427,6 +428,7 @@ abstract final class ImportPlanner {
     'insur': '🛡️',
     'gym|fitness|sport': '🏋️',
     'electronic|gadget|tech': '💻',
+    'saving|emergency fund|deposit': '🐷',
     'invest|stock|crypto|retire': '📈',
     'salary|income|pay|bonus': '💼',
     'loan|debt|credit': '💳',

@@ -32,11 +32,19 @@ const defaultCategories = <Category>[
     sortOrder: 12,
   ),
   Category(
+    id: 'savings',
+    name: 'Savings',
+    emoji: '🐷',
+    color: 0xFFE4F4EC,
+    kind: CategoryKind.investing,
+    sortOrder: 13,
+  ),
+  Category(
     id: 'salary',
     name: 'Salary',
     emoji: '💼',
     color: 0xFFFBF0DC,
     kind: CategoryKind.income,
-    sortOrder: 13,
+    sortOrder: 14,
   ),
 ];
