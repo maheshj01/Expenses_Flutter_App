@@ -67,6 +67,14 @@ class DriftEntryRepository implements EntryRepository, LocalSyncSource {
     return (await query.get()).map(_toEntity).toList();
   }
 
+  @override
+  Stream<Set<String>> watchSharedBillIds() {
+    final query = _db.selectOnly(_t)
+      ..addColumns([_t.billId])
+      ..where(_t.deleted.equals(false) & _t.billId.isNotNull());
+    return query.watch().map((rows) => {for (final r in rows) r.read(_t.billId)!});
+  }
+
   EntriesCompanion _companion(LedgerEntry entry, int now) => EntriesCompanion.insert(
     id: entry.id,
     amountCents: entry.amountCents,

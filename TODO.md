@@ -36,7 +36,7 @@ Things left open, roughly in the order they matter.
 ## Sharing, later
 
 - [ ] Enforce "only split with connections" in `firestore.rules` too (today only the app
-      ignores bills from strangers).
+      ignores bills from strangers, in the ledger and in balances).
 - [ ] Groups (a saved set of people)
 - [ ] Uneven splits (exact amounts, percentages, shares)
 - [ ] Comments on a bill, if flag notes turn out not to be enough

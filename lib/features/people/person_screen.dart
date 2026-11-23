@@ -20,15 +20,24 @@ import 'safety_sheets.dart';
 
 /// Everything shared with one person: the balance, settling up, and every
 /// bill and payment between you.
+///
+/// Also opens for someone you're no longer connected with who still has an
+/// open balance: you can settle up, report or block, but not split new
+/// bills or remove them.
 class PersonScreen extends ConsumerWidget {
-  const PersonScreen({super.key, required this.connection});
+  const PersonScreen({super.key, required this.person});
 
-  final Connection connection;
+  final Profile person;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.colors;
-    final other = connection.other;
+    final other = person;
+    // Looked up live, so blocking or being removed shows at once.
+    final connection = ref
+        .watch(friendsProvider)
+        .where((f) => f.other.uid == person.uid)
+        .firstOrNull;
     final me = ref.watch(accountProvider).value?.uid ?? '';
     final balance = ref.watch(balancesProvider).withPerson(other.uid);
     final bills = ref.watch(billsWithProvider(other.uid));
@@ -49,8 +58,9 @@ class PersonScreen extends ConsumerWidget {
         actions: [
           SafetyMenuButton(
             person: other,
-            onRemove: () => _disconnect(context, ref),
-            onBlocked: () => Navigator.of(context).pop(),
+            onRemove: connection == null ? null : () => _disconnect(context, ref, connection),
+            // While a balance is open they stay reachable from People.
+            onBlocked: balance.isEmpty ? () => Navigator.of(context).pop() : null,
           ),
         ],
       ),
@@ -66,7 +76,16 @@ class PersonScreen extends ConsumerWidget {
                   other.displayName,
                   style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
                 ),
-                Text('@${other.handle}', style: TextStyle(color: c.muted)),
+                if (other.handle.isNotEmpty)
+                  Text('@${other.handle}', style: TextStyle(color: c.muted)),
+                if (connection == null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Text(
+                      'Not connected · settle up to clear the balance',
+                      style: TextStyle(color: c.muted, fontSize: 13),
+                    ),
+                  ),
                 const SizedBox(height: 16),
                 Text(
                   main == 0
@@ -137,8 +156,13 @@ class PersonScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _disconnect(BuildContext context, WidgetRef ref) async {
-    final name = connection.other.displayName;
+  Future<void> _disconnect(BuildContext context, WidgetRef ref, Connection connection) async {
+    final name = person.displayName;
+    final balance = ref.read(balancesProvider).withPerson(person.uid);
+    if (balance.isNotEmpty) {
+      await _settleFirst(context, ref, balance);
+      return;
+    }
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -155,6 +179,43 @@ class PersonScreen extends ConsumerWidget {
     if (ok != true) return;
     await ref.read(socialBackendProvider)!.removeConnection(connection.id);
     if (context.mounted) Navigator.of(context).pop();
+  }
+
+  /// Explains that [person] can only be removed once the balance is zero,
+  /// and offers to settle up (or block instead).
+  Future<void> _settleFirst(BuildContext context, WidgetRef ref, Map<String, int> balance) async {
+    final name = person.displayName;
+    final currency = ref.read(settingsProvider).currencyCode;
+    final mainCurrency = balance.containsKey(currency) ? currency : balance.keys.first;
+    final main = balance[mainCurrency]!;
+    final amount = MoneyFormat(mainCurrency)(main.abs());
+    final settle = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Settle up with $name first'),
+        content: Text(
+          '${main > 0 ? '$name owes you $amount' : 'You owe $name $amount'}'
+          '${balance.length > 1 ? ', plus balances in other currencies' : ''}. '
+          'You can remove $name once you’re settled up. '
+          'To stop them sharing with you right away, block them instead.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Settle up'),
+          ),
+        ],
+      ),
+    );
+    if (settle != true || !context.mounted) return;
+    await showSettleUpSheet(
+      context,
+      other: person,
+      me: ref.read(accountProvider).value?.uid ?? '',
+      balanceCents: main,
+      currency: mainCurrency,
+    );
   }
 }
 

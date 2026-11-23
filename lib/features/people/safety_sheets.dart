@@ -38,22 +38,29 @@ class SafetyMenuButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.colors;
+    final blocked = (ref.watch(blockedProvider).value ?? const []).any(
+      (b) => b.profile.uid == person.uid,
+    );
     return PopupMenuButton<String>(
       tooltip: 'More for ${person.displayName}',
       icon: Icon(icon ?? Icons.more_vert_rounded),
       onSelected: (action) => switch (action) {
         'report' => _report(context),
         'block' => _block(context, ref),
+        'unblock' => ref.read(socialBackendProvider)!.unblock(person.uid),
         _ => onRemove?.call(),
       },
       itemBuilder: (_) => [
         if (onRemove != null)
           PopupMenuItem(value: 'remove', child: Text('Remove ${person.displayName}')),
         PopupMenuItem(value: 'report', child: Text('Report ${person.displayName}')),
-        PopupMenuItem(
-          value: 'block',
-          child: Text('Block ${person.displayName}', style: TextStyle(color: c.warn)),
-        ),
+        if (blocked)
+          PopupMenuItem(value: 'unblock', child: Text('Unblock ${person.displayName}'))
+        else
+          PopupMenuItem(
+            value: 'block',
+            child: Text('Block ${person.displayName}', style: TextStyle(color: c.warn)),
+          ),
       ],
     );
   }
@@ -117,7 +124,11 @@ class _ReportSheet extends ConsumerStatefulWidget {
 
 class _ReportSheetState extends ConsumerState<_ReportSheet> {
   ReportReason? _reason;
-  bool _block = true;
+
+  late final bool _alreadyBlocked = (ref.read(blockedProvider).value ?? const []).any(
+    (b) => b.profile.uid == widget.person.uid,
+  );
+  late bool _block = !_alreadyBlocked;
   bool _sending = false;
   final _note = TextEditingController();
 
@@ -200,13 +211,14 @@ class _ReportSheetState extends ConsumerState<_ReportSheet> {
               textCapitalization: TextCapitalization.sentences,
               decoration: const InputDecoration(hintText: 'What happened? (optional)'),
             ),
-            CheckboxListTile(
-              value: _block,
-              onChanged: (v) => setState(() => _block = v ?? _block),
-              contentPadding: EdgeInsets.zero,
-              controlAffinity: ListTileControlAffinity.leading,
-              title: Text('Also block $name'),
-            ),
+            if (!_alreadyBlocked)
+              CheckboxListTile(
+                value: _block,
+                onChanged: (v) => setState(() => _block = v ?? _block),
+                contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
+                title: Text('Also block $name'),
+              ),
             const SizedBox(height: 8),
             FilledButton.icon(
               style: FilledButton.styleFrom(backgroundColor: c.warn),

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/providers.dart';
 import '../../app/social_providers.dart';
 import '../../app/theme.dart';
+import '../../domain/social/account.dart';
 import '../../domain/social/connection.dart';
 import '../../shared/animations/animated_amount.dart';
 import '../../shared/animations/fade_slide_in.dart';
@@ -106,6 +107,7 @@ class _PeopleHomeState extends ConsumerState<_PeopleHome> {
     final incoming = connections.where((x) => x.isIncomingRequest).toList();
     final outgoing = connections.where((x) => x.isOutgoingRequest).toList();
     final balances = ref.watch(balancesProvider);
+    final unsettled = ref.watch(unsettledPeopleProvider);
     final unread = ref.watch(inboxUnreadProvider);
     final currency = ref.watch(settingsProvider.select((s) => s.currencyCode));
     final backend = ref.read(socialBackendProvider)!;
@@ -230,12 +232,34 @@ class _PeopleHomeState extends ConsumerState<_PeopleHome> {
                   FadeSlideIn(
                     key: ValueKey(f.id),
                     index: i++,
-                    child: _FriendRow(connection: f, balance: balances.withPerson(f.other.uid)),
+                    child: _PersonRow(person: f.other, balance: balances.withPerson(f.other.uid)),
                   ),
                 ],
               ],
             ),
           ),
+        if (unsettled.isNotEmpty) ...[
+          const SectionHeader('Settle up'),
+          AppCard(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+            child: Column(
+              children: [
+                for (final (j, u) in unsettled.indexed) ...[
+                  if (j > 0) const Divider(indent: 52),
+                  FadeSlideIn(
+                    key: ValueKey('unsettled-${u.profile.uid}'),
+                    index: i++,
+                    child: _PersonRow(
+                      person: u.profile,
+                      balance: u.balance,
+                      status: u.blocked ? 'Blocked' : 'Not connected',
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
         if (outgoing.isNotEmpty) ...[
           const SectionHeader('Waiting for them'),
           AppCard(
@@ -308,20 +332,24 @@ class _Totals extends StatelessWidget {
   }
 }
 
-class _FriendRow extends StatelessWidget {
-  const _FriendRow({required this.connection, required this.balance});
+/// A connection, or someone you still have to settle up with; [status] is
+/// added to the username line for them.
+class _PersonRow extends StatelessWidget {
+  const _PersonRow({required this.person, required this.balance, this.status});
 
-  final Connection connection;
+  final Profile person;
   final Map<String, int> balance;
+  final String? status;
 
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    final other = connection.other;
+    final other = person;
+    final subtitle = [if (other.handle.isNotEmpty) '@${other.handle}', ?status].join(' · ');
     return InkWell(
       onTap: () =>
           Navigator.of(context)
-              .push(MaterialPageRoute<void>(builder: (_) => PersonScreen(connection: connection))),
+              .push(MaterialPageRoute<void>(builder: (_) => PersonScreen(person: person))),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10),
         child: Row(
@@ -333,7 +361,7 @@ class _FriendRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(other.displayName, style: const TextStyle(fontWeight: FontWeight.w600)),
-                  Text('@${other.handle}', style: TextStyle(color: c.muted, fontSize: 13)),
+                  Text(subtitle, style: TextStyle(color: c.muted, fontSize: 13)),
                 ],
               ),
             ),

@@ -77,13 +77,61 @@ final settlementsProvider = StreamProvider<List<Settlement>>((ref) {
   return backend.watchSettlements();
 });
 
+/// Shared bills that have your share in the ledger.
+final ledgerBillIdsProvider = StreamProvider<Set<String>>(
+  (ref) => ref.watch(entryRepositoryProvider).watchSharedBillIds(),
+);
+
+/// Bills that count towards balances: yours, those from people you're
+/// connected with, and those already in your ledger (from before you were
+/// disconnected). Like the ledger, this ignores bills strangers add you to.
+final trustedBillsProvider = Provider<List<SharedBill>>((ref) {
+  final me = _uid(ref);
+  final bills = ref.watch(billsProvider).value?.bills ?? const <SharedBill>[];
+  final connected = {for (final f in ref.watch(friendsProvider)) f.other.uid};
+  final inLedger = ref.watch(ledgerBillIdsProvider).value ?? const <String>{};
+  return [
+    for (final b in bills)
+      if (b.createdBy == me || connected.contains(b.createdBy) || inLedger.contains(b.id)) b,
+  ];
+});
+
 final balancesProvider = Provider<Balances>((ref) {
   final me = _uid(ref);
   if (me == null) return Balances.empty;
   return Balances.of(
     me,
-    ref.watch(billsProvider).value?.bills ?? const [],
+    ref.watch(trustedBillsProvider),
     ref.watch(settlementsProvider).value ?? const [],
+  );
+});
+
+/// Someone you're no longer connected with (removed or blocked, by you or
+/// them) who still has an open balance with you.
+typedef UnsettledPerson = ({Profile profile, Map<String, int> balance, bool blocked});
+
+/// People with an open balance who aren't connections, by name, so the
+/// balance can still be settled.
+final unsettledPeopleProvider = Provider<List<UnsettledPerson>>((ref) {
+  final balances = ref.watch(balancesProvider);
+  final friends = {for (final f in ref.watch(friendsProvider)) f.other.uid};
+  final blocked = {
+    for (final b in ref.watch(blockedProvider).value ?? const <BlockedPerson>[]) b.profile.uid: b,
+  };
+  final profiles = <String, Profile>{
+    for (final b in blocked.values) b.profile.uid: b.profile,
+    for (final bill in ref.watch(trustedBillsProvider)) ...bill.people,
+  };
+  return [
+    for (final uid in balances.people)
+      if (!friends.contains(uid))
+        (
+          profile: profiles[uid] ?? Profile(uid: uid, handle: '', name: 'Former connection'),
+          balance: balances.withPerson(uid),
+          blocked: blocked.containsKey(uid),
+        ),
+  ]..sort(
+    (a, b) => a.profile.displayName.toLowerCase().compareTo(b.profile.displayName.toLowerCase()),
   );
 });
 

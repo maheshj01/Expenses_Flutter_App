@@ -17,6 +17,10 @@ abstract interface class EntryRepository {
   /// Every entry that is a share of a bill split with people on the app.
   Future<List<LedgerEntry>> sharedEntries();
 
+  /// Ids of the shared bills that have an entry in the ledger, kept up to
+  /// date.
+  Stream<Set<String>> watchSharedBillIds();
+
   /// Inserts or updates [entry]. Updating one of your own entries (not a
   /// share of a bill) records what changed; see [watchEdits].
   Future<void> save(LedgerEntry entry);
