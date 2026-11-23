@@ -18,6 +18,15 @@ service cloud.firestore {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
     }
 
+    // True when [blocker] has blocked [other] (see /blocks below).
+    function hasBlocked(blocker, other) {
+      return exists(/databases/$(database)/documents/blocks/$(blocker + '_' + other));
+    }
+
+    function blockedEitherWay(a, b) {
+      return hasBlocked(a, b) || hasBlocked(b, a);
+    }
+
     // ---- personal data: each user can only read and write their own ----
     match /users/{uid}/{collection}/{recordId} {
       allow read, write: if signedIn() && me() == uid;
@@ -35,8 +44,9 @@ service cloud.firestore {
       allow delete: if hasAccount() && resource.data.uid == me();
     }
 
+    // Someone who blocked you can't be looked up by you.
     match /profiles/{uid} {
-      allow get: if hasAccount();
+      allow get: if hasAccount() && !hasBlocked(uid, me());
       allow create, update: if hasAccount() && me() == uid
         && request.resource.data.keys().hasOnly(['handle', 'name'])
         && request.resource.data.name is string
@@ -49,7 +59,8 @@ service cloud.firestore {
 
     // ---- connections ----
     // Id is "uidA_uidB" (sorted). The person asked is the only one who can
-    // accept; either side can decline or remove.
+    // accept; either side can decline or remove. No requests between people
+    // when either has blocked the other.
     match /connections/{id} {
       allow read: if hasAccount() && (resource == null || me() in resource.data.members);
       allow create: if hasAccount()
@@ -58,12 +69,14 @@ service cloud.firestore {
         && request.resource.data.members.size() == 2
         && me() in request.resource.data.members
         && request.resource.data.members[0] < request.resource.data.members[1]
-        && id == request.resource.data.members[0] + '_' + request.resource.data.members[1];
+        && id == request.resource.data.members[0] + '_' + request.resource.data.members[1]
+        && !blockedEitherWay(request.resource.data.members[0], request.resource.data.members[1]);
       allow update: if hasAccount()
         && me() in resource.data.members
         && me() != resource.data.requestedBy
         && changedOnly(['status'])
-        && request.resource.data.status == 'accepted';
+        && request.resource.data.status == 'accepted'
+        && !blockedEitherWay(resource.data.members[0], resource.data.members[1]);
       allow delete: if hasAccount() && me() in resource.data.members;
     }
 
@@ -103,6 +116,35 @@ service cloud.firestore {
         && request.resource.data.amountCents is int
         && request.resource.data.amountCents > 0;
       allow delete: if hasAccount() && resource.data.createdBy == me();
+    }
+
+    // ---- blocking ----
+    // "blocker_blocked". Only the blocker sees or removes it; the rules
+    // above use it to refuse requests and profile lookups.
+    match /blocks/{id} {
+      allow read: if hasAccount() && resource.data.blocker == me();
+      allow create: if hasAccount()
+        && request.resource.data.keys().hasOnly(['blocker', 'blocked', 'profile', 'at'])
+        && request.resource.data.blocker == me()
+        && request.resource.data.blocked is string
+        && request.resource.data.blocked != me()
+        && id == me() + '_' + request.resource.data.blocked;
+      allow delete: if hasAccount() && resource.data.blocker == me();
+    }
+
+    // ---- reports ----
+    // Write-only. Moderators read them in the Firebase console.
+    match /reports/{id} {
+      allow create: if hasAccount()
+        && request.resource.data.keys().hasOnly(
+          ['reporter', 'reportedUid', 'reported', 'reason', 'note', 'billId', 'at', 'createdAt'])
+        && request.resource.data.reporter == me()
+        && request.resource.data.reportedUid is string
+        && request.resource.data.reportedUid != me()
+        && request.resource.data.reason in ['spam', 'harassment', 'offensive', 'impersonation', 'other']
+        && request.resource.data.note is string
+        && request.resource.data.note.size() <= 500
+        && request.resource.data.createdAt == request.time;
     }
   }
 }

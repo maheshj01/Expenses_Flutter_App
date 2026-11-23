@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../app/account_deletion.dart';
 import '../../app/providers.dart';
 import '../../app/shell.dart';
 import '../../app/social_providers.dart';
+import '../../app/support.dart';
 import '../../app/theme.dart';
 import '../../data/sync/sync_status.dart';
+import '../../domain/social/social_backend.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/currency_picker.dart';
 import '../categories/categories_screen.dart';
@@ -14,6 +19,7 @@ import '../data_io/export_sheet.dart';
 import '../data_io/import_screen.dart';
 import '../home/budget_dialog.dart';
 import '../onboarding/onboarding_flow.dart';
+import '../people/safety_sheets.dart';
 import '../people/saved_guests_sheet.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -117,9 +123,48 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
           ),
+          if (Support.email.isNotEmpty || Support.privacyPolicyUrl.isNotEmpty) ...[
+            const SectionHeader('Help'),
+            AppCard(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Column(
+                children: [
+                  if (Support.email.isNotEmpty)
+                    _Item(
+                      icon: Icons.mail_outline_rounded,
+                      title: 'Contact support',
+                      value: 'Email',
+                      onTap: () => _contactSupport(context),
+                    ),
+                  if (Support.email.isNotEmpty && Support.privacyPolicyUrl.isNotEmpty)
+                    const Divider(indent: 56),
+                  if (Support.privacyPolicyUrl.isNotEmpty)
+                    _Item(
+                      icon: Icons.privacy_tip_outlined,
+                      title: 'Privacy policy',
+                      value: '',
+                      onTap: () => launchUrl(Uri.parse(Support.privacyPolicyUrl)),
+                    ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
+  }
+}
+
+Future<void> _contactSupport(BuildContext context) async {
+  try {
+    await FlutterEmailSender.send(const Email(recipients: [Support.email], subject: 'Three Bucks'));
+  } catch (_) {
+    // No mail account set up: fall back to a mailto: link, then to the address.
+    final opened = await launchUrl(Uri(scheme: 'mailto', path: Support.email));
+    if (!opened && context.mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Email us at ${Support.email}')));
+    }
   }
 }
 
@@ -247,9 +292,9 @@ class _AccountCard extends ConsumerWidget {
       builder: (context) => AlertDialog(
         title: const Text('Delete your account?'),
         content: const Text(
-          'Your username and connections are deleted and can’t be recovered. '
-          'Bills already shared stay visible to the others on them. '
-          'Everything you track stays on this device.',
+          'Your account, username, connections and online backup are deleted '
+          'and can’t be recovered. Bills already shared stay visible to the '
+          'others on them. Everything you track stays on this device.',
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
@@ -263,7 +308,12 @@ class _AccountCard extends ConsumerWidget {
     );
     if (ok != true) return;
     try {
-      await ref.read(socialBackendProvider)!.deleteAccount();
+      await deleteAccountAndData(
+        sync: ref.read(syncEngineProvider),
+        social: ref.read(socialBackendProvider)!,
+      );
+    } on SignInCancelled {
+      // Backed out of confirming who they are; nothing was deleted.
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
@@ -312,6 +362,25 @@ class _AccountCard extends ConsumerWidget {
             subtitle: Text(
               'with ${account.method.label}${account.email == null ? '' : ' · ${account.email}'}',
             ),
+          ),
+          const Divider(indent: 56),
+          ListTile(
+            leading: Icon(Icons.block_rounded, color: c.ink2),
+            title: const Text('Blocked people'),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '${ref.watch(blockedProvider).value?.length ?? 0}',
+                  style: TextStyle(color: c.muted),
+                ),
+                const SizedBox(width: 4),
+                Icon(Icons.chevron_right_rounded, color: c.muted),
+              ],
+            ),
+            onTap: () =>
+                Navigator.of(context)
+                    .push(MaterialPageRoute<void>(builder: (_) => const BlockedPeopleScreen())),
           ),
           const Divider(indent: 56),
           ListTile(

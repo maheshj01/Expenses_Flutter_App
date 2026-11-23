@@ -7,6 +7,7 @@ import '../domain/social/account.dart';
 import '../domain/social/balances.dart';
 import '../domain/social/connection.dart';
 import '../domain/social/inbox.dart';
+import '../domain/social/safety.dart';
 import '../domain/social/settlement.dart';
 import '../domain/social/shared_bill.dart';
 import '../domain/social/social_backend.dart';
@@ -34,6 +35,13 @@ final connectionsProvider = StreamProvider<List<Connection>>((ref) {
   final backend = ref.watch(socialBackendProvider);
   if (backend == null || _uid(ref) == null) return Stream.value(const []);
   return backend.watchConnections();
+});
+
+/// People you blocked, newest first.
+final blockedProvider = StreamProvider<List<BlockedPerson>>((ref) {
+  final backend = ref.watch(socialBackendProvider);
+  if (backend == null || _uid(ref) == null) return Stream.value(const []);
+  return backend.watchBlocked();
 });
 
 /// People you can split bills with, by name.

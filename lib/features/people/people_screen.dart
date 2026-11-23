@@ -15,6 +15,7 @@ import 'add_person_sheet.dart';
 import 'inbox_screen.dart';
 import 'people_widgets.dart';
 import 'person_screen.dart';
+import 'safety_sheets.dart';
 
 /// The People tab: sign in, pick a username, then everyone you split with.
 class PeopleScreen extends ConsumerWidget {
@@ -148,34 +149,48 @@ class _PeopleHomeState extends ConsumerState<_PeopleHome> {
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: AppCard(
-                  padding: const EdgeInsets.fromLTRB(14, 10, 10, 10),
-                  child: Row(
+                  padding: const EdgeInsets.fromLTRB(14, 6, 4, 10),
+                  child: Column(
                     children: [
-                      PersonAvatar(r.other),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              r.other.displayName,
-                              style: const TextStyle(fontWeight: FontWeight.w600),
+                      Row(
+                        children: [
+                          PersonAvatar(r.other),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  r.other.displayName,
+                                  style: const TextStyle(fontWeight: FontWeight.w600),
+                                ),
+                                Text(
+                                  '@${r.other.handle}',
+                                  style: TextStyle(color: c.muted, fontSize: 13),
+                                ),
+                              ],
                             ),
-                            Text(
-                              '@${r.other.handle}',
-                              style: TextStyle(color: c.muted, fontSize: 13),
+                          ),
+                          SafetyMenuButton(person: r.other, icon: Icons.more_horiz_rounded),
+                        ],
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(right: 6),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: () => backend.removeConnection(r.id),
+                              child: const Text('Decline'),
+                            ),
+                            const SizedBox(width: 6),
+                            FilledButton(
+                              style: compactButton,
+                              onPressed: () => backend.acceptConnection(r.id),
+                              child: const Text('Accept'),
                             ),
                           ],
                         ),
-                      ),
-                      TextButton(
-                        onPressed: () => backend.removeConnection(r.id),
-                        child: const Text('Decline'),
-                      ),
-                      FilledButton(
-                        style: compactButton,
-                        onPressed: () => backend.acceptConnection(r.id),
-                        child: const Text('Accept'),
                       ),
                     ],
                   ),

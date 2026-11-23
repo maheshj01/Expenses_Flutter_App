@@ -4,10 +4,11 @@ Things left open, roughly in the order they matter.
 
 ## Before release
 
-- [ ] **Delete account should erase the backup.** Today it removes the sign-in, username, profile
-      and connections, but entries and categories stay in Firestore under `users/{uid}`.
-      Delete that data too, then drop the "email us" line from the privacy policy
+- [x] **Delete account should erase the backup.** It now erases `users/{uid}` too.
+- [ ] Drop the "email us" deletion line from the privacy policy and mention reports and blocks
       (`wmlabs/src/routes/three-bucks/privacy/ThreeBucksPrivacy.tsx`).
+- [x] Fill in the support email and privacy policy URL in `lib/app/support.dart`.
+- [ ] Check reports (Firestore → `reports`) daily once live.
 - [ ] Multiple device login should keep data consistent across devices. Or We should allow Single Sign In?
 - [ ] **Delete-account web page** at `/three-bucks/delete-account` on the wmlabs site, like
       Epoch's. Google Play requires one outside the app.
@@ -18,7 +19,7 @@ Things left open, roughly in the order they matter.
   - [ ] Authentication → enable Apple and Google sign-in
   - [ ] Xcode → Runner → Signing & Capabilities → add Sign in with Apple (paid team)
   - [ ] Android: add SHA-1 and SHA-256 fingerprints, re-download `google-services.json`
-  - [ ] `firebase deploy --only firestore:rules`
+  - [x] `firebase deploy --only firestore:rules`
 - [ ] **Test real sync and sharing** on two devices against Firebase (only tested with the
       in-memory backends so far).
 - [ ] **Check the Android icon** (adaptive and themed) on a device or emulator.

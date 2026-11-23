@@ -15,6 +15,7 @@ import '../../shared/money_format.dart';
 import '../../shared/widgets/category_avatar.dart';
 import '../entries/entry_editor_sheet.dart';
 import 'people_widgets.dart';
+import 'safety_sheets.dart';
 import 'split_picker_sheet.dart';
 
 /// Details of a shared bill. The payer can edit it, delete it or take
@@ -160,6 +161,13 @@ class BillSheet extends ConsumerWidget {
                       onWithdraw: () => ref.read(socialBackendProvider)!.setFlag(bill.id, null),
                     ),
             ),
+            if (bill.people[bill.createdBy] case final payer?)
+              TextButton.icon(
+                onPressed: () => showReportSheet(context, payer, billId: bill.id),
+                style: TextButton.styleFrom(foregroundColor: c.muted),
+                icon: const Icon(Icons.outlined_flag_rounded, size: 18),
+                label: const Text('Report this bill'),
+              ),
           ],
         ],
       ),

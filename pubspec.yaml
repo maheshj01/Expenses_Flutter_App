@@ -26,6 +26,7 @@ dependencies:
   share_plus: ^13.3.1
   shared_preferences: ^2.5.6
   spreadsheet_decoder: ^2.3.0
+  url_launcher: ^6.3.3
   uuid: ^4.6.0
 
 dev_dependencies:

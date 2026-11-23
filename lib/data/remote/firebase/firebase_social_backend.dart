@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import '../../../core/day.dart';
 import '../../../domain/social/account.dart';
 import '../../../domain/social/connection.dart';
+import '../../../domain/social/safety.dart';
 import '../../../domain/social/settlement.dart';
 import '../../../domain/social/shared_bill.dart';
 import '../../../domain/social/social_backend.dart';
@@ -26,6 +27,8 @@ List<SignInMethod> signInMethodsFor(TargetPlatform platform, {bool isWeb = kIsWe
 /// - `connections/{uidA_uidB}`: `{members, requestedBy, status, people}`
 /// - `bills/{id}`: one shared bill, readable by its `members`
 /// - `settlements/{id}`: readable by `from` and `to`
+/// - `blocks/{blocker_blocked}`: `{blocker, blocked, profile, at}`
+/// - `reports/{id}`: write-only, read by moderators in the Firebase console
 ///
 /// Writes are not awaited past the local cache: Firestore applies them
 /// locally at once and sends them when online, which keeps sharing usable
@@ -114,9 +117,21 @@ class FirebaseSocialBackend implements SocialBackend {
   Future<void> signOut() => _auth.signOut();
 
   @override
-  Future<void> deleteAccount() async {
+  Future<void> deleteAccount({Future<void> Function()? eraseData}) async {
     final user = _auth.currentUser;
     if (user == null) return;
+    final method = currentAccount?.method ?? SignInMethod.google;
+    // Deleting needs a recent sign-in, and Apple wants its token revoked,
+    // which takes a fresh authorization code. So confirm first, before
+    // anything is deleted.
+    final UserCredential confirmed;
+    try {
+      confirmed = await user.reauthenticateWithProvider(_provider(method));
+    } on FirebaseAuthException catch (e) {
+      if (_isCancel(e)) throw const SignInCancelled();
+      throw SocialError(e.message ?? 'Couldn’t confirm it’s you (${e.code})');
+    }
+    await eraseData?.call();
     final uid = user.uid;
     final profile = await _db.collection('profiles').doc(uid).get();
     final handle = profile.data()?['handle'] as String?;
@@ -124,21 +139,23 @@ class FirebaseSocialBackend implements SocialBackend {
         .collection('connections')
         .where('members', arrayContains: uid)
         .get();
+    final blocks = await _blocks.where('blocker', isEqualTo: uid).get();
     final batch = _db.batch();
-    for (final c in connections.docs) {
-      batch.delete(c.reference);
+    for (final doc in [...connections.docs, ...blocks.docs]) {
+      batch.delete(doc.reference);
     }
     if (handle != null) batch.delete(_db.collection('handles').doc(handle));
     batch.delete(profile.reference);
     await batch.commit();
-    try {
-      await user.delete();
-    } on FirebaseAuthException catch (e) {
-      if (e.code != 'requires-recent-login') rethrow;
-      final method = currentAccount?.method ?? SignInMethod.google;
-      await user.reauthenticateWithProvider(_provider(method));
-      await user.delete();
+    final appleCode = confirmed.additionalUserInfo?.authorizationCode;
+    if (method == SignInMethod.apple && appleCode != null) {
+      try {
+        await _auth.revokeTokenWithAuthorizationCode(appleCode);
+      } on FirebaseAuthException catch (e) {
+        debugPrint('Couldn’t revoke the Apple token: $e');
+      }
     }
+    await user.delete();
   }
 
   // ---- profile ----
@@ -175,8 +192,14 @@ class FirebaseSocialBackend implements SocialBackend {
     final owner = await _db.collection('handles').doc(handle).get();
     final uid = owner.data()?['uid'] as String?;
     if (uid == null) return null;
-    final profile = await _db.collection('profiles').doc(uid).get();
-    return profile.exists ? Profile.fromJson(uid, profile.data()!) : null;
+    try {
+      final profile = await _db.collection('profiles').doc(uid).get();
+      return profile.exists ? Profile.fromJson(uid, profile.data()!) : null;
+    } on FirebaseException catch (e) {
+      // They blocked you: to you, they don't exist.
+      if (e.code == 'permission-denied') return null;
+      rethrow;
+    }
   }
 
   // ---- connections ----
@@ -368,6 +391,72 @@ class FirebaseSocialBackend implements SocialBackend {
   @override
   Future<void> deleteSettlement(String id) async {
     _write(_settlements.doc(id).delete());
+  }
+
+  // ---- safety ----
+
+  CollectionReference<Map<String, dynamic>> get _blocks => _db.collection('blocks');
+
+  @override
+  Stream<List<BlockedPerson>> watchBlocked() {
+    final uid = currentAccount?.uid;
+    if (uid == null) return Stream.value(const []);
+    return _blocks.where('blocker', isEqualTo: uid).snapshots().map((s) {
+      final people = [
+        for (final doc in s.docs)
+          BlockedPerson(
+            profile: Profile.fromJson(
+              doc['blocked'] as String,
+              Map<String, Object?>.from(doc.data()['profile'] as Map? ?? const {}),
+            ),
+            at: DateTime.fromMillisecondsSinceEpoch((doc.data()['at'] as num?)?.toInt() ?? 0),
+          ),
+      ];
+      return people..sort((a, b) => b.at.compareTo(a.at));
+    });
+  }
+
+  @override
+  Future<void> block(Profile other) async {
+    final me = _uid;
+    _write(
+      _blocks.doc('${me}_${other.uid}').set({
+        'blocker': me,
+        'blocked': other.uid,
+        'profile': other.toJson(),
+        'at': DateTime.now().millisecondsSinceEpoch,
+      }),
+    );
+    // The rules refuse deleting a connection that doesn't exist, so look
+    // first (from the cache when offline).
+    final connection = _connections.doc(Connection.pairId(me, other.uid));
+    try {
+      if ((await connection.get()).exists) _write(connection.delete());
+    } on FirebaseException catch (e) {
+      debugPrint('Couldn’t check the connection while blocking: $e');
+    }
+  }
+
+  @override
+  Future<void> unblock(String uid) async {
+    _write(_blocks.doc('${_uid}_$uid').delete());
+  }
+
+  @override
+  Future<void> report(Report report) async {
+    final me = _uid;
+    _write(
+      _db.collection('reports').doc(report.id).set({
+        'reporter': me,
+        'reportedUid': report.reported.uid,
+        'reported': report.reported.toJson(),
+        'reason': report.reason.name,
+        'note': report.note,
+        'billId': report.billId,
+        'at': report.at.millisecondsSinceEpoch,
+        'createdAt': FieldValue.serverTimestamp(),
+      }),
+    );
   }
 
   /// Firestore applies writes to its local cache right away and completes

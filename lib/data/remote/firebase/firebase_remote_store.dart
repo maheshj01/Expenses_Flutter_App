@@ -101,6 +101,20 @@ class FirebaseRemoteStore implements RemoteStore {
     return PullResult(records: records, cursor: next.toString(), hasMore: hasMore);
   }
 
+  @override
+  Future<void> erase(String collection) async {
+    final ref = _collection(collection);
+    while (true) {
+      final page = await ref.limit(400).get(const GetOptions(source: Source.server));
+      if (page.docs.isEmpty) return;
+      final batch = _firestore.batch();
+      for (final doc in page.docs) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+    }
+  }
+
   static SyncRecord _toRecord(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
     final data = Map<String, Object?>.of(doc.data());
     final updatedAt = (data.remove('updatedAt') as num?)?.toInt() ?? 0;

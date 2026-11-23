@@ -48,6 +48,10 @@ class SyncEngine {
   bool _runAgain = false;
   bool _disposed = false;
 
+  /// Set while the account's backup is being erased, so nothing is pushed
+  /// back to it.
+  bool _paused = false;
+
   bool get isEnabled => _remote != null;
 
   SyncStatus get status => _status;
@@ -75,7 +79,7 @@ class SyncEngine {
   /// Syncs soon, coalescing bursts of edits into one round trip.
   void schedule() {
     if (_disposed) return;
-    if (!isEnabled) {
+    if (!isEnabled || _paused) {
       unawaited(_refreshPending());
       return;
     }
@@ -86,7 +90,7 @@ class SyncEngine {
   /// Runs a full push + pull. Concurrent calls share one run, and a call
   /// made during a run triggers one more run afterwards.
   Future<void> syncNow() {
-    if (!isEnabled || _disposed) return Future.value();
+    if (!isEnabled || _disposed || _paused) return Future.value();
     if (_running != null) {
       _runAgain = true;
       return _running!;
@@ -141,6 +145,46 @@ class SyncEngine {
       );
       _retryTimer = Timer(_retryAfter, () => unawaited(syncNow()));
     }
+  }
+
+  /// Erases this account's backed-up data, before deleting the account.
+  ///
+  /// Waits for a sync in progress, then pauses syncing until
+  /// [resumeAfterErase] so nothing is pushed back meanwhile. Local data is
+  /// left alone. Throws [EraseFailed] when offline or when the backend
+  /// refuses; call [resumeAfterErase] with `restore: true` then.
+  Future<void> eraseRemote() async {
+    final remote = _remote;
+    if (remote == null) return;
+    _paused = true;
+    _debounceTimer?.cancel();
+    _retryTimer?.cancel();
+    await _running;
+    if (!await _connectivity.isOnline()) {
+      throw const EraseFailed('You’re offline. Connect to the internet to delete your account.');
+    }
+    try {
+      await remote.connect();
+      for (final source in _sources) {
+        await remote.erase(source.collection);
+      }
+    } catch (e) {
+      throw EraseFailed('Couldn’t delete your backup: $e');
+    }
+  }
+
+  /// Starts syncing again after [eraseRemote]. With [restore] (the account
+  /// wasn't deleted after all), pushes everything on this device back so
+  /// its backup is whole again.
+  Future<void> resumeAfterErase({required bool restore}) async {
+    if (restore) {
+      for (final source in _sources) {
+        await _cursors.writeCursor(source.collection, null);
+        await source.markAllDirty();
+      }
+    }
+    _paused = false;
+    unawaited(syncNow());
   }
 
   /// Key under which the account last synced with is kept.
@@ -210,4 +254,14 @@ class SyncEngine {
     }
     await _statusController.close();
   }
+}
+
+/// Erasing the backup didn't work; [message] says why.
+class EraseFailed implements Exception {
+  const EraseFailed(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
 }

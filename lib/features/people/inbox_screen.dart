@@ -12,6 +12,7 @@ import '../../shared/money_format.dart';
 import '../../shared/widgets/app_card.dart';
 import 'bill_sheet.dart';
 import 'people_widgets.dart';
+import 'safety_sheets.dart';
 
 /// Requests, flags, new bills and payments, newest first. Opening it marks
 /// everything as read; things that need an answer stay until answered.
@@ -162,6 +163,7 @@ class _InboxTile extends ConsumerWidget {
                     child: const Text('Accept'),
                   ),
                 ),
+                SafetyMenuButton(person: item.connection!.other, icon: Icons.more_horiz_rounded),
               ],
             ),
           ],

@@ -16,6 +16,7 @@ import '../../shared/money_format.dart';
 import '../../shared/widgets/app_card.dart';
 import 'bill_sheet.dart';
 import 'people_widgets.dart';
+import 'safety_sheets.dart';
 
 /// Everything shared with one person: the balance, settling up, and every
 /// bill and payment between you.
@@ -46,11 +47,10 @@ class PersonScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          PopupMenuButton<String>(
-            onSelected: (_) => _disconnect(context, ref),
-            itemBuilder: (_) => [
-              PopupMenuItem(value: 'remove', child: Text('Remove ${other.displayName}')),
-            ],
+          SafetyMenuButton(
+            person: other,
+            onRemove: () => _disconnect(context, ref),
+            onBlocked: () => Navigator.of(context).pop(),
           ),
         ],
       ),

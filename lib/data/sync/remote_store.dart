@@ -26,6 +26,10 @@ abstract interface class RemoteStore {
   /// means "from the beginning". The returned cursor is opaque to the app
   /// and is passed back on the next pull.
   Future<PullResult> pull(String collection, {String? cursor});
+
+  /// Deletes every record in [collection] for the current account,
+  /// tombstones included. Used when the account is deleted.
+  Future<void> erase(String collection);
 }
 
 class PullResult {

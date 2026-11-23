@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:three_bucks/domain/social/account.dart';
 import 'package:three_bucks/domain/social/connection.dart';
+import 'package:three_bucks/domain/social/safety.dart';
 import 'package:three_bucks/domain/social/settlement.dart';
 import 'package:three_bucks/domain/social/shared_bill.dart';
 import 'package:three_bucks/domain/social/social_backend.dart';
@@ -14,6 +15,12 @@ class FakeSocialServer {
   final connections = <String, FakeConnection>{};
   final bills = <String, SharedBill>{};
   final settlements = <String, Settlement>{};
+
+  /// Who blocked whom: blocker uid -> blocked uid -> person.
+  final blocks = <String, Map<String, BlockedPerson>>{};
+
+  /// Reports sent, with the reporter's uid.
+  final reports = <(String reporter, Report report)>[];
   final _changes = StreamController<void>.broadcast();
 
   Stream<void> get changes => _changes.stream;
@@ -39,6 +46,8 @@ class FakeSocialServer {
     );
     changed();
   }
+
+  bool blocked(String blocker, String other) => blocks[blocker]?.containsKey(other) ?? false;
 
   Future<void> dispose() => _changes.close();
 }
@@ -114,12 +123,21 @@ class FakeSocialBackend implements SocialBackend {
     _accountChanges.add(null);
   }
 
+  /// Set to make confirming who you are, before deleting, look cancelled.
+  bool cancelNextConfirm = false;
+
   @override
-  Future<void> deleteAccount() async {
+  Future<void> deleteAccount({Future<void> Function()? eraseData}) async {
     final me = _me;
+    if (cancelNextConfirm) {
+      cancelNextConfirm = false;
+      throw const SignInCancelled();
+    }
+    await eraseData?.call();
     final profile = server.profiles.remove(me);
     if (profile != null) server.handles.remove(profile.handle);
     server.connections.removeWhere((_, c) => c.members.contains(me));
+    server.blocks.remove(me);
     server.changed();
     await signOut();
   }
@@ -143,7 +161,8 @@ class FakeSocialBackend implements SocialBackend {
   Future<Profile?> findByHandle(String handle) async {
     _me;
     final uid = server.handles[handle];
-    return uid == null ? null : server.profiles[uid];
+    if (uid == null || server.blocked(uid, _me)) return null;
+    return server.profiles[uid];
   }
 
   @override
@@ -165,6 +184,8 @@ class FakeSocialBackend implements SocialBackend {
 
   @override
   Future<void> requestConnection(Profile me, Profile other) async {
+    // Like the rules: refused when either side blocked the other.
+    if (server.blocked(me.uid, other.uid) || server.blocked(other.uid, me.uid)) return;
     final id = Connection.pairId(me.uid, other.uid);
     final existing = server.connections[id];
     if (existing != null) {
@@ -258,6 +279,37 @@ class FakeSocialBackend implements SocialBackend {
     if (s == null) return;
     if (s.createdBy != _me) throw const SocialError('permission-denied');
     server.settlements.remove(id);
+    server.changed();
+  }
+
+  @override
+  Stream<List<BlockedPerson>> watchBlocked() => _watch(() {
+    final me = _account?.uid;
+    if (me == null) return const <BlockedPerson>[];
+    return [...?server.blocks[me]?.values]..sort((a, b) => b.at.compareTo(a.at));
+  });
+
+  @override
+  Future<void> block(Profile other) async {
+    final me = _me;
+    server.blocks.putIfAbsent(me, () => {})[other.uid] = BlockedPerson(
+      profile: other,
+      at: DateTime.now(),
+    );
+    server.connections.remove(Connection.pairId(me, other.uid));
+    server.changed();
+  }
+
+  @override
+  Future<void> unblock(String uid) async {
+    server.blocks[_me]?.remove(uid);
+    server.changed();
+  }
+
+  @override
+  Future<void> report(Report report) async {
+    if (report.note.length > Report.maxNote) throw const SocialError('permission-denied');
+    server.reports.add((_me, report));
     server.changed();
   }
 }
