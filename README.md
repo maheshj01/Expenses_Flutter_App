@@ -225,6 +225,20 @@ Screenshots of onboarding, the main screens and sharing (on an in-memory backend
 make capture-screens DEVICE=<simulator-udid>
 ```
 
+### Account flow on a real iPhone
+
+The flow App Review asks to see, against the real Firebase project: launch, onboarding and a first
+entry, then creating an account (sign-in and a username), signing out and in, deleting the account
+(held button, goodbye page) and restoring it, so the account ends as it started:
+
+```bash
+flutter test integration_test/account_flow_test.dart -d <iphone-udid> --dart-define=SIGN_IN=Apple
+```
+
+Approve each Sign in with Apple sheet on the phone (three in all); the test taps everything else.
+Use `SIGN_IN=Google` to pick a test Google account instead. Entries stay in memory and sync is off,
+so nothing is added to the account's backup.
+
 ### Store screenshots
 
 These targets capture the same flow straight into the storeshots projects (store screenshot
