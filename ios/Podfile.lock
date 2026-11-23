@@ -1200,6 +1200,10 @@ PODS:
     - Firebase/Firestore (= 12.19.3)
     - firebase_core
     - Flutter
+  - cloud_functions (7.1.0):
+    - Firebase/Functions (= 12.19.3)
+    - firebase_core
+    - Flutter
   - connectivity_plus (0.0.1):
     - Flutter
   - file_picker_darwin (1.0.0):
@@ -1213,6 +1217,9 @@ PODS:
   - Firebase/Firestore (12.19.3):
     - Firebase/CoreOnly
     - FirebaseFirestore (~> 12.19.3)
+  - Firebase/Functions (12.19.3):
+    - Firebase/CoreOnly
+    - FirebaseFunctions (~> 12.19.0)
   - firebase_auth (7.1.0):
     - Firebase/Auth (= 12.19.3)
     - firebase_core
@@ -1259,6 +1266,15 @@ PODS:
     - gRPC-Core (~> 1.69.0)
     - leveldb-library (~> 1.22)
     - nanopb (~> 3.30910.0)
+  - FirebaseFunctions (12.19.0):
+    - FirebaseAppCheckInterop (~> 12.19.0)
+    - FirebaseAuthInterop (~> 12.19.0)
+    - FirebaseCore (~> 12.19.0)
+    - FirebaseCoreExtension (~> 12.19.0)
+    - FirebaseMessagingInterop (~> 12.19.0)
+    - FirebaseSharedSwift (~> 12.19.0)
+    - GTMSessionFetcher/Core (< 6.0, >= 3.4)
+  - FirebaseMessagingInterop (12.19.0)
   - FirebaseSharedSwift (12.19.0)
   - Flutter (1.0.0)
   - flutter_email_sender_method_channel (0.0.1):
@@ -1397,6 +1413,7 @@ PODS:
 DEPENDENCIES:
   - app_links (from `.symlinks/plugins/app_links/ios`)
   - cloud_firestore (from `.symlinks/plugins/cloud_firestore/ios`)
+  - cloud_functions (from `.symlinks/plugins/cloud_functions/ios`)
   - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
   - file_picker_darwin (from `.symlinks/plugins/file_picker_darwin/darwin`)
   - firebase_auth (from `.symlinks/plugins/firebase_auth/ios`)
@@ -1421,6 +1438,8 @@ SPEC REPOS:
     - FirebaseCoreInternal
     - FirebaseFirestore
     - FirebaseFirestoreInternal
+    - FirebaseFunctions
+    - FirebaseMessagingInterop
     - FirebaseSharedSwift
     - GoogleUtilities
     - "gRPC-C++"
@@ -1435,6 +1454,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/app_links/ios"
   cloud_firestore:
     :path: ".symlinks/plugins/cloud_firestore/ios"
+  cloud_functions:
+    :path: ".symlinks/plugins/cloud_functions/ios"
   connectivity_plus:
     :path: ".symlinks/plugins/connectivity_plus/ios"
   file_picker_darwin:
@@ -1461,6 +1482,7 @@ SPEC CHECKSUMS:
   app_links: a754cbec3c255bd4bbb4d236ecc06f28cd9a7ce8
   BoringSSL-GRPC: dded2a44897e45f28f08ae87a55ee4bcd19bc508
   cloud_firestore: 7345ea5ef5c621a650973deecd252a3ef7e5190a
+  cloud_functions: 404a4e8cdde10693bbabc4e46d8a07d49f12940f
   connectivity_plus: cb623214f4e1f6ef8fe7403d580fdad517d2f7dd
   file_picker_darwin: 4c2b9a50ea44cb3b071381ea0cf48591bdd80251
   Firebase: e3c5ab38229ae085490d02398d97b9f5374bbe6e
@@ -1474,6 +1496,8 @@ SPEC CHECKSUMS:
   FirebaseCoreInternal: 656b1c2fd5a1c5976183dc54b73deda78fb26ee3
   FirebaseFirestore: 1fc8a582c9a2b8a4c089d0fcd8793a4bf2b54846
   FirebaseFirestoreInternal: 2617381b45331505f051d60f451d254a6275a5c2
+  FirebaseFunctions: 5b5ae19d3cd261b74802d54780ac79db152562cd
+  FirebaseMessagingInterop: 8befe363c0f23eaff7b1807dbc76a0546d79f00c
   FirebaseSharedSwift: c91f36aeaa566e12b682caacc40d34c8303c3124
   Flutter: 71a624a5bc0c04062bf19101d501e466baf2fb47
   flutter_email_sender_method_channel: 3cdf55e371535e9dbda4a6c6284deea9185635f7

@@ -57,6 +57,8 @@ class SettingsScreen extends ConsumerWidget {
                   title: 'Plan & goals',
                   value: settings.hasIncome
                       ? '${money.whole(settings.monthlyIncomeCents)}/mo'
+                      : settings.monthlyBudgetCents > 0
+                      ? '${money.whole(settings.monthlyBudgetCents)} budget'
                       : 'Set up',
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute<void>(builder: (_) => const OnboardingFlow(editing: true)),

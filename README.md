@@ -47,6 +47,9 @@ lib/
 The UI depends only on the interfaces in `domain/`. Riverpod providers in
 [`lib/app/providers.dart`](lib/app/providers.dart) decide which implementation is used.
 
+The first-run setup and its income branches are described in
+[docs/onboarding.md](docs/onboarding.md).
+
 ### Offline first
 
 ```
