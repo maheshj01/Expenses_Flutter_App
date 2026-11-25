@@ -264,5 +264,17 @@ void main() {
 
       await tearDownApp(tester);
     });
+
+    testWidgets('tapping a bill-updated notification opens that bill', (tester) async {
+      await launch(tester, status: PushPermission.granted);
+      final message = PushMessage.fromData({'topic': 'billUpdated', 'id': 'b1'});
+      expect(message!.topic, PushTopic.billUpdated);
+      push.tap(message);
+      await tester.pumpAndSettle();
+      expect(find.text('Dinner'), findsWidgets);
+      expect(find.text('Flag my share'), findsOneWidget, reason: 'the bill sheet is open');
+
+      await tearDownApp(tester);
+    });
   });
 }

@@ -18,6 +18,10 @@ enum PushTopic {
 
   /// Someone added you to a split bill.
   newBill,
+
+  /// The payer changed a bill you're on (sent 5 minutes after the first
+  /// of a burst of edits).
+  billUpdated,
 }
 
 /// A notification that arrived while the app was open, or was tapped.

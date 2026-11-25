@@ -84,8 +84,10 @@ Sharing is optional and separate from personal sync:
   balances, not in their spending. Editing the bill clears all flags; the flagger can also
   withdraw.
 - **Settling up** records a payment made outside the app. No money moves through Three Bucks.
-- **Notifications.** A push when someone sends you a request, accepts yours, or adds you to a
-  bill (only from people you're connected with). The People tab offers them once; Settings turns
+- **Notifications.** A push when someone sends you a request, accepts yours, adds you to a
+  bill, or edits a bill you're on (only from people you're connected with). Edits are batched:
+  the notice goes out 5 minutes after the first edit and covers every change since, e.g. "Sam
+  changed the amount and title of “Team dinner”. Your share is now $30.00." The People tab offers them once; Settings turns
   them off. The in-app inbox shows the same news, so nothing is lost without them.
 
 ### Switching backends
@@ -174,17 +176,23 @@ stops the others:
 Two more functions send sharing notifications
 ([`functions/src/notifications.ts`](functions/src/notifications.ts)): `notifyConnection` on
 writes to `connections/{id}` (a new request, an accepted one) and `notifyBill` on writes to
-`bills/{id}` (people newly added). Each phone that wants them keeps
+`bills/{id}` (people newly added). An edit of a bill also queues an update notice: `notifyBill`
+creates `billUpdates/{billId}` (the bill as it was before, server-only) in a transaction, only if
+none is waiting, and schedules `sendBillUpdate` on Cloud Tasks 5 minutes later. More edits in
+that time add nothing; `sendBillUpdate` takes the entry out, compares it with the bill now and
+tells everyone still on it except the payer what changed (nothing, if the edits cancelled out).
+Each phone that wants them keeps
 `users/{uid}/devices/{deviceId}` with its FCM installation id (FID); devices FCM no longer knows
 are forgotten when a send fails. What they say is in
 [`functions/src/notices.ts`](functions/src/notices.ts), tested in `functions/test/`.
 
-There are five functions in all: the two callables, the janitor and the two notifiers. To keep
+There are six functions in all: the two callables, the janitor, the two notifiers and
+`sendBillUpdate`. To keep
 the bill near zero ([`functions/src/options.ts`](functions/src/options.ts)), each runs in
 `us-central1` (next to
 Firestore) with 256 MiB, no warm instances and at most two instances (one for the janitor), and
 container images are kept for a day. At Three Bucks' scale this stays inside the free tiers of
-Cloud Functions, Cloud Scheduler (one job), Secret Manager and Resend.
+Cloud Functions, Cloud Scheduler (one job), Cloud Tasks (one queue), Secret Manager and Resend.
 
 Functions need the **Blaze** (pay as you go) plan and a [Resend](https://resend.com) API key:
 
@@ -205,6 +213,9 @@ firebase deploy --only firestore:rules,firestore:indexes,functions
    `android/app/src/main/res/drawable-*/ic_notification.png`
    (`python3 tool/generate_notification_icon.py`).
 3. **Deploy the functions** (above). Until then the app registers devices but nothing is sent.
+   The first deploy creates the `sendBillUpdate` Cloud Tasks queue. If edit notices never
+   arrive and the logs show a permission error when queueing, give the functions' service
+   account the *Cloud Tasks Enqueuer* role.
 
 ### Set up sign-in for sharing
 

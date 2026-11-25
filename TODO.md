@@ -51,7 +51,8 @@ Things left open, roughly in the order they matter.
 - [ ] Comments on a bill, if flag notes turn out not to be enough
 - [ ] Universal links (`https://…`) for invites, so they're tappable in every messaging app
 - [x] Push notifications for requests (new and accepted) and new bills
-- [ ] Push notifications for flags, bill edits and settlements
+- [x] Push notifications for bill edits, batched 5 minutes after the first edit
+- [ ] Push notifications for flags and settlements
 
 ## App, later
 

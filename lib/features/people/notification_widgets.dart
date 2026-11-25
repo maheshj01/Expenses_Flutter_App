@@ -231,7 +231,8 @@ class _PushListenerState extends ConsumerState<PushListener> {
   }
 
   /// Requests and new bills open the inbox (or the bill itself, once it has
-  /// arrived); an accepted request opens People.
+  /// arrived); an edited bill opens the bill, where its history shows what
+  /// changed; an accepted request opens People.
   void _open(PushMessage m) {
     if (!mounted) return;
     ref.read(shellTabProvider.notifier).select(peopleTabIndex);
@@ -239,8 +240,12 @@ class _PushListenerState extends ConsumerState<PushListener> {
     switch (m.topic) {
       case PushTopic.accepted:
         break;
-      case PushTopic.newBill when ref.read(billMapProvider).containsKey(m.id):
+      case PushTopic.newBill || PushTopic.billUpdated
+          when ref.read(billMapProvider).containsKey(m.id):
         unawaited(showBillSheet(context, m.id!));
+      // An edited bill that hasn't arrived yet: People lists it soon.
+      case PushTopic.billUpdated:
+        break;
       case PushTopic.request || PushTopic.newBill:
         unawaited(navigator.push(MaterialPageRoute<void>(builder: (_) => const InboxScreen())));
     }

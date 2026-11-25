@@ -33,6 +33,10 @@ Three Bucks 0.1.0, the first release of the app rebuilt from scratch in November
   removing a friend.
 - **Notifications.** Get notified when someone sends you a request, accepts yours, or adds you
   to a split bill. Turn them on from People or Settings.
+- **Bill update notifications.** When the payer edits a shared bill, everyone else on it hears
+  what changed, e.g. "Sam changed the amount and title of “Team dinner”. Your share is now
+  $30.00." It's sent 5 minutes after the first edit, so a quick run of edits sends one
+  notification. Tapping it opens the bill, whose history shows each change.
 - **Safety.** Block and report people. Strangers can't add bills to your spending.
 - **Sign in with Apple or Google**, only needed to split bills with people.
 - **Account deletion.** Delete your account and all its data. You have 30 days to change
