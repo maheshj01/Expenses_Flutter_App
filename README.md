@@ -81,6 +81,9 @@ Sharing is optional and separate from personal sync:
   balances, not in their spending. Editing the bill clears all flags; the flagger can also
   withdraw.
 - **Settling up** records a payment made outside the app. No money moves through Three Bucks.
+- **Notifications.** A push when someone sends you a request, accepts yours, or adds you to a
+  bill (only from people you're connected with). The People tab offers them once; Settings turns
+  them off. The in-app inbox shows the same news, so nothing is lost without them.
 
 ### Switching backends
 
@@ -165,8 +168,17 @@ stops the others:
    stay.
 3. `deletedRecords`: soft-deleted entries, categories and entry edits older than 90 days.
 
-There are three functions in all: the two callables and the janitor. To keep the bill near zero
-([`functions/src/options.ts`](functions/src/options.ts)), each runs in `us-central1` (next to
+Two more functions send sharing notifications
+([`functions/src/notifications.ts`](functions/src/notifications.ts)): `notifyConnection` on
+writes to `connections/{id}` (a new request, an accepted one) and `notifyBill` on writes to
+`bills/{id}` (people newly added). Each phone that wants them keeps
+`users/{uid}/devices/{deviceId}` with its FCM installation id (FID); devices FCM no longer knows
+are forgotten when a send fails. What they say is in
+[`functions/src/notices.ts`](functions/src/notices.ts), tested in `functions/test/`.
+
+There are five functions in all: the two callables, the janitor and the two notifiers. To keep
+the bill near zero ([`functions/src/options.ts`](functions/src/options.ts)), each runs in
+`us-central1` (next to
 Firestore) with 256 MiB, no warm instances and at most two instances (one for the janitor), and
 container images are kept for a day. At Three Bucks' scale this stays inside the free tiers of
 Cloud Functions, Cloud Scheduler (one job), Secret Manager and Resend.
@@ -178,6 +190,18 @@ firebase functions:secrets:set RESEND_API_KEY
 (cd functions && npm install && npm test)
 firebase deploy --only firestore:rules,firestore:indexes,functions
 ```
+
+### Set up notifications
+
+1. **Apple:** in the Apple Developer account, create an APNs key (*Keys → + → Apple Push
+   Notifications service*), then upload it in the Firebase console (*Project settings → Cloud
+   Messaging → Apple app configuration*). `Runner.entitlements` already has `aps-environment`
+   and `Info.plist` the `remote-notification` background mode; Xcode should show *Push
+   Notifications* under *Signing & Capabilities*.
+2. **Android:** nothing more. The status-bar icon is
+   `android/app/src/main/res/drawable-*/ic_notification.png`
+   (`python3 tool/generate_notification_icon.py`).
+3. **Deploy the functions** (above). Until then the app registers devices but nothing is sent.
 
 ### Set up sign-in for sharing
 
@@ -261,6 +285,6 @@ first Pixel AVD. Nothing else in the project folders is touched.
 
 - Import past years from the existing Excel sheet
 - Groups (a saved set of people), uneven splits, comments on bills
-- Universal links (`https://…`) for invites, push notifications
+- Universal links (`https://…`) for invites
 - Bank sync (Plaid / SimpleFIN) feeding a "to review" inbox
 - Subscriptions view and price history from notes

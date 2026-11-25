@@ -22,6 +22,8 @@ Things left open, roughly in the order they matter.
       Epoch's. Google Play requires one outside the app.
 - [x] **Backups from abandoned installs.** The janitor erases anonymous accounts unopened for
       two years, and marks signed-in ones for deletion (with a warning email).
+- [ ] **Notifications:** create an APNs key and upload it to Firebase (Cloud Messaging), deploy
+      the functions, then test on two real phones (simulators can't be trusted for pushes).
 - [ ] **Firebase console setup for sharing**
   - [ ] Authentication → enable Apple and Google sign-in
   - [ ] Xcode → Runner → Signing & Capabilities → add Sign in with Apple (paid team)
@@ -48,7 +50,8 @@ Things left open, roughly in the order they matter.
 - [ ] Uneven splits (exact amounts, percentages, shares)
 - [ ] Comments on a bill, if flag notes turn out not to be enough
 - [ ] Universal links (`https://…`) for invites, so they're tappable in every messaging app
-- [ ] Push notifications for requests, new bills and flags
+- [x] Push notifications for requests (new and accepted) and new bills
+- [ ] Push notifications for flags, bill edits and settlements
 
 ## App, later
 
