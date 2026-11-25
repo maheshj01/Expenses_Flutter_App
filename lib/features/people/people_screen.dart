@@ -14,6 +14,7 @@ import '../../shared/widgets/app_card.dart';
 import 'account_views.dart';
 import 'add_person_sheet.dart';
 import 'inbox_screen.dart';
+import 'notification_widgets.dart';
 import 'people_widgets.dart';
 import 'person_screen.dart';
 import 'safety_sheets.dart';
@@ -142,6 +143,7 @@ class _PeopleHomeState extends ConsumerState<_PeopleHome> {
             money: MoneyFormat(currency),
           ),
         ),
+        const NotificationsOffer(),
         if (incoming.isNotEmpty) ...[
           const SectionHeader('Requests'),
           for (final r in incoming)

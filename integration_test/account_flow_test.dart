@@ -37,9 +37,7 @@ import 'package:three_bucks/shared/region_keys.dart';
 const _signIn = String.fromEnvironment('SIGN_IN', defaultValue: 'Apple');
 
 /// How long to wait for a person to finish a sign-in sheet.
-const _signInTimeout = Duration(
-  seconds: int.fromEnvironment('SIGN_IN_TIMEOUT', defaultValue: 180),
-);
+const _signInTimeout = Duration(seconds: int.fromEnvironment('SIGN_IN_TIMEOUT', defaultValue: 180));
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -161,12 +159,12 @@ void main() {
 
   testWidgets('account: create, sign out and in, delete, restore', (tester) async {
     // Start signed out, as a new user would.
-    final backend = await createBackend(SyncBackend.firebase);
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final backend = await createBackend(SyncBackend.firebase, prefs);
     expect(backend.social, isNotNull, reason: 'Firebase must be configured for this test');
     await FirebaseAuth.instance.signOut();
 
-    SharedPreferences.setMockInitialValues({});
-    final prefs = await SharedPreferences.getInstance();
     final db = AppDatabase(NativeDatabase.memory());
 
     await tester.pumpWidget(

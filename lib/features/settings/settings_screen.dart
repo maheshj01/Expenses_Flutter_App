@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../app/account_flow.dart';
 import '../../app/providers.dart';
 import '../../app/shell.dart';
 import '../../app/social_providers.dart';
@@ -18,6 +19,7 @@ import '../data_io/export_sheet.dart';
 import '../data_io/import_screen.dart';
 import '../home/budget_dialog.dart';
 import '../onboarding/onboarding_flow.dart';
+import '../people/notification_widgets.dart';
 import '../people/safety_sheets.dart';
 import '../people/saved_guests_sheet.dart';
 
@@ -335,6 +337,8 @@ class _AccountCard extends ConsumerWidget {
             ),
           ),
           const Divider(indent: 56),
+          const NotificationsTile(),
+          const Divider(indent: 56),
           ListTile(
             leading: Icon(Icons.block_rounded, color: c.ink2),
             title: const Text('Blocked people'),
@@ -358,7 +362,7 @@ class _AccountCard extends ConsumerWidget {
             leading: Icon(Icons.logout_rounded, color: c.ink2),
             title: const Text('Sign out'),
             subtitle: const Text('What you track stays on this device'),
-            onTap: backend.signOut,
+            onTap: ref.read(accountFlowProvider.notifier).signOut,
           ),
           const Divider(indent: 56),
           const DeleteAccountTile(),

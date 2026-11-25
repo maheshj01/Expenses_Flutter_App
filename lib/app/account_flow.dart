@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../domain/account/account_deletion.dart';
 import '../domain/social/account.dart';
 import '../domain/social/social_backend.dart';
+import 'notifications.dart';
 import 'providers.dart';
 import 'social_providers.dart';
 
@@ -197,16 +198,23 @@ class AccountFlowNotifier extends Notifier<AccountFlowState> {
       await clearDevice();
       return true;
     }
-    await ref.read(socialBackendProvider)?.signOut();
+    await signOut();
     state = AccountFlowState.idle;
     return false;
+  }
+
+  /// Signs out, first stopping this phone's notifications for the account
+  /// (only the signed-in account can do that).
+  Future<void> signOut() async {
+    await ref.read(notificationsProvider.notifier).beforeSignOut();
+    await ref.read(socialBackendProvider)?.signOut();
   }
 
   /// Clears everything the app keeps on this phone and signs out, leaving a
   /// fresh start: onboarding, default categories, and a new anonymous
   /// backup on the next sync.
   Future<void> clearDevice() async {
-    await ref.read(socialBackendProvider)?.signOut();
+    await signOut();
     await ref.read(databaseProvider).clearForNewUser();
     await ref.read(sharedPreferencesProvider).clear();
     ref

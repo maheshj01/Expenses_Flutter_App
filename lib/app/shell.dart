@@ -5,6 +5,7 @@ import '../features/entries/activity_screen.dart';
 import '../features/entries/entry_editor_sheet.dart';
 import '../features/history/history_screen.dart';
 import '../features/home/home_screen.dart';
+import '../features/people/notification_widgets.dart';
 import '../features/people/people_screen.dart';
 import '../features/people/people_widgets.dart';
 import 'providers.dart';
@@ -97,7 +98,9 @@ class AppShell extends ConsumerWidget {
     }
 
     return Scaffold(
-      body: IndexedStack(index: index, children: [for (final t in shellTabs) t.screen]),
+      body: PushListener(
+        child: IndexedStack(index: index, children: [for (final t in shellTabs) t.screen]),
+      ),
       floatingActionButton: FloatingActionButton(
         tooltip: 'Add entry',
         onPressed: () => showEntryEditor(context),

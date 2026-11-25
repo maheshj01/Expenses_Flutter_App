@@ -32,6 +32,8 @@ List<SignInMethod> signInMethodsFor(TargetPlatform platform, {bool isWeb = kIsWe
 /// - `settlements/{id}`: readable by `from` and `to`
 /// - `blocks/{blocker_blocked}`: `{blocker, blocked, profile, at}`
 /// - `reports/{id}`: write-only, read by moderators in the Firebase console
+/// - `users/{uid}/devices/{deviceId}`: `{fid, platform, updatedAt}`, where this
+///   phone gets notifications (see `FirebasePushService`)
 /// - `users/{uid}.deletion`: set by the account deletion functions, never by
 ///   the app (see `FirebaseAccountDeletion`)
 ///

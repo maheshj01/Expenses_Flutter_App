@@ -1,19 +1,22 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/remote/firebase/firebase_account_deletion.dart';
+import '../data/remote/firebase/firebase_push_service.dart';
 import '../data/remote/firebase/firebase_remote_store.dart';
 import '../data/remote/firebase/firebase_social_backend.dart';
 import '../data/sync/remote_store.dart';
 import '../domain/account/account_deletion.dart';
+import '../domain/social/push.dart';
 import '../domain/social/social_backend.dart';
 import '../firebase_options.dart';
 
 /// Which remote backend the app syncs with.
 ///
 /// To add another backend (Supabase, your own API, ...):
-/// 1. implement [RemoteStore] (personal sync), [SocialBackend] (sharing) and
-///    [AccountDeletion]
+/// 1. implement [RemoteStore] (personal sync), [SocialBackend] (sharing),
+///    [AccountDeletion] and [PushService] (notifications)
 ///    in `lib/data/remote/<name>/`
 /// 2. add a value here and a case in [createBackend].
 /// Nothing else in the app needs to change.
@@ -32,17 +35,20 @@ enum SyncBackend {
 /// The services a backend provides. Null (or doing nothing) in local-only
 /// mode.
 class Backend {
-  const Backend({this.remote, this.social, this.deletion = const NoAccountDeletion()});
+  const Backend({this.remote, this.social, this.deletion = const NoAccountDeletion(), this.push});
 
   static const localOnly = Backend();
 
   final RemoteStore? remote;
   final SocialBackend? social;
   final AccountDeletion deletion;
+
+  /// Null where the phone can't receive them (local-only, desktop, web).
+  final PushService? push;
 }
 
 /// Falls back to local-only mode when the backend is disabled or not set up.
-Future<Backend> createBackend(SyncBackend backend) async {
+Future<Backend> createBackend(SyncBackend backend, SharedPreferences prefs) async {
   switch (backend) {
     case SyncBackend.none:
       return Backend.localOnly;
@@ -59,6 +65,13 @@ Future<Backend> createBackend(SyncBackend backend) async {
         remote: FirebaseRemoteStore.configure(),
         social: FirebaseSocialBackend(),
         deletion: FirebaseAccountDeletion(),
+        push: _phone ? FirebasePushService(prefs) : null,
       );
   }
 }
+
+/// Push notifications are for phones; FCM on macOS needs its own setup.
+bool get _phone =>
+    !kIsWeb &&
+    (defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.android);

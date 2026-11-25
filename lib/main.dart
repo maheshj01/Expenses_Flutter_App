@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'app/account_flow.dart';
 import 'app/app.dart';
 import 'app/backend.dart';
+import 'app/notifications.dart';
 import 'app/providers.dart';
 import 'app/shell.dart';
 import 'app/social_providers.dart';
@@ -22,7 +23,7 @@ Future<void> main() async {
   final prefs = await SharedPreferences.getInstance();
   final database = AppDatabase.open();
   // Local-only when Firebase is not configured.
-  final backend = await createBackend(SyncBackend.configured);
+  final backend = await createBackend(SyncBackend.configured, prefs);
   await logo;
 
   runApp(
@@ -33,6 +34,7 @@ Future<void> main() async {
         remoteStoreProvider.overrideWithValue(backend.remote),
         socialBackendProvider.overrideWithValue(backend.social),
         accountDeletionProvider.overrideWithValue(backend.deletion),
+        pushServiceProvider.overrideWithValue(backend.push),
       ],
       child: const _SyncBootstrap(
         child: _InviteLinks(child: ThreeBucksApp(revealFromSplash: true)),

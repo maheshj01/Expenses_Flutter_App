@@ -1220,12 +1220,19 @@ PODS:
   - Firebase/Functions (12.19.3):
     - Firebase/CoreOnly
     - FirebaseFunctions (~> 12.19.0)
+  - Firebase/Messaging (12.19.3):
+    - Firebase/CoreOnly
+    - FirebaseMessaging (~> 12.19.0)
   - firebase_auth (7.1.0):
     - Firebase/Auth (= 12.19.3)
     - firebase_core
     - Flutter
   - firebase_core (5.2.0):
     - Firebase/CoreOnly (= 12.19.3)
+    - Flutter
+  - firebase_messaging (17.1.0):
+    - Firebase/Messaging (= 12.19.3)
+    - firebase_core
     - Flutter
   - FirebaseAppCheckInterop (12.19.0)
   - FirebaseAuth (12.19.0):
@@ -1274,11 +1281,28 @@ PODS:
     - FirebaseMessagingInterop (~> 12.19.0)
     - FirebaseSharedSwift (~> 12.19.0)
     - GTMSessionFetcher/Core (< 6.0, >= 3.4)
+  - FirebaseInstallations (12.19.0):
+    - FirebaseCore (~> 12.19.0)
+    - GoogleUtilities/Environment (~> 8.1)
+    - GoogleUtilities/UserDefaults (~> 8.1)
+    - PromisesObjC (~> 2.4)
+  - FirebaseMessaging (12.19.0):
+    - FirebaseCore (~> 12.19.0)
+    - FirebaseInstallations (~> 12.19.0)
+    - GoogleDataTransport (~> 10.1)
+    - GoogleUtilities/AppDelegateSwizzler (~> 8.1)
+    - GoogleUtilities/Environment (~> 8.1)
+    - GoogleUtilities/Reachability (~> 8.1)
+    - GoogleUtilities/UserDefaults (~> 8.1)
+    - nanopb (~> 3.30910.0)
   - FirebaseMessagingInterop (12.19.0)
   - FirebaseSharedSwift (12.19.0)
   - Flutter (1.0.0)
   - flutter_email_sender_method_channel (0.0.1):
     - Flutter
+  - GoogleDataTransport (10.1.1):
+    - nanopb (~> 3.30910.0)
+    - PromisesObjC (~> 2.4)
   - GoogleUtilities/AppDelegateSwizzler (8.1.5):
     - GoogleUtilities/Environment
     - GoogleUtilities/Logger
@@ -1298,6 +1322,9 @@ PODS:
     - GoogleUtilities/Privacy
   - GoogleUtilities/Privacy (8.1.5)
   - GoogleUtilities/Reachability (8.1.5):
+    - GoogleUtilities/Logger
+    - GoogleUtilities/Privacy
+  - GoogleUtilities/UserDefaults (8.1.5):
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
   - "gRPC-C++ (1.69.0)":
@@ -1401,6 +1428,7 @@ PODS:
     - nanopb/encode (= 3.30910.0)
   - nanopb/decode (3.30910.0)
   - nanopb/encode (3.30910.0)
+  - PromisesObjC (2.4.1)
   - RecaptchaInterop (101.0.0)
   - share_plus (0.0.1):
     - Flutter
@@ -1418,6 +1446,7 @@ DEPENDENCIES:
   - file_picker_darwin (from `.symlinks/plugins/file_picker_darwin/darwin`)
   - firebase_auth (from `.symlinks/plugins/firebase_auth/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
+  - firebase_messaging (from `.symlinks/plugins/firebase_messaging/ios`)
   - Flutter (from `Flutter`)
   - flutter_email_sender_method_channel (from `.symlinks/plugins/flutter_email_sender_method_channel/ios`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
@@ -1439,14 +1468,18 @@ SPEC REPOS:
     - FirebaseFirestore
     - FirebaseFirestoreInternal
     - FirebaseFunctions
+    - FirebaseInstallations
+    - FirebaseMessaging
     - FirebaseMessagingInterop
     - FirebaseSharedSwift
+    - GoogleDataTransport
     - GoogleUtilities
     - "gRPC-C++"
     - gRPC-Core
     - GTMSessionFetcher
     - leveldb-library
     - nanopb
+    - PromisesObjC
     - RecaptchaInterop
 
 EXTERNAL SOURCES:
@@ -1464,6 +1497,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/firebase_auth/ios"
   firebase_core:
     :path: ".symlinks/plugins/firebase_core/ios"
+  firebase_messaging:
+    :path: ".symlinks/plugins/firebase_messaging/ios"
   Flutter:
     :path: Flutter
   flutter_email_sender_method_channel:
@@ -1488,6 +1523,7 @@ SPEC CHECKSUMS:
   Firebase: e3c5ab38229ae085490d02398d97b9f5374bbe6e
   firebase_auth: 4ad937c83288c4881e7630880cc68b816fae3238
   firebase_core: 3dfbdbe1869428da5f0f89dc721c4ab9998357ac
+  firebase_messaging: ce26daf5b0a5b59b3819f438a39daf858a361ed5
   FirebaseAppCheckInterop: bd4b791ffaed7ae719304af6369d243ddee5e4a0
   FirebaseAuth: 8c38236f67e5e3dd6aacf3e0c46b3eed31e9c820
   FirebaseAuthInterop: f1ad187a0052276ad49a990538accfdf36fc595d
@@ -1497,10 +1533,13 @@ SPEC CHECKSUMS:
   FirebaseFirestore: 1fc8a582c9a2b8a4c089d0fcd8793a4bf2b54846
   FirebaseFirestoreInternal: 2617381b45331505f051d60f451d254a6275a5c2
   FirebaseFunctions: 5b5ae19d3cd261b74802d54780ac79db152562cd
+  FirebaseInstallations: f70a49eed611f5602f373e40974b3b01556ac217
+  FirebaseMessaging: c15f48126adbe8b4d3238a5e1fa24bab3ad3e472
   FirebaseMessagingInterop: 8befe363c0f23eaff7b1807dbc76a0546d79f00c
   FirebaseSharedSwift: c91f36aeaa566e12b682caacc40d34c8303c3124
   Flutter: 71a624a5bc0c04062bf19101d501e466baf2fb47
   flutter_email_sender_method_channel: 3cdf55e371535e9dbda4a6c6284deea9185635f7
+  GoogleDataTransport: a24e58982ab3ba2f64d79613e027fe7f57e88539
   GoogleUtilities: 7dc09b3fa9ecb5c2298b952313d14628b61b9da3
   "gRPC-C++": cc207623316fb041a7a3e774c252cf68a058b9e8
   gRPC-Core: 860978b7db482de8b4f5e10677216309b5ff6330
@@ -1508,6 +1547,7 @@ SPEC CHECKSUMS:
   integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
   leveldb-library: cc8b8f8e013647a295ad3f8cd2ddf49a6f19be19
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
+  PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
   RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
   share_plus: eccd7beb7cea61271aeed1800e8ccb2b952c0c7f
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
