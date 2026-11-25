@@ -68,13 +68,17 @@ The first-run setup and its income branches are described in
   back. Each run **pulls** remote changes, then **pushes** pending local ones. Conflicts are
   resolved per record: the most recent edit wins.
 - When offline, changes queue up in the database. Home and Settings show how many are pending.
+- **Backup needs a signed-in account** (Apple or Google). Signed out, everything works but stays
+  on the phone; signing in sends it all to the account. Signing out backs up anything pending,
+  then clears the phone, so the next person starts fresh and your data comes back when you sign in.
 
 ### Splitting bills with people
 
 Sharing is optional and separate from personal sync:
 
-- **Account.** You only sign in (Apple or Google) to share. Signing in links to the anonymous
-  account, so the uid and everything already backed up stay the same.
+- **Account.** The same Apple or Google sign-in that turns on backup. Installs from before
+  sign-in was required may hold an anonymous account; signing in links to it, so the uid and
+  its old backup stay the same.
 - **Username.** Unique, picked once. People are found by exact username only; there is no search.
 - **Connections.** You can only split with people who accepted your request.
 - **Bills.** The payer creates and edits a bill (equal split, optional people not on the app).
@@ -133,8 +137,8 @@ synced. You can also force it with `--dart-define=SYNC_BACKEND=none`.
    ```bash
    flutterfire configure
    ```
-3. In the Firebase console, enable **Authentication → Sign-in method → Anonymous** and create a
-   **Cloud Firestore** database.
+3. In the Firebase console, create a **Cloud Firestore** database and enable Apple and Google
+   sign-in (see [Set up sign-in](#set-up-sign-in) below). Anonymous sign-in isn't used.
 4. Deploy the security rules in [`firestore.rules`](firestore.rules). Personal data is readable
    only by its owner; shared bills only by their members, and only the payer can edit one:
    ```bash
@@ -156,7 +160,8 @@ can't be bent by a client:
 - **Settings → Delete account** (or **Erase my data** without signing in) opens a page listing what
   goes, and asks you to *hold* the button. Signed in, the `requestAccountDeletion` function marks
   `users/{uid}.deletion` and the account is frozen for 30 days: the rules refuse writes to its
-  backup, and nobody can look it up or ask to connect. Not signed in, the backup is erased at once.
+  backup, and nobody can look it up or ask to connect. Not signed in, there's no backup (an
+  anonymous one left from older versions is erased at once).
   Either way the phone is cleared and a goodbye page leads back to onboarding.
 - Signing in again within 30 days asks whether to restore it (`restoreAccount`). A phone still
   signed in to a frozen account shows a page with the days left, Restore, or Continue deleting.
@@ -217,7 +222,7 @@ firebase deploy --only firestore:rules,firestore:indexes,functions
    arrive and the logs show a permission error when queueing, give the functions' service
    account the *Cloud Tasks Enqueuer* role.
 
-### Set up sign-in for sharing
+### Set up sign-in
 
 1. **Firebase console → Authentication → Sign-in method:** enable **Apple** and **Google**.
 2. **Apple (iOS):** in Xcode, *Runner → Signing & Capabilities → + Capability → Sign in with

@@ -1,5 +1,14 @@
 ### v0.1.0+4 Unreleased
 
+**Changed**
+
+- **Backup needs you to sign in.** Your entries back up only once you sign in with Apple or
+  Google. Until then everything still works, just on this phone. Settings says "Not backed up"
+  and offers to sign in, and signing in backs up everything you've tracked so far.
+- **Signing out clears this phone.** Anything not yet backed up gets one last try first.
+  Then the app starts fresh, and your data comes back when you sign in again. If some changes
+  still haven't backed up, you're warned before signing out.
+
 ### v0.1.0+3 Nov 25, 2026
 
 - **Two-tap entry.** Type something like `costco 46 split` and the app fills in the amount, the

@@ -216,14 +216,15 @@ void main() {
     }
     await linger(tester);
 
-    // 3. Log out, then log in again.
+    // 3. Log out, which clears the phone, then log in again.
     await openSettings(tester);
     await scrollTo(tester, find.text('Sign out'));
     await linger(tester);
     await tapText(tester, 'Sign out');
-    await settle(tester, frames: 6);
-    await tester.pageBack();
-    await settle(tester);
+    await waitFor(tester, [find.text('Sign out?')], what: 'the sign-out dialog');
+    await linger(tester);
+    await tester.tap(find.widgetWithText(TextButton, 'Sign out'));
+    await onboard(tester, 'Maya');
     await signIn(tester);
     await waitFor(tester, [find.text('Split with')], what: 'the People tab after signing in');
     await linger(tester);

@@ -153,6 +153,22 @@ void main() {
     expect(remote.get('entries', 'a'), isNotNull);
   });
 
+  test('signed out, nothing syncs; signing in backs up what waited', () async {
+    remote.accountIdValue = null;
+    await phone.entries.save(entry('a', 100));
+    await phone.engine.syncNow();
+    expect(phone.engine.status.phase, SyncPhase.signedOut);
+    expect(phone.engine.status.pendingCount, 1);
+    expect(remote.count('entries'), 0);
+    expect(remote.pushCalls, 0);
+
+    remote.accountIdValue = 'user-1';
+    await phone.engine.syncNow();
+    expect(phone.engine.status.phase, SyncPhase.idle);
+    expect(remote.get('entries', 'a'), isNotNull);
+    expect(phone.engine.status.pendingCount, 0);
+  });
+
   test('without a backend everything stays local', () async {
     final solo = Device(null, network: FakeConnectivity(), clock: clock);
     solo.engine.start();

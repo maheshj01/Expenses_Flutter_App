@@ -203,6 +203,18 @@ class _Item extends StatelessWidget {
   }
 }
 
+/// Sign-in lives on the People tab.
+void _openSignIn(BuildContext context, WidgetRef ref) {
+  ref.read(shellTabProvider.notifier).select(peopleTabIndex);
+  Navigator.of(context).popUntil((r) => r.isFirst);
+}
+
+extension on SyncPhase {
+  /// There's an account to back up to, so pending changes and "Sync now"
+  /// mean something.
+  bool get backsUp => this != SyncPhase.localOnly && this != SyncPhase.signedOut;
+}
+
 class _SyncCard extends ConsumerWidget {
   const _SyncCard();
 
@@ -218,6 +230,13 @@ class _SyncCard extends ConsumerWidget {
         c.ink2,
         'On this device only',
         'Everything works offline. Set up Firebase to back up and sync across devices.',
+      ),
+      SyncPhase.signedOut => (
+        Icons.cloud_off_rounded,
+        c.ink2,
+        'Not backed up',
+        'Your entries are only on this phone. Sign in with Apple or Google to back them up '
+            'and get them back on a new phone.',
       ),
       SyncPhase.syncing => (Icons.sync_rounded, c.invested, 'Syncing…', null),
       SyncPhase.offline => (
@@ -257,7 +276,7 @@ class _SyncCard extends ConsumerWidget {
                   style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
                 ),
               ),
-              if (status.pendingCount > 0 && status.phase != SyncPhase.localOnly)
+              if (status.pendingCount > 0 && status.phase.backsUp)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
@@ -275,7 +294,15 @@ class _SyncCard extends ConsumerWidget {
             const SizedBox(height: 6),
             Text(detail, style: TextStyle(color: c.muted, fontSize: 13)),
           ],
-          if (status.phase != SyncPhase.localOnly) ...[
+          if (status.phase == SyncPhase.signedOut) ...[
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: () => _openSignIn(context, ref),
+              icon: const Icon(Icons.login_rounded, size: 18),
+              label: const Text('Sign in to back up'),
+            ),
+          ],
+          if (status.phase.backsUp) ...[
             const SizedBox(height: 12),
             OutlinedButton.icon(
               onPressed: status.phase == SyncPhase.syncing
@@ -313,15 +340,9 @@ class _AccountCard extends ConsumerWidget {
             Icon(Icons.person_outline_rounded, color: c.ink2),
             const SizedBox(width: 12),
             const Expanded(
-              child: Text('Not signed in. You only need an account to split bills with people.'),
+              child: Text('Not signed in. Sign in to back up your entries and split bills.'),
             ),
-            TextButton(
-              onPressed: () {
-                ref.read(shellTabProvider.notifier).select(peopleTabIndex);
-                Navigator.of(context).popUntil((r) => r.isFirst);
-              },
-              child: const Text('Set up'),
-            ),
+            TextButton(onPressed: () => _openSignIn(context, ref), child: const Text('Sign in')),
           ],
         ),
       );
@@ -359,16 +380,69 @@ class _AccountCard extends ConsumerWidget {
                     .push(MaterialPageRoute<void>(builder: (_) => const BlockedPeopleScreen())),
           ),
           const Divider(indent: 56),
-          ListTile(
-            leading: Icon(Icons.logout_rounded, color: c.ink2),
-            title: const Text('Sign out'),
-            subtitle: const Text('What you track stays on this device'),
-            onTap: ref.read(accountFlowProvider.notifier).signOut,
-          ),
+          const _SignOutTile(),
           const Divider(indent: 56),
           const DeleteAccountTile(),
         ],
       ),
+    );
+  }
+}
+
+/// Signs out after saying what happens: this phone is cleared, and anything
+/// not backed up yet is lost.
+class _SignOutTile extends ConsumerWidget {
+  const _SignOutTile();
+
+  Future<void> _signOut(BuildContext context, WidgetRef ref) async {
+    final status = ref.read(syncStatusProvider).value;
+    final pending = status != null && status.phase.backsUp ? status.pendingCount : 0;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Sign out?'),
+        content: Text(
+          pending == 0
+              ? 'This clears Three Bucks from this phone. Everything is backed up to your '
+                    'account, so it comes back when you sign in again.'
+              : '$pending change${pending == 1 ? ' hasn’t' : 's haven’t'} backed up yet. '
+                    'Signing out clears this phone, so ${pending == 1 ? 'it' : 'they'}’ll be lost '
+                    'unless ${pending == 1 ? 'it backs' : 'they back'} up first. Get online and '
+                    'try again to keep ${pending == 1 ? 'it' : 'them'}.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: context.colors.warn),
+            child: Text(pending == 0 ? 'Sign out' : 'Sign out anyway'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    await ref.read(accountFlowProvider.notifier).signOut();
+    // The app is back at onboarding underneath.
+    if (context.mounted) Navigator.of(context).popUntil((r) => r.isFirst);
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.colors;
+    final signingOut = ref.watch(
+      accountFlowProvider.select((f) => f.status == AccountFlowStatus.signingOut),
+    );
+    return ListTile(
+      leading: Icon(Icons.logout_rounded, color: c.ink2),
+      title: Text(signingOut ? 'Signing out…' : 'Sign out'),
+      subtitle: const Text('Clears this phone. Your backup stays with your account.'),
+      trailing: signingOut
+          ? const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2))
+          : null,
+      onTap: signingOut ? null : () => _signOut(context, ref),
     );
   }
 }

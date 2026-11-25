@@ -21,6 +21,9 @@ enum AccountFlowStatus {
   /// Asking the server to delete the account, then clearing this phone.
   deleting,
 
+  /// Backing up what's left, then signing out and clearing this phone.
+  signingOut,
+
   /// The signed-in account is set to be deleted and frozen until the person
   /// restores it or lets it go; see [AccountFlowState.purgeAfter].
   pendingDeletion,
@@ -47,7 +50,10 @@ class AccountFlowState {
   /// Why the last attempt failed, to show near the button that retries.
   final String? message;
 
-  bool get busy => status == AccountFlowStatus.deleting || status == AccountFlowStatus.restoring;
+  bool get busy =>
+      status == AccountFlowStatus.deleting ||
+      status == AccountFlowStatus.signingOut ||
+      status == AccountFlowStatus.restoring;
 
   /// The whole app should show the pending-deletion screen.
   bool get frozen => status == AccountFlowStatus.pendingDeletion && !duringSignIn;
@@ -125,9 +131,10 @@ class AccountFlowNotifier extends Notifier<AccountFlowState> {
     return outcome;
   }
 
-  /// Signs in for sharing. If that account is set to be deleted, the person
-  /// is asked whether to bring it back (see `listenForRestoreConfirmation`).
-  /// Throws what [SocialBackend.signIn] throws.
+  /// Signs in, which turns on backup and sharing. If that account is set to
+  /// be deleted, the person is asked whether to bring it back (see
+  /// `listenForRestoreConfirmation`); otherwise this phone's entries start
+  /// backing up to it. Throws what [SocialBackend.signIn] throws.
   Future<void> signIn(SignInMethod method) async {
     final backend = ref.read(socialBackendProvider);
     if (backend == null) return;
@@ -138,6 +145,9 @@ class AccountFlowNotifier extends Notifier<AccountFlowState> {
     } finally {
       _signingIn = false;
     }
+    // A frozen account refuses the backup until it's restored, and
+    // restoreAccount syncs then.
+    if (state.status == AccountFlowStatus.idle) unawaited(ref.read(syncEngineProvider).syncNow());
   }
 
   /// Looks for a pending deletion on the signed-in account, from another
@@ -188,9 +198,9 @@ class AccountFlowNotifier extends Notifier<AccountFlowState> {
   /// phone was cleared and onboarding starts.
   ///
   /// Just after signing in, this phone's own entries never joined that
-  /// account (the frozen backup refused them), so they stay, on a fresh
-  /// anonymous backup. A phone that was already signed in holds the
-  /// account's data, so it is cleared.
+  /// account (the frozen backup refused them), so they stay on this phone,
+  /// signed out and not backed up. A phone that was already signed in holds
+  /// the account's data, so it is cleared.
   Future<bool> keepDeleting() async {
     if (state.status != AccountFlowStatus.pendingDeletion) return false;
     if (!state.duringSignIn) {
@@ -198,23 +208,48 @@ class AccountFlowNotifier extends Notifier<AccountFlowState> {
       await clearDevice();
       return true;
     }
-    await signOut();
+    await _leaveAccount();
     state = AccountFlowState.idle;
+    unawaited(ref.read(syncEngineProvider).syncNow());
     return false;
   }
 
-  /// Signs out, first stopping this phone's notifications for the account
-  /// (only the signed-in account can do that).
+  /// Signs out and clears this phone. What you track lives in the account's
+  /// backup, so it comes back when you sign in again, here or on another
+  /// phone.
+  ///
+  /// Changes not backed up yet get one last try first; whatever still can't
+  /// be sent (offline, say) is lost, so the screen warns before calling this
+  /// (see `SyncStatus.pendingCount`).
   Future<void> signOut() async {
+    if (state.busy) return;
+    state = const AccountFlowState(AccountFlowStatus.signingOut);
+    try {
+      await ref.read(syncEngineProvider).syncNow().timeout(const Duration(seconds: 10));
+    } on Object catch (e) {
+      debugPrint('Sync before signing out did not complete: $e');
+    }
+    try {
+      await clearDevice();
+    } on Object catch (e) {
+      debugPrint('Clearing the phone after signing out failed: $e');
+      state = AccountFlowState.idle;
+    }
+  }
+
+  /// Signs out of the account, first stopping this phone's notifications
+  /// for it (only the signed-in account can do that). Leaves this phone's
+  /// data alone.
+  Future<void> _leaveAccount() async {
     await ref.read(notificationsProvider.notifier).beforeSignOut();
     await ref.read(socialBackendProvider)?.signOut();
   }
 
   /// Clears everything the app keeps on this phone and signs out, leaving a
-  /// fresh start: onboarding, default categories, and a new anonymous
-  /// backup on the next sync.
+  /// fresh start: onboarding and default categories, not backed up until
+  /// someone signs in.
   Future<void> clearDevice() async {
-    await signOut();
+    await _leaveAccount();
     await ref.read(databaseProvider).clearForNewUser();
     await ref.read(sharedPreferencesProvider).clear();
     ref
@@ -222,6 +257,8 @@ class AccountFlowNotifier extends Notifier<AccountFlowState> {
       ..invalidate(inboxSeenProvider)
       ..invalidate(shellTabProvider);
     state = AccountFlowState.idle;
+    // Shows "not backed up" now rather than at the next edit.
+    unawaited(ref.read(syncEngineProvider).syncNow());
   }
 }
 

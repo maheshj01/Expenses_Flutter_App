@@ -2,10 +2,11 @@
 /// `functions/src/accountDeletion.ts`) so the grace period and the purge
 /// can't be bent by a client.
 ///
-/// An anonymous account (never signed in with Apple or Google) is erased at
-/// once: with no identity to sign back in with, a grace period would only
-/// keep data nobody can reach. A signed-in account is frozen and restorable
-/// for [graceDays] days, then purged.
+/// Without an account there is nothing on the server to delete. An
+/// anonymous account (left from versions that backed up without signing in)
+/// is erased at once: with no identity to sign back in with, a grace period
+/// would only keep data nobody can reach. A signed-in account is frozen and
+/// restorable for [graceDays] days, then purged.
 abstract interface class AccountDeletion {
   static const int graceDays = 30;
 

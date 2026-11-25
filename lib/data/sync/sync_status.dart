@@ -1,6 +1,10 @@
 enum SyncPhase {
   /// No backend configured; data stays on this device.
   localOnly,
+
+  /// Nobody is signed in, so nothing is backed up. Changes wait on this
+  /// device and go to the account once someone signs in.
+  signedOut,
   idle,
   syncing,
 

@@ -49,9 +49,13 @@ void main() {
     });
 
     Future<ProviderContainer> start(FakePush? push, {bool signedIn = true}) async {
+      final db = AppDatabase(NativeDatabase.memory());
+      addTearDown(db.close);
       final container = ProviderContainer(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
+          databaseProvider.overrideWithValue(db),
+          connectivityProvider.overrideWithValue(FakeConnectivity()),
           socialBackendProvider.overrideWithValue(
             FakeSocialBackend(server, signInAs: _maya, signedIn: signedIn),
           ),

@@ -8,8 +8,8 @@ enum SignInMethod {
   final String label;
 }
 
-/// A signed-in (non-anonymous) account. Personal tracking never needs one;
-/// it is only required to split bills with other people.
+/// A signed-in (non-anonymous) account. Personal tracking works without
+/// one; it is needed to back up and to split bills with other people.
 class Account {
   const Account({required this.uid, required this.method, this.email, this.suggestedName = ''});
 

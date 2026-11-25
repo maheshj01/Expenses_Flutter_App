@@ -10,11 +10,13 @@ abstract interface class RemoteStore {
   /// Human readable name shown in settings, e.g. "Firebase".
   String get displayName;
 
-  /// Prepares the connection (for example signing in). Called before each
-  /// sync; should be cheap when already connected.
+  /// Prepares the connection. Called before each sync; should be cheap when
+  /// already connected. Never signs anyone in: backup is only for people
+  /// who signed in themselves.
   Future<void> connect();
 
-  /// Whose data this store reads and writes, once connected. When it
+  /// The signed-in account whose data this store reads and writes, or null
+  /// when nobody is signed in (the engine then doesn't sync). When it
   /// changes (another account signed in), the engine starts over and merges
   /// this device's data into the new account.
   String? get accountId;

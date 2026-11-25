@@ -11,8 +11,8 @@ import '../../shared/animations/fade_slide_in.dart';
 import '../../shared/animations/motion.dart';
 import 'people_widgets.dart';
 
-/// Shown on the People tab before signing in. Personal tracking never needs
-/// an account; this is only for splitting bills with people.
+/// Shown on the People tab before signing in. Personal tracking works
+/// without an account; signing in backs it up and lets you split bills.
 class SignInView extends ConsumerStatefulWidget {
   const SignInView({super.key});
 
@@ -66,7 +66,7 @@ class _SignInViewState extends ConsumerState<SignInView> {
         FadeSlideIn(
           index: 2,
           child: Text(
-            'Your own tracking stays as it is. Sign in only to share bills with friends on Three Bucks.',
+            'Sign in to back up what you track and share bills with friends on Three Bucks.',
             textAlign: TextAlign.center,
             style: TextStyle(color: c.muted, fontSize: 15, height: 1.4),
           ),

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../domain/account/account_deletion.dart';
 
@@ -7,15 +8,20 @@ import '../../../domain/account/account_deletion.dart';
 /// `functions/src/accountDeletion.ts`. The pending marker is read straight
 /// from `users/{uid}`, which the owner may read but never write.
 class FirebaseAccountDeletion implements AccountDeletion {
-  FirebaseAccountDeletion({FirebaseFunctions? functions, FirebaseFirestore? db})
+  FirebaseAccountDeletion({FirebaseFunctions? functions, FirebaseFirestore? db, FirebaseAuth? auth})
     : _functions = functions ?? FirebaseFunctions.instance,
-      _db = db ?? FirebaseFirestore.instance;
+      _db = db ?? FirebaseFirestore.instance,
+      _auth = auth ?? FirebaseAuth.instance;
 
   final FirebaseFunctions _functions;
   final FirebaseFirestore _db;
+  final FirebaseAuth _auth;
 
   @override
   Future<DeletionOutcome> request() async {
+    // Nobody signed in, not even an anonymous user left from versions that
+    // backed up without signing in: nothing of theirs is on the server.
+    if (_auth.currentUser == null) return const Erased();
     final result = await _functions
         .httpsCallable(
           'requestAccountDeletion',

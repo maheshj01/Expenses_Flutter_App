@@ -7,6 +7,7 @@ import 'package:three_bucks/app/account_flow.dart';
 import 'package:three_bucks/app/providers.dart';
 import 'package:three_bucks/app/social_providers.dart';
 import 'package:three_bucks/data/local/app_database.dart';
+import 'package:three_bucks/data/sync/sync_status.dart';
 import 'package:three_bucks/domain/account/account_deletion.dart';
 import 'package:three_bucks/domain/entities/ledger_entry.dart';
 import 'package:three_bucks/domain/social/account.dart';
@@ -14,6 +15,7 @@ import 'package:three_bucks/domain/social/account.dart';
 import '../support/fake_account_deletion.dart';
 import '../support/fake_connectivity.dart';
 import '../support/fake_social.dart';
+import '../support/in_memory_remote_store.dart';
 
 void main() {
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
@@ -23,6 +25,7 @@ void main() {
   late FakeSocialBackend sam;
   late FakeAccountDeletion deletion;
   late AppDatabase db;
+  late InMemoryRemoteStore remote;
   late ProviderContainer container;
   final now = DateTime(2026, 11, 23, 10);
 
@@ -49,10 +52,12 @@ void main() {
       currentUid: () => maya.currentAccount?.uid,
       clock: () => now,
     );
+    remote = InMemoryRemoteStore(account: () => maya.currentAccount?.uid);
     container = ProviderContainer(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         databaseProvider.overrideWithValue(db),
+        remoteStoreProvider.overrideWithValue(remote),
         connectivityProvider.overrideWithValue(FakeConnectivity()),
         socialBackendProvider.overrideWithValue(maya),
         accountDeletionProvider.overrideWithValue(deletion),
@@ -83,6 +88,50 @@ void main() {
   AccountFlowState flow() => container.read(accountFlowProvider);
 
   Future<int> entriesOnPhone() => container.read(entryRepositoryProvider).count();
+
+  SyncStatus sync() => container.read(syncEngineProvider).status;
+
+  test('signing out backs up what was waiting, then clears the phone', () async {
+    await setUpApp(signedIn: true);
+    expect(remote.get('entries', 'e1'), isNull, reason: 'not synced yet');
+
+    await container.read(accountFlowProvider.notifier).signOut();
+
+    expect(remote.get('entries', 'e1'), isNotNull, reason: 'backed up before clearing');
+    expect(maya.currentAccount, isNull);
+    expect(await entriesOnPhone(), 0);
+    expect(container.read(settingsProvider).onboarded, isFalse, reason: 'onboarding again');
+    expect(flow().status, AccountFlowStatus.idle);
+    await container.read(syncEngineProvider).syncNow();
+    expect(sync().phase, SyncPhase.signedOut);
+  });
+
+  test('signed out, nothing is backed up; signing in sends it', () async {
+    await setUpApp(signedIn: false);
+    await container.read(syncEngineProvider).syncNow();
+    expect(sync().phase, SyncPhase.signedOut);
+    expect(remote.count('entries'), 0);
+
+    await container.read(accountFlowProvider.notifier).signIn(SignInMethod.apple);
+    await container.read(syncEngineProvider).syncNow();
+
+    expect(sync().phase, SyncPhase.idle);
+    expect(remote.get('entries', 'e1'), isNotNull);
+  });
+
+  test('signing in to a frozen account backs nothing up to it', () async {
+    await setUpApp(signedIn: false);
+    deletion.purgeAfter['maya'] = now.add(const Duration(days: 12));
+
+    await container.read(accountFlowProvider.notifier).signIn(SignInMethod.apple);
+    await pumpEventQueue();
+    expect(remote.count('entries'), 0);
+
+    await container.read(accountFlowProvider.notifier).keepDeleting();
+    await container.read(syncEngineProvider).syncNow();
+    expect(remote.count('entries'), 0);
+    expect(sync().phase, SyncPhase.signedOut);
+  });
 
   test('deleting a signed-in account freezes it for 30 days and clears the phone', () async {
     await setUpApp(signedIn: true);

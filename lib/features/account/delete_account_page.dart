@@ -18,8 +18,8 @@ final _entryCountProvider = FutureProvider.autoDispose<int>(
 
 /// Settings row that opens [DeleteAccountPage]. Named for what it does to
 /// this person: a signed-in account is deleted (and restorable for a
-/// while); without one there's only this phone's data and its backup to
-/// erase.
+/// while); without one there's only this phone's data to erase (plus any
+/// anonymous backup left from older versions, which the server erases).
 class DeleteAccountTile extends ConsumerWidget {
   const DeleteAccountTile({super.key});
 
@@ -33,7 +33,7 @@ class DeleteAccountTile extends ConsumerWidget {
       subtitle: Text(
         signedIn
             ? 'Restorable for ${AccountDeletion.graceDays} days'
-            : 'Remove everything from this phone and our servers',
+            : 'Remove everything from this phone',
       ),
       onTap: () =>
           Navigator.of(context)
@@ -110,7 +110,8 @@ class _DeleteAccountPageState extends ConsumerState<DeleteAccountPage> {
                     Text(
                       signedIn
                           ? 'This removes everything from this phone and from your backup as $who.'
-                          : 'This removes everything from this phone and from Three Bucks’ servers.',
+                          : 'This removes everything Three Bucks keeps on this phone. Nothing '
+                                'is backed up while you’re signed out.',
                       style: TextStyle(fontSize: 15, height: 1.45, color: c.muted),
                     ),
                     const SizedBox(height: 24),
@@ -131,6 +132,7 @@ class _DeleteAccountPageState extends ConsumerState<DeleteAccountPage> {
                             detail: name.isEmpty
                                 ? 'Categories, budget and goals'
                                 : '$name’s categories, budget and goals',
+                            last: !signedIn,
                           ),
                           if (signedIn)
                             _Item(
@@ -138,14 +140,13 @@ class _DeleteAccountPageState extends ConsumerState<DeleteAccountPage> {
                               title: 'Your username',
                               detail: '$who, your connections and the people you blocked',
                             ),
-                          _Item(
-                            icon: Icons.cloud_outlined,
-                            title: signedIn ? 'Your backup' : 'The copy on our servers',
-                            detail: signedIn
-                                ? 'Everything saved as $who'
-                                : 'Kept so it could sync later',
-                            last: true,
-                          ),
+                          if (signedIn)
+                            _Item(
+                              icon: Icons.cloud_outlined,
+                              title: 'Your backup',
+                              detail: 'Everything saved as $who',
+                              last: true,
+                            ),
                         ],
                       ),
                     ),

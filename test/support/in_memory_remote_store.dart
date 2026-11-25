@@ -4,7 +4,9 @@ import 'package:three_bucks/data/sync/sync_record.dart';
 /// A tiny server: stores records per collection and hands out a
 /// monotonically increasing sequence number as the pull cursor.
 class InMemoryRemoteStore implements RemoteStore {
-  InMemoryRemoteStore({this.pageSize = 100});
+  /// [account] follows a signed-in account (null while signed out);
+  /// without it, [accountIdValue] decides.
+  InMemoryRemoteStore({this.pageSize = 100, this._account});
 
   final int pageSize;
   final Map<String, Map<String, (int seq, SyncRecord record)>> _data = {};
@@ -12,14 +14,16 @@ class InMemoryRemoteStore implements RemoteStore {
   bool failNext = false;
   int pushCalls = 0;
 
-  /// Change to simulate another account signing in.
-  String accountIdValue = 'user-1';
+  final String? Function()? _account;
+
+  /// Change to simulate another account signing in, or null for signed out.
+  String? accountIdValue = 'user-1';
 
   @override
   String get displayName => 'Memory';
 
   @override
-  String? get accountId => accountIdValue;
+  String? get accountId => _account == null ? accountIdValue : _account();
 
   @override
   String describeError(Object error) => 'Memory store failed.';

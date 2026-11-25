@@ -38,19 +38,20 @@ class FirebaseRemoteStore implements RemoteStore {
   @override
   String get displayName => 'Firebase';
 
+  /// Only an Apple or Google account backs up. Installs from before that
+  /// may still hold an anonymous user: it doesn't sync, but signing in links
+  /// to it and keeps its uid, so its old backup comes along.
   @override
-  String? get accountId => _auth.currentUser?.uid;
-
-  @override
-  Future<void> connect() async {
-    // Anonymous sign-in keeps each person's data private without a login
-    // screen. Signing in with Apple or Google (for sharing) links to it and
-    // keeps the same uid.
-    if (_auth.currentUser == null) await _auth.signInAnonymously();
+  String? get accountId {
+    final user = _auth.currentUser;
+    return user == null || user.isAnonymous ? null : user.uid;
   }
 
+  @override
+  Future<void> connect() async {}
+
   CollectionReference<Map<String, dynamic>> _collection(String name) {
-    final uid = _auth.currentUser?.uid;
+    final uid = accountId;
     if (uid == null) throw StateError('Not signed in');
     return _firestore.collection('users').doc(uid).collection(name);
   }
@@ -110,7 +111,7 @@ class FirebaseRemoteStore implements RemoteStore {
     // don't overlap in ways that matter here.
     final code = error is FirebaseException ? error.code : null;
     return switch (code) {
-      // Anonymous sign-in is off in the Firebase console.
+      // A sign-in method is off in the Firebase console.
       'admin-restricted-operation' ||
       'operation-not-allowed' => 'Backup isn’t set up for this app yet.',
       'network-request-failed' ||

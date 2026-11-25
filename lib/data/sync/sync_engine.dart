@@ -15,6 +15,8 @@ import 'sync_status.dart';
 ///   network returns.
 /// - Conflicts are resolved per record: the most recent edit wins.
 /// - Without a network, changes stay queued in the local database.
+/// - Only a signed-in account syncs. Signed out, changes stay queued and
+///   reach the account once someone signs in and [syncNow] runs.
 class SyncEngine {
   SyncEngine({
     required this._remote,
@@ -108,6 +110,11 @@ class SyncEngine {
   Future<void> _syncOnce() async {
     final remote = _remote!;
     _retryTimer?.cancel();
+
+    if (remote.accountId == null) {
+      _emit(_status.copyWith(phase: SyncPhase.signedOut, pendingCount: await _pendingCount()));
+      return;
+    }
 
     if (!await _connectivity.isOnline()) {
       _emit(_status.copyWith(phase: SyncPhase.offline, pendingCount: await _pendingCount()));
