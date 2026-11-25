@@ -1,17 +1,6 @@
-# Changelog
+### v0.1.0+4 Unreleased
 
-All notable changes to Three Bucks are listed here, newest first, written for the people who use
-the app. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions
-match `version:` in `pubspec.yaml`.
-
-New changes go under **Unreleased**. When a version ships, that section becomes the version's
-heading with its release date, and a new empty Unreleased section starts above it.
-
-## [Unreleased]
-
-Three Bucks 0.1.0, the first release of the app rebuilt from scratch in November 2026.
-
-### Added
+### v0.1.0+3 Nov 25, 2026
 
 - **Two-tap entry.** Type something like `costco 46 split` and the app fills in the amount, the
   category and the split. The amount uses the phone's own number pad.
@@ -47,14 +36,18 @@ Three Bucks 0.1.0, the first release of the app rebuilt from scratch in November
 - **First-run setup** for your income, budget and goals.
 - Branded launch screen on iOS and Android, and animations throughout the app.
 
-### Fixed
+**Fixed**
 
 - Sync problems are explained in plain words, such as "Backup isn't set up for this app yet.",
   instead of a raw error code.
 - The year screen says "Average spent / month".
 - A report is sent only once, however many times you tap.
 
-## Before 0.1.0
+### v0.1.0 Nov 20, 2026
+
+- Initial release.
+
+## Before Initial release
 
 From 2019 to 2022, this repository held an earlier, simpler expense app (Expenses Flutter App):
 a list of expenses stored with sqflite, with date filters, themes and a currency setting.
