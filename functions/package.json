@@ -1,6 +1,6 @@
 {
   "name": "three-bucks-functions",
-  "description": "Account deletion, the nightly janitor and account emails for Three Bucks",
+  "description": "Account deletion, the nightly janitor, account emails and sharing notifications for Three Bucks",
   "private": true,
   "main": "lib/index.js",
   "engines": {
