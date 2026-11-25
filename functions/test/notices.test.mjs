@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import {test} from "node:test";
-import {billNotices, connectionNotice, displayName, isDeadDevice, money} from "../lib/notices.js";
+import {
+  billChanges, billNotices, billUpdateNotices, connectionNotice, displayName, isBillEdit, isDeadDevice, money,
+  updateDelaySeconds,
+} from "../lib/notices.js";
 
 const people = {a: {handle: "maya", name: "Maya Patel"}, b: {handle: "sam", name: ""}};
 const request = {members: ["a", "b"], requestedBy: "a", status: "pending", people};
@@ -80,4 +83,50 @@ test("only devices FCM no longer knows are forgotten", () => {
   assert.equal(isDeadDevice("messaging/invalid-registration-token"), true);
   assert.equal(isDeadDevice("messaging/internal-error"), false);
   assert.equal(isDeadDevice(undefined), false);
+});
+
+test("an edit is a change people see, not a flag, a delete or a restore", () => {
+  assert.equal(isBillEdit(bill, {...bill, note: "Team dinner"}), true);
+  assert.equal(isBillEdit(bill, {...bill, amountCents: 12000}), true);
+  assert.equal(isBillEdit(bill, {...bill, flags: {b: {reason: "wrong"}}}), false, "a flag");
+  assert.equal(isBillEdit(bill, {...bill, note: " Dinner "}), false, "only spaces");
+  assert.equal(isBillEdit(bill, {...bill, members: ["c", "a", "b"]}), false, "same people");
+  assert.equal(isBillEdit(bill, {...bill, deleted: true}), false, "deleted");
+  assert.equal(isBillEdit({...bill, deleted: true}, {...bill, note: "Back"}), false, "restored");
+  assert.equal(isBillEdit(undefined, bill), false, "created");
+});
+
+test("changes are named once each, in a fixed order", () => {
+  const after = {...bill, note: "Team dinner", amountCents: 12000, guests: 2, guestNames: ["Ana"]};
+  assert.deepEqual(billChanges(bill, after), ["amount", "title", "people"]);
+});
+
+test("an edited bill tells everyone on it but the payer what changed", () => {
+  const ns = billUpdateNotices("bill1", bill, {...bill, note: "Team dinner"}, all);
+  assert.deepEqual(ns.map((n) => n.to), ["b", "c"]);
+  assert.equal(ns[0].title, "Bill updated");
+  assert.equal(ns[0].body, "Maya Patel changed the title of “Team dinner”.");
+  assert.deepEqual(ns[0].data, {topic: "billUpdated", id: "bill1"});
+});
+
+test("several edits become one notice, with the new share when it moved", () => {
+  // Title first, then the amount: the queued "before" is the bill before both.
+  const now = {...bill, note: "Team dinner", amountCents: 12000, day: 20261126};
+  const [n] = billUpdateNotices("bill1", bill, now, all);
+  assert.equal(n.body, "Maya Patel changed the amount, title and date of “Team dinner”. Your share is now $30.00.");
+});
+
+test("edits that cancel out, deleted bills and new or removed people send nothing extra", () => {
+  assert.deepEqual(billUpdateNotices("bill1", bill, {...bill}, all), [], "back to how it was");
+  assert.deepEqual(billUpdateNotices("bill1", bill, {...bill, note: "X", deleted: true}, all), []);
+  assert.deepEqual(billUpdateNotices("bill1", bill, undefined, all), []);
+  const swapped = {...bill, members: ["a", "b", "d"]};
+  assert.deepEqual(billUpdateNotices("bill1", bill, swapped, all).map((n) => n.to), ["b"],
+      "d got New split bill instead; c is no longer on it");
+  assert.deepEqual(billUpdateNotices("bill1", bill, {...bill, note: "X"}, (uid) => uid === "c").map((n) => n.to),
+      ["c"], "only people connected with the payer");
+});
+
+test("update notices wait five minutes", () => {
+  assert.equal(updateDelaySeconds, 300);
 });

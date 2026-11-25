@@ -1,6 +1,7 @@
 /**
  * What to tell whom when sharing changes: a connection request arrives, a
- * request is accepted, or someone adds you to a split bill. Kept free of
+ * request is accepted, someone adds you to a split bill, or the payer
+ * edits a bill you're on. Kept free of
  * Firebase so it can be tested directly; notifications.ts sends them.
  *
  * The data shapes mirror what the app writes (see
@@ -15,10 +16,10 @@ export interface Notice {
   body: string;
   /**
    * Lets the app open the right place when the notice is tapped.
-   * `topic` is "request", "accepted" or "newBill"; `id` is the connection
-   * or bill id.
+   * `topic` is "request", "accepted", "newBill" or "billUpdated"; `id` is
+   * the connection or bill id.
    */
-  data: {topic: "request" | "accepted" | "newBill"; id: string};
+  data: {topic: "request" | "accepted" | "newBill" | "billUpdated"; id: string};
 }
 
 interface PersonData {
@@ -43,6 +44,10 @@ export interface BillData {
   amountCents?: unknown;
   currencyCode?: unknown;
   note?: unknown;
+  memo?: unknown;
+  day?: unknown;
+  categoryId?: unknown;
+  guestNames?: unknown;
   deleted?: unknown;
 }
 
@@ -154,6 +159,120 @@ export function billNotices(
     title: "New split bill",
     body: `${who} added you to ${what}. Your share is ${share}.`,
     data: {topic: "newBill", id},
+  }));
+}
+
+/**
+ * The parts of a bill an edit can change, each with how a notice names it.
+ * Flags aren't edits (each person flags their own share), and deleting has
+ * its own path, so neither is here.
+ */
+const editable: Array<[keyof BillData, string]> = [
+  ["amountCents", "amount"],
+  ["note", "title"],
+  ["day", "date"],
+  ["categoryId", "category"],
+  ["members", "people"],
+  ["guests", "people"],
+  ["guestNames", "people"],
+  ["memo", "message"],
+  ["currencyCode", "currency"],
+];
+
+const same = (a: unknown, b: unknown, key: keyof BillData): boolean => {
+  if (key === "members") return [...strings(a)].sort().join("\n") === [...strings(b)].sort().join("\n");
+  if (key === "guestNames") return strings(a).join("\n") === strings(b).join("\n");
+  if (key === "note" || key === "memo") {
+    return (typeof a === "string" ? a.trim() : "") === (typeof b === "string" ? b.trim() : "");
+  }
+  return a === b;
+};
+
+/**
+ * What an edit changed, by name ("amount", "title", "people", …), in a
+ * fixed order and without repeats. Empty when nothing a person would call
+ * an edit changed.
+ * @param {BillData} before The bill before.
+ * @param {BillData} after The bill after.
+ * @return {string[]} The names of what changed.
+ */
+export function billChanges(before: BillData, after: BillData): string[] {
+  const names: string[] = [];
+  for (const [key, name] of editable) {
+    if (!same(before[key], after[key], key) && !names.includes(name)) names.push(name);
+  }
+  return names;
+}
+
+/**
+ * Whether a write to a bill is the payer editing it: the bill existed
+ * before, isn't deleted on either side, and something people see changed.
+ * Creating, deleting, restoring and flagging aren't edits.
+ * @param {BillData | undefined} before The bill before (undefined when created).
+ * @param {BillData | undefined} after The bill after (undefined when deleted).
+ * @return {boolean} True for an edit.
+ */
+export function isBillEdit(before: BillData | undefined, after: BillData | undefined): boolean {
+  if (!before || !after || before.deleted === true || after.deleted === true) return false;
+  return billChanges(before, after).length > 0;
+}
+
+/** How long after an edit its notice goes out, so a burst of edits sends one. */
+export const updateDelaySeconds = 5 * 60;
+
+/**
+ * "amount", "amount and title", "amount, title and date".
+ * @param {string[]} items What to list.
+ * @return {string} The list in words.
+ */
+function inWords(items: string[]): string {
+  if (items.length <= 1) return items.join("");
+  return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+}
+
+/**
+ * Notices for an edited bill, sent a while after the first edit: [before]
+ * is the bill as it was then and [after] is the bill now, so several edits
+ * become one notice, and edits that undo each other send none. Everyone who
+ * was on the bill then and still is hears about it, except the payer (who
+ * made the edits) and anyone not connected with them. People added in the
+ * meantime already got "New split bill".
+ * @param {string} id The bill id.
+ * @param {BillData} before The bill before the first edit.
+ * @param {BillData | undefined} after The bill now (undefined when deleted).
+ * @param {(uid: string) => boolean} connected Whether uid is connected with the payer.
+ * @return {Notice[]} One per person to tell.
+ */
+export function billUpdateNotices(
+    id: string,
+    before: BillData,
+    after: BillData | undefined,
+    connected: (uid: string) => boolean,
+): Notice[] {
+  if (!after || after.deleted === true) return [];
+  const payer = typeof after.createdBy === "string" ? after.createdBy : "";
+  if (!payer) return [];
+  const changes = billChanges(before, after);
+  if (changes.length === 0) return [];
+  const was = new Set(strings(before.members));
+  const to = strings(after.members).filter((m) => m !== payer && was.has(m) && connected(m));
+  if (to.length === 0) return [];
+
+  const amount = typeof after.amountCents === "number" ? after.amountCents : 0;
+  const currency = typeof after.currencyCode === "string" ? after.currencyCode : "USD";
+  const ways = strings(after.members).length + (typeof after.guests === "number" ? after.guests : 0);
+  const share = money(Math.round(amount / Math.max(1, ways)), currency);
+  const note = typeof after.note === "string" ? after.note.trim() : "";
+  const what = note ? `“${note}”` : `a ${money(amount, currency)} bill`;
+  const who = displayName(after.people, payer);
+  const shareChanged = changes.some((c) => c === "amount" || c === "people" || c === "currency");
+  const body = `${who} changed the ${inWords(changes)} of ${what}.` +
+    (shareChanged ? ` Your share is now ${share}.` : "");
+  return to.map((uid) => ({
+    to: uid,
+    title: "Bill updated",
+    body,
+    data: {topic: "billUpdated", id},
   }));
 }
 

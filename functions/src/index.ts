@@ -5,6 +5,6 @@ import {initializeApp} from "firebase-admin/app";
 
 export {requestAccountDeletion, restoreAccount} from "./accountDeletion";
 export {janitor} from "./janitor";
-export {notifyBill, notifyConnection} from "./notifications";
+export {notifyBill, notifyConnection, sendBillUpdate} from "./notifications";
 
 initializeApp();
