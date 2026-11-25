@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/year_month.dart';
 import '../data/social/bill_projector.dart';
 import '../domain/history/edit.dart';
+import '../domain/repositories/entry_repository.dart';
 import '../domain/social/account.dart';
 import '../domain/social/balances.dart';
 import '../domain/social/connection.dart';
@@ -69,6 +71,18 @@ final billEditsProvider = StreamProvider.family<List<Edit>, String>((ref, billId
 final billMapProvider = Provider<Map<String, SharedBill>>((ref) {
   final bills = ref.watch(billsProvider).value?.bills ?? const [];
   return {for (final b in bills) b.id: b};
+});
+
+/// What Activity lists as deleted in [month]: your own entries you deleted,
+/// and your shares of bills the payer deleted (not bills you were taken off
+/// or flagged).
+final monthDeletedProvider = Provider.family<List<DeletedEntry>, YearMonth>((ref, month) {
+  final deleted = ref.watch(monthDeletedEntriesProvider(month)).value ?? const [];
+  final bills = ref.watch(billMapProvider);
+  return [
+    for (final d in deleted)
+      if (d.entry.billId == null || (bills[d.entry.billId]?.deleted ?? false)) d,
+  ];
 });
 
 final settlementsProvider = StreamProvider<List<Settlement>>((ref) {

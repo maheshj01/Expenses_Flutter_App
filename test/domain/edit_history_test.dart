@@ -98,6 +98,50 @@ void main() {
       expect(edits.last.changes[EditField.amount], const FieldChange(4000, 4600));
     });
 
+    Future<List<String>> deletedIn(DateTime from, DateTime to) async => [
+      for (final d in await entries.watchDeletedBetween(from, to).first) d.entry.id,
+    ];
+    final nov = (DateTime(2026, 11), DateTime(2026, 11, 30));
+
+    test('deleting is recorded and stays listed; saving it again restores it', () async {
+      await entries.save(entry());
+      now = DateTime(2026, 11, 21, 8);
+      await entries.delete('e1');
+      await entries.delete('e1'); // already deleted: nothing more recorded
+
+      expect(await entries.byId('e1'), isNull);
+      final deleted = await entries.watchDeletedBetween(nov.$1, nov.$2).first;
+      expect(deleted.single.entry.note, 'Costco');
+      expect(deleted.single.deletedAt, now);
+      expect(await deletedIn(DateTime(2026, 12), DateTime(2026, 12, 31)), isEmpty);
+      expect((await entries.watchEdits('e1').first).single.changes, {
+        EditField.deleted: const FieldChange(false, true),
+      });
+
+      now = DateTime(2026, 11, 21, 9);
+      await entries.save(entry());
+      expect(await entries.byId('e1'), isNotNull);
+      expect(await deletedIn(nov.$1, nov.$2), isEmpty);
+      final edits = await entries.watchEdits('e1').first;
+      expect(edits.first.changes, {EditField.deleted: const FieldChange(true, false)});
+      expect(edits, hasLength(2));
+    });
+
+    test('bulk deletes, like undoing an import, leave no trace', () async {
+      await entries.save(entry());
+      await entries.deleteAll(['e1']);
+      expect(await entries.byId('e1'), isNull);
+      expect(await entries.watchEdits('e1').first, isEmpty);
+      expect(await deletedIn(nov.$1, nov.$2), isEmpty);
+    });
+
+    test('a deleted share of a bill is listed, its history left to the bill', () async {
+      await entries.save(entry(billId: 'b1'));
+      await entries.delete('e1');
+      expect(await entries.watchEdits('e1').first, isEmpty);
+      expect(await deletedIn(nov.$1, nov.$2), ['e1']);
+    });
+
     test('leaves shares of bills to the bill’s own history', () async {
       await entries.save(entry(billId: 'b1'));
       await entries.save(entry(billId: 'b1', cents: 5000));

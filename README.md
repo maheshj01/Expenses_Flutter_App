@@ -15,6 +15,9 @@ A simple, offline-first expense tracker built with Flutter.
 - **Safe to spend today.** The rest of your monthly living budget divided by the days left.
 - **Every year, every month.** History shows each year's totals and a monthly chart. Tap any month
   to see its entries.
+- **Nothing disappears quietly.** Edits and deletions are kept in each entry's history. Deleted
+  expenses, and shared bills their payer deleted, stay in Activity, faded and not counted. Filter
+  by Deleted to find them, and restore your own with one tap.
 - **Your own categories.** Add, edit, recolour, archive and restore them.
 - **Works offline.** Everything is stored on the device first and synced when online.
 - **Bring your spreadsheet.** Import .xlsx or .csv files: every tab with a Date and an Amount

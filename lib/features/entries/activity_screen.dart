@@ -3,12 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../app/providers.dart';
+import '../../app/social_providers.dart';
 import '../../app/theme.dart';
 import '../../core/year_month.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/entities/ledger_entry.dart';
+import '../../domain/repositories/entry_repository.dart';
+import '../../shared/animations/fade_slide_in.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/entry_tile.dart';
+import '../people/bill_sheet.dart';
+import 'edit_history_sheet.dart';
 import 'entry_editor_sheet.dart';
 
 enum EntryFilter {
@@ -17,14 +22,17 @@ enum EntryFilter {
   investing('Saving'),
   income('Income'),
   split('Split'),
-  moneyBack('Money back');
+  moneyBack('Money back'),
+  deleted('Deleted');
 
   const EntryFilter(this.label);
 
   final String label;
 }
 
-/// Every entry of one month, searchable and filterable.
+/// Every entry of one month, searchable and filterable. Entries you
+/// deleted, and shared bills their payer deleted, stay listed (faded, not
+/// counted) under All and Deleted.
 ///
 /// Used as a tab (current month) and pushed from History for any month.
 class ActivityScreen extends ConsumerStatefulWidget {
@@ -44,10 +52,12 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
   EntryFilter _filter = EntryFilter.all;
   String _query = '';
 
-  bool _matches(LedgerEntry e, Map<String, Category> cats) {
+  bool _matches(LedgerEntry e, Map<String, Category> cats, {bool deleted = false}) {
     final kind = cats[e.categoryId]?.kind ?? CategoryKind.spending;
     final ok = switch (_filter) {
       EntryFilter.all => true,
+      EntryFilter.deleted => deleted,
+      _ when deleted => false,
       EntryFilter.spending => kind == CategoryKind.spending,
       EntryFilter.investing => kind == CategoryKind.investing,
       EntryFilter.income => kind == CategoryKind.income,
@@ -69,11 +79,42 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
     final repo = ref.read(entryRepositoryProvider);
     final messenger = ScaffoldMessenger.of(context);
     await repo.delete(e.id);
-    messenger.showSnackBar(
-      SnackBar(
-        content: const Text('Entry deleted'),
-        action: SnackBarAction(label: 'Undo', onPressed: () => repo.save(e)),
-      ),
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: const Text('Entry deleted'),
+          action: SnackBarAction(label: 'Undo', onPressed: () => repo.save(e)),
+        ),
+      );
+  }
+
+  /// A deleted share of a bill opens the bill (who deleted it, when);
+  /// your own entry opens its history, with Restore.
+  Future<void> _openDeleted(DeletedEntry d) async {
+    final e = d.entry;
+    if (e.billId case final billId?) {
+      await showBillSheet(context, billId);
+      return;
+    }
+    final repo = ref.read(entryRepositoryProvider);
+    final currency = ref.read(settingsProvider).currencyCode;
+    final edits = await repo.watchEdits(e.id).first;
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    await showEditHistorySheet(
+      context,
+      edits: edits,
+      currencyCode: currency,
+      created: e.createdAt == null
+          ? 'Created on this device'
+          : 'Created ${DateFormat.yMMMd().format(e.createdAt!)}',
+      onRestore: () async {
+        await repo.save(e);
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(const SnackBar(content: Text('Entry restored')));
+      },
     );
   }
 
@@ -89,10 +130,20 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
     final entries = (entriesAsync.value ?? const <LedgerEntry>[])
         .where((e) => _matches(e, cats))
         .toList();
-    final byDay = <DateTime, List<LedgerEntry>>{};
+    final deleted = ref
+        .watch(monthDeletedProvider(_month))
+        .where((d) => _matches(d.entry, cats, deleted: true))
+        .toList();
+    // Each day lists what counts first, then what was deleted.
+    final byDay = <DateTime, List<_Row>>{};
     for (final e in entries) {
-      byDay.putIfAbsent(e.date, () => []).add(e);
+      byDay.putIfAbsent(e.date, () => []).add((entry: e, deleted: null));
     }
+    for (final d in deleted) {
+      byDay.putIfAbsent(d.entry.date, () => []).add((entry: d.entry, deleted: d));
+    }
+    final days = byDay.keys.toList()..sort((a, b) => b.compareTo(a));
+    final nothing = _query.isEmpty && _filter == EntryFilter.all;
 
     return Scaffold(
       appBar: widget.standalone ? AppBar() : null,
@@ -163,23 +214,23 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
                 ],
               ),
             ),
-            if (entriesAsync.isLoading && entries.isEmpty)
+            if (entriesAsync.isLoading && byDay.isEmpty)
               const Padding(
                 padding: EdgeInsets.all(40),
                 child: Center(child: CircularProgressIndicator()),
               )
-            else if (entries.isEmpty)
+            else if (byDay.isEmpty)
               EmptyState(
                 emoji: '🧾',
-                title: _query.isEmpty && _filter == EntryFilter.all
+                title: nothing
                     ? 'Nothing logged this month'
+                    : _filter == EntryFilter.deleted && _query.isEmpty
+                    ? 'Nothing deleted this month'
                     : 'Nothing matches',
-                message: _query.isEmpty && _filter == EntryFilter.all
-                    ? 'Tap + to add an expense.'
-                    : null,
+                message: nothing ? 'Tap + to add an expense.' : null,
               )
             else
-              for (final MapEntry(key: day, value: list) in byDay.entries) ...[
+              for (final day in days) ...[
                 Padding(
                   padding: const EdgeInsets.fromLTRB(4, 18, 4, 6),
                   child: Text(
@@ -196,23 +247,35 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
                   child: Column(
                     children: [
-                      for (final (i, e) in list.indexed) ...[
+                      for (final (i, (:entry, :deleted)) in byDay[day]!.indexed) ...[
                         if (i > 0) const Divider(),
-                        Dismissible(
-                          key: ValueKey(e.id),
-                          direction: DismissDirection.endToStart,
-                          background: Container(
-                            alignment: Alignment.centerRight,
-                            padding: const EdgeInsets.only(right: 8),
-                            child: Icon(Icons.delete_outline_rounded, color: c.warn),
+                        if (deleted != null)
+                          FadeSlideIn(
+                            key: ValueKey('deleted ${entry.id}'),
+                            offset: const Offset(0, 8),
+                            child: EntryTile(
+                              entry,
+                              showDate: false,
+                              deleted: true,
+                              onTap: () => _openDeleted(deleted),
+                            ),
+                          )
+                        else
+                          Dismissible(
+                            key: ValueKey(entry.id),
+                            direction: DismissDirection.endToStart,
+                            background: Container(
+                              alignment: Alignment.centerRight,
+                              padding: const EdgeInsets.only(right: 8),
+                              child: Icon(Icons.delete_outline_rounded, color: c.warn),
+                            ),
+                            onDismissed: (_) => _deleteWithUndo(entry),
+                            child: EntryTile(
+                              entry,
+                              showDate: false,
+                              onTap: () => showEntryEditor(context, entry: entry),
+                            ),
                           ),
-                          onDismissed: (_) => _deleteWithUndo(e),
-                          child: EntryTile(
-                            e,
-                            showDate: false,
-                            onTap: () => showEntryEditor(context, entry: e),
-                          ),
-                        ),
                       ],
                     ],
                   ),
@@ -224,6 +287,9 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
     );
   }
 }
+
+/// One line of a day: an entry, and how it was deleted if it was.
+typedef _Row = ({LedgerEntry entry, DeletedEntry? deleted});
 
 class _Total extends StatelessWidget {
   const _Total(this.label, this.value, this.color);

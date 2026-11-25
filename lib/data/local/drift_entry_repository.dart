@@ -103,27 +103,32 @@ class DriftEntryRepository implements EntryRepository, LocalSyncSource {
   Future<void> save(LedgerEntry entry) async {
     final now = _now;
     await _db.transaction(() async {
-      final before = await (_db.select(
-        _t,
-      )..where((t) => t.id.equals(entry.id) & t.deleted.equals(false))).getSingleOrNull();
+      final before = await (_db.select(_t)..where((t) => t.id.equals(entry.id))).getSingleOrNull();
       await _db.into(_t).insertOnConflictUpdate(_companion(entry, now));
       // Shares of bills keep their history on the bill.
       if (before == null || before.billId != null || entry.billId != null) return;
-      final changes = entryChanges(_toEntity(before), entry);
-      if (changes.isEmpty) return;
-      await _db
-          .into(_db.entryEdits)
-          .insert(
-            EntryEditsCompanion.insert(
-              id: newId(),
-              entryId: entry.id,
-              at: now,
-              changes: jsonEncode(Edit.changesToJson(changes)),
-              updatedAt: now,
-            ),
-          );
+      final changes = {
+        if (before.deleted) EditField.deleted: const FieldChange(true, false),
+        ...entryChanges(_toEntity(before), entry),
+      };
+      await _recordEdit(entry.id, changes, now);
     });
     _changes.notify();
+  }
+
+  Future<void> _recordEdit(String entryId, Map<EditField, FieldChange> changes, int now) async {
+    if (changes.isEmpty) return;
+    await _db
+        .into(_db.entryEdits)
+        .insert(
+          EntryEditsCompanion.insert(
+            id: newId(),
+            entryId: entryId,
+            at: now,
+            changes: jsonEncode(Edit.changesToJson(changes)),
+            updatedAt: now,
+          ),
+        );
   }
 
   @override
@@ -147,19 +152,58 @@ class DriftEntryRepository implements EntryRepository, LocalSyncSource {
   }
 
   @override
-  Future<void> delete(String id) => deleteAll([id]);
+  Future<void> delete(String id) async {
+    final now = _now;
+    await _db.transaction(() async {
+      final before = await (_db.select(
+        _t,
+      )..where((t) => t.id.equals(id) & t.deleted.equals(false))).getSingleOrNull();
+      if (before == null) return;
+      await _softDelete([id], now);
+      // Shares of bills keep their history on the bill.
+      if (before.billId == null) {
+        await _recordEdit(id, {EditField.deleted: const FieldChange(false, true)}, now);
+      }
+    });
+    _changes.notify();
+  }
 
   @override
   Future<void> deleteAll(List<String> ids) async {
     if (ids.isEmpty) return;
-    await (_db.update(_t)..where((t) => t.id.isIn(ids))).write(
-      EntriesCompanion(
-        deleted: const Value(true),
-        updatedAt: Value(_now),
-        dirty: const Value(true),
-      ),
-    );
+    await _softDelete(ids, _now);
     _changes.notify();
+  }
+
+  Future<void> _softDelete(List<String> ids, int now) =>
+      (_db.update(_t)..where((t) => t.id.isIn(ids))).write(
+        EntriesCompanion(
+          deleted: const Value(true),
+          updatedAt: Value(now),
+          dirty: const Value(true),
+        ),
+      );
+
+  @override
+  Stream<List<DeletedEntry>> watchDeletedBetween(DateTime from, DateTime to) {
+    // Deletions you made yourself have a recorded edit; shares of bills
+    // have their history on the bill, so they're all listed and the caller
+    // keeps those whose bill was deleted. Entries removed in bulk (undoing
+    // an import) have neither and stay hidden.
+    final deletedOnPurpose = _db.selectOnly(_db.entryEdits)
+      ..addColumns([_db.entryEdits.entryId])
+      ..where(_db.entryEdits.deleted.equals(false) & _db.entryEdits.changes.like('%"deleted":%'));
+    final query = _db.select(_t)
+      ..where((t) => t.deleted.equals(true))
+      ..where((t) => t.day.isBetweenValues(DayKey.fromDate(from), DayKey.fromDate(to)))
+      ..where((t) => t.billId.isNotNull() | t.id.isInQuery(deletedOnPurpose))
+      ..orderBy([(t) => OrderingTerm.desc(t.day), (t) => OrderingTerm.desc(t.updatedAt)]);
+    return query.watch().map(
+      (rows) => [
+        for (final r in rows)
+          (entry: _toEntity(r), deletedAt: DateTime.fromMillisecondsSinceEpoch(r.updatedAt)),
+      ],
+    );
   }
 
   // ---- sync ----

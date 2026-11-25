@@ -1,6 +1,9 @@
 import '../entities/ledger_entry.dart';
 import '../history/edit.dart';
 
+/// An entry that was deleted, and when.
+typedef DeletedEntry = ({LedgerEntry entry, DateTime deletedAt});
+
 abstract interface class EntryRepository {
   /// Entries whose date is within [from]..[to] (inclusive), newest first.
   Stream<List<LedgerEntry>> watchBetween(DateTime from, DateTime to);
@@ -25,7 +28,8 @@ abstract interface class EntryRepository {
   Stream<Set<String>> watchSharedBillIds();
 
   /// Inserts or updates [entry]. Updating one of your own entries (not a
-  /// share of a bill) records what changed; see [watchEdits].
+  /// share of a bill) records what changed, and saving a deleted one
+  /// restores it; see [watchEdits].
   Future<void> save(LedgerEntry entry);
 
   /// Every recorded edit of the entry with [entryId], newest first.
@@ -34,8 +38,16 @@ abstract interface class EntryRepository {
   /// Inserts or updates many entries at once, e.g. from an import.
   Future<void> saveAll(List<LedgerEntry> entries);
 
+  /// Deletes one entry. Your own entries record the deletion in their
+  /// history and stay listed by [watchDeletedBetween].
   Future<void> delete(String id);
 
-  /// Deletes many entries at once, e.g. to undo an import.
+  /// Deleted entries dated within [from]..[to], newest first: your own
+  /// entries you deleted one at a time, and every share of a bill that left
+  /// the ledger (callers keep those whose bill was deleted).
+  Stream<List<DeletedEntry>> watchDeletedBetween(DateTime from, DateTime to);
+
+  /// Deletes many entries at once without recording it, e.g. to undo an
+  /// import.
   Future<void> deleteAll(List<String> ids);
 }

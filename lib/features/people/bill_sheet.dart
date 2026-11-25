@@ -20,7 +20,8 @@ import 'safety_sheets.dart';
 import 'split_picker_sheet.dart';
 
 /// Details of a shared bill. The payer can edit it, delete it or take
-/// someone off it; everyone else can flag their own share.
+/// someone off it; everyone else can flag their own share. A deleted bill
+/// is shown read-only, with who deleted it and when.
 Future<void> showBillSheet(BuildContext context, String billId) {
   return showModalBottomSheet<void>(
     context: context,
@@ -40,7 +41,7 @@ class BillSheet extends ConsumerWidget {
     final c = context.colors;
     final bill = ref.watch(billMapProvider)[billId];
     final me = ref.watch(accountProvider).value?.uid;
-    if (bill == null || me == null || bill.deleted) {
+    if (bill == null || me == null) {
       return const SizedBox(
         height: 200,
         child: Center(child: Text('This bill isn’t shared with you any more.')),
@@ -48,6 +49,7 @@ class BillSheet extends ConsumerWidget {
     }
     final money = MoneyFormat(bill.currencyCode);
     final mine = bill.createdBy == me;
+    final gone = bill.deleted;
     final cats = ref.watch(categoryMapProvider);
     final myFlag = bill.flags[me];
 
@@ -59,6 +61,32 @@ class BillSheet extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (gone) ...[
+            FadeSlideIn(
+              offset: const Offset(0, 8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: c.warnSoft,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.delete_outline_rounded, size: 18, color: c.warn),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Deleted by ${who(bill.createdBy)} · '
+                        '${DateFormat.yMMMd().add_jm().format(bill.editedAt)}',
+                        style: TextStyle(color: c.warn, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+          ],
           Row(
             children: [
               CategoryAvatar(cats[bill.categoryId], size: 44),
@@ -83,23 +111,26 @@ class BillSheet extends ConsumerWidget {
               ),
               AnimatedSwitcher(
                 duration: Motion.of(context, Motion.medium),
-                child: bill.isDisputed ? const DisputedTag() : const SizedBox.shrink(),
+                child: bill.isDisputed && !gone ? const DisputedTag() : const SizedBox.shrink(),
               ),
             ],
           ),
           const SizedBox(height: 16),
           Text(
             money(bill.amountCents),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 40,
               fontWeight: FontWeight.w600,
               letterSpacing: -1.5,
+              color: gone ? c.muted : null,
+              decoration: gone ? TextDecoration.lineThrough : null,
+              decorationColor: c.muted,
               fontFeatures: tabularFigures,
             ),
           ),
           Text(
             'Split ${bill.ways} ways · ${money(bill.shareCents)} each',
-            style: TextStyle(color: c.lived, fontWeight: FontWeight.w600),
+            style: TextStyle(color: gone ? c.muted : c.lived, fontWeight: FontWeight.w600),
           ),
           if (bill.memo.isNotEmpty) ...[
             const SizedBox(height: 12),
@@ -118,7 +149,9 @@ class BillSheet extends ConsumerWidget {
                 uid: uid,
                 me: me,
                 money: money,
-                onRemove: mine && uid != me ? () => _remove(context, ref, bill, uid) : null,
+                onRemove: mine && !gone && uid != me
+                    ? () => _remove(context, ref, bill, uid)
+                    : null,
               ),
             ),
           if (bill.guests > 0)
@@ -142,7 +175,9 @@ class BillSheet extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          if (mine) ...[
+          if (gone)
+            const SizedBox.shrink()
+          else if (mine) ...[
             FilledButton.icon(
               onPressed: () => _edit(context, ref, bill),
               icon: const Icon(Icons.edit_rounded, size: 18),

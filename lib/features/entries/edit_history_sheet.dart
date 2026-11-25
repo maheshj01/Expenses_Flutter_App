@@ -34,13 +34,16 @@ class EditHistoryLink extends StatelessWidget {
 /// Every edit of an entry or bill, newest first, each with what changed.
 ///
 /// [nameOf] names whoever made an edit (shared bills); [created] is the
-/// line shown last, e.g. "Created Nov 20 by Sam".
+/// line shown last, e.g. "Created Nov 20 by Sam". With [onRestore] (a
+/// deleted entry), the sheet ends with a Restore button that closes it
+/// and calls [onRestore].
 Future<void> showEditHistorySheet(
   BuildContext context, {
   required List<Edit> edits,
   required String currencyCode,
   required String created,
   String Function(String uid)? nameOf,
+  VoidCallback? onRestore,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -51,6 +54,7 @@ Future<void> showEditHistorySheet(
       currencyCode: currencyCode,
       created: created,
       nameOf: nameOf,
+      onRestore: onRestore,
     ),
   );
 }
@@ -61,12 +65,14 @@ class _EditHistorySheet extends ConsumerWidget {
     required this.currencyCode,
     required this.created,
     this.nameOf,
+    this.onRestore,
   });
 
   final List<Edit> edits;
   final String currencyCode;
   final String created;
   final String Function(String uid)? nameOf;
+  final VoidCallback? onRestore;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -123,6 +129,17 @@ class _EditHistorySheet extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
             child: Text(created, style: TextStyle(color: c.muted, fontSize: 13)),
           ),
+          if (onRestore case final restore?) ...[
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: () {
+                Navigator.of(context).pop();
+                restore();
+              },
+              icon: const Icon(Icons.restore_rounded, size: 18),
+              label: const Text('Restore'),
+            ),
+          ],
         ],
       ),
     );

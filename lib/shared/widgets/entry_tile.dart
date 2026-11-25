@@ -10,11 +10,14 @@ import '../../domain/entities/ledger_entry.dart';
 import 'category_avatar.dart';
 
 class EntryTile extends ConsumerWidget {
-  const EntryTile(this.entry, {super.key, this.onTap, this.showDate = true});
+  const EntryTile(this.entry, {super.key, this.onTap, this.showDate = true, this.deleted = false});
 
   final LedgerEntry entry;
   final VoidCallback? onTap;
   final bool showDate;
+
+  /// Shown faded with its amount struck through: it no longer counts.
+  final bool deleted;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -24,7 +27,9 @@ class EntryTile extends ConsumerWidget {
     final bill = entry.billId == null ? null : ref.watch(billMapProvider)[entry.billId];
     final me = ref.watch(accountProvider.select((a) => a.value?.uid));
     final kind = category?.kind ?? CategoryKind.spending;
-    final amountColor = entry.isMoneyBack
+    final amountColor = deleted
+        ? c.muted
+        : entry.isMoneyBack
         ? c.lived
         : switch (kind) {
             CategoryKind.investing => c.invested,
@@ -51,7 +56,7 @@ class EntryTile extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(vertical: 10),
         child: Row(
           children: [
-            CategoryAvatar(category),
+            Opacity(opacity: deleted ? 0.45 : 1, child: CategoryAvatar(category)),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -61,7 +66,11 @@ class EntryTile extends ConsumerWidget {
                     title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: deleted ? c.muted : null,
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Row(
@@ -74,11 +83,14 @@ class EntryTile extends ConsumerWidget {
                           style: TextStyle(fontSize: 12.5, color: c.muted),
                         ),
                       ),
-                      if (entry.isSplit) ...[
+                      if (deleted) ...[
                         const SizedBox(width: 6),
-                        _Tag(_splitLabel(entry.splitWays)),
+                        _Tag('Deleted', color: c.muted, background: c.sunk),
+                      ] else if (entry.isSplit) ...[
+                        const SizedBox(width: 6),
+                        _Tag(_splitLabel(entry.splitWays), color: c.lived, background: c.livedSoft),
                       ],
-                      if (bill != null && bill.isDisputed) ...[
+                      if (!deleted && bill != null && bill.isDisputed) ...[
                         const SizedBox(width: 6),
                         Icon(Icons.flag_rounded, size: 14, color: c.warn),
                       ],
@@ -97,6 +109,8 @@ class EntryTile extends ConsumerWidget {
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                     color: amountColor,
+                    decoration: deleted ? TextDecoration.lineThrough : null,
+                    decorationColor: c.muted,
                     fontFeatures: tabularFigures,
                   ),
                 ),
@@ -122,19 +136,20 @@ String _splitLabel(int ways) => switch (ways) {
 };
 
 class _Tag extends StatelessWidget {
-  const _Tag(this.text);
+  const _Tag(this.text, {required this.color, required this.background});
 
   final String text;
+  final Color color;
+  final Color background;
 
   @override
   Widget build(BuildContext context) {
-    final c = context.colors;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-      decoration: BoxDecoration(color: c.livedSoft, borderRadius: BorderRadius.circular(6)),
+      decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(6)),
       child: Text(
         text,
-        style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: c.lived),
+        style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: color),
       ),
     );
   }

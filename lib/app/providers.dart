@@ -138,6 +138,14 @@ final monthEntriesProvider = StreamProvider.family<List<LedgerEntry>, YearMonth>
   (ref, month) => ref.watch(entryRepositoryProvider).watchBetween(month.firstDay, month.lastDay),
 );
 
+/// Entries dated in [month] that were deleted; see
+/// `EntryRepository.watchDeletedBetween`. Activity shows them through
+/// `monthDeletedProvider`, which drops shares of bills that weren't deleted.
+final monthDeletedEntriesProvider = StreamProvider.family<List<DeletedEntry>, YearMonth>(
+  (ref, month) =>
+      ref.watch(entryRepositoryProvider).watchDeletedBetween(month.firstDay, month.lastDay),
+);
+
 final yearEntriesProvider = StreamProvider.family<List<LedgerEntry>, int>(
   (ref, year) =>
       ref.watch(entryRepositoryProvider).watchBetween(DateTime(year), DateTime(year, 12, 31)),
