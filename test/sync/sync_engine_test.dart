@@ -146,6 +146,7 @@ void main() {
     await phone.engine.syncNow();
     expect(phone.engine.status.phase, SyncPhase.error);
     expect(phone.engine.status.pendingCount, 1);
+    expect(phone.engine.status.message, 'Memory store failed.', reason: 'not the raw error');
 
     await phone.engine.syncNow();
     expect(phone.engine.status.phase, SyncPhase.idle);

@@ -101,6 +101,31 @@ class FirebaseRemoteStore implements RemoteStore {
     return PullResult(records: records, cursor: next.toString(), hasMore: hasMore);
   }
 
+  @override
+  String describeError(Object error) => describe(error);
+
+  /// [describeError] without an instance, for tests.
+  static String describe(Object error) {
+    // Auth and Firestore errors are both FirebaseExceptions; their codes
+    // don't overlap in ways that matter here.
+    final code = error is FirebaseException ? error.code : null;
+    return switch (code) {
+      // Anonymous sign-in is off in the Firebase console.
+      'admin-restricted-operation' ||
+      'operation-not-allowed' => 'Backup isn’t set up for this app yet.',
+      'network-request-failed' ||
+      'unavailable' ||
+      'deadline-exceeded' => 'Can’t reach the backup server.',
+      'too-many-requests' || 'resource-exhausted' => 'The backup server is busy.',
+      'user-disabled' => 'This account has been turned off, so backup is paused.',
+      'permission-denied' => 'Backup isn’t allowed for this account right now.',
+      'unauthenticated' ||
+      'user-token-expired' ||
+      'invalid-user-token' => 'You were signed out of backup.',
+      _ => 'Backup ran into a problem.',
+    };
+  }
+
   static SyncRecord _toRecord(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
     final data = Map<String, Object?>.of(doc.data());
     final updatedAt = (data.remove('updatedAt') as num?)?.toInt() ?? 0;

@@ -22,6 +22,9 @@ class InMemoryRemoteStore implements RemoteStore {
   String? get accountId => accountIdValue;
 
   @override
+  String describeError(Object error) => 'Memory store failed.';
+
+  @override
   Future<void> connect() async {
     if (failNext) {
       failNext = false;

@@ -24,6 +24,10 @@ class SyncStatus {
 
   /// Local changes not yet pushed.
   final int pendingCount;
+
+  /// Why the last sync failed, in words for people (see
+  /// `RemoteStore.describeError`). Only set when [phase] is
+  /// [SyncPhase.error].
   final String? message;
 
   SyncStatus copyWith({

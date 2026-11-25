@@ -230,7 +230,8 @@ class _SyncCard extends ConsumerWidget {
         Icons.sync_problem_rounded,
         c.warn,
         'Sync paused',
-        status.message ?? 'Will retry shortly.',
+        '${status.message ?? 'Backup ran into a problem.'} Your entries are safe on this '
+            'phone and will back up once it’s fixed.',
       ),
       SyncPhase.idle => (
         Icons.cloud_done_rounded,

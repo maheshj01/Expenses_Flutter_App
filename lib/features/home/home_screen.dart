@@ -416,7 +416,10 @@ class _SyncBanner extends ConsumerWidget {
         'Offline · ${status.pendingCount} change${status.pendingCount == 1 ? '' : 's'} '
             'will sync when you’re back online',
       ),
-      SyncPhase.error => (Icons.sync_problem_rounded, 'Sync paused, retrying shortly'),
+      SyncPhase.error => (
+        Icons.sync_problem_rounded,
+        '${status.message ?? 'Sync paused.'} Trying again shortly.',
+      ),
       _ => (null, null),
     };
     if (icon == null) return const SizedBox.shrink();

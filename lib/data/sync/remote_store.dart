@@ -26,6 +26,10 @@ abstract interface class RemoteStore {
   /// means "from the beginning". The returned cursor is opaque to the app
   /// and is passed back on the next pull.
   Future<PullResult> pull(String collection, {String? cursor});
+
+  /// Why a sync failed, in one short sentence for people using the app,
+  /// e.g. "Can’t reach the backup server." Never the raw error.
+  String describeError(Object error);
 }
 
 class PullResult {

@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
 import '../../core/clock.dart';
 import 'connectivity_monitor.dart';
 import 'local_sync_source.dart';
@@ -132,10 +134,11 @@ class SyncEngine {
         ),
       );
     } catch (e) {
+      debugPrint('Sync failed: $e');
       _emit(
         _status.copyWith(
           phase: SyncPhase.error,
-          message: e.toString(),
+          message: remote.describeError(e),
           pendingCount: await _pendingCount(),
         ),
       );
