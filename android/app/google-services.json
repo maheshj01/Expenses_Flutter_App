@@ -12,7 +12,36 @@
           "package_name": "com.wml.threebucks"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "732922541900-89ej8o74b3mpfb76u1uui6n7atlm0ekd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.wml.threebucks",
+            "certificate_hash": "0e9519b409d657e5e4c5fc50ee5985799c7ef0dd"
+          }
+        },
+        {
+          "client_id": "732922541900-dr409smuhjbg2a6doe8klssnn0a0rja6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.wml.threebucks",
+            "certificate_hash": "fa6b4fe0c403bded6cbb6f8350772bb982385e22"
+          }
+        },
+        {
+          "client_id": "732922541900-j1k24lafhjr5c5tu3tr5t002da8cpa05.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.wml.threebucks",
+            "certificate_hash": "7ab6298785777757761c7434fdf7a8c0029da7a8"
+          }
+        },
+        {
+          "client_id": "732922541900-91900804rulhsqsvjftjdeh1vv2idcq8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCQwAkUljcwRnCRV1SwP6vRKOJ4Vd_vdFs"
@@ -20,7 +49,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "732922541900-91900804rulhsqsvjftjdeh1vv2idcq8.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "732922541900-bakqvmk9frstu8tbp8kht8hpf0kdrini.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.wml.threebucks"
+              }
+            }
+          ]
         }
       }
     }
