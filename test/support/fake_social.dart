@@ -99,7 +99,20 @@ class FakeSocialBackend implements SocialBackend {
   String get displayName => 'Fake';
 
   @override
-  List<SignInMethod> get signInMethods => SignInMethod.values;
+  List<SignInMethod> get signInMethods => methods;
+
+  /// What this device offers; every method unless a test narrows it.
+  List<SignInMethod> methods = SignInMethod.values;
+
+  /// Set when [signInAs]'s email already has an account made this way:
+  /// signing in another way then throws [EmailHasAccount], like Firebase's
+  /// one account per email.
+  SignInMethod? emailAccountUses;
+
+  /// Methods added to the account by signing in with [emailAccountUses]
+  /// after [EmailHasAccount].
+  final linkedMethods = <SignInMethod>{};
+  SignInMethod? _pendingMethod;
 
   String get _me => _account?.uid ?? (throw const SocialError('Sign in to share bills'));
 
@@ -128,6 +141,13 @@ class FakeSocialBackend implements SocialBackend {
     if (server.deletedAccounts.contains(signInAs.uid)) {
       throw const SocialError('This account was deleted');
     }
+    final existing = emailAccountUses;
+    if (existing != null && method != existing && !linkedMethods.contains(method)) {
+      _pendingMethod = method;
+      throw EmailHasAccount(attempted: method, existing: existing, email: signInAs.email);
+    }
+    if (method == existing && _pendingMethod != null) linkedMethods.add(_pendingMethod!);
+    _pendingMethod = null;
     _account = signInAs;
     _accountChanges.add(_account);
   }

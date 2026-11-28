@@ -8,6 +8,10 @@
 - **Signing out clears this phone.** Anything not yet backed up gets one last try first.
   Then the app starts fresh, and your data comes back when you sign in again. If some changes
   still haven't backed up, you're warned before signing out.
+- **One email, one account.** If you made your account with Apple and later continue with
+  Google using the same email (or the other way round), the app asks you to confirm with the
+  first one once. After that, both open the same account.
+- **Google sign-in uses the phone's own account picker** instead of a browser page.
 
 ### v0.1.0+3 Nov 25, 2026
 

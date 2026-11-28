@@ -6,6 +6,8 @@ enum SignInMethod {
   const SignInMethod(this.label);
 
   final String label;
+
+  SignInMethod get other => this == apple ? google : apple;
 }
 
 /// A signed-in (non-anonymous) account. Personal tracking works without

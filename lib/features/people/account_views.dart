@@ -33,11 +33,49 @@ class _SignInViewState extends ConsumerState<SignInView> {
       await ref.read(accountFlowProvider.notifier).signIn(method);
     } on SignInCancelled {
       // Nothing to say.
+    } on EmailHasAccount catch (e) {
+      if (mounted) setState(() => _busy = null);
+      if (mounted && await _confirmExisting(e) == true) await _signIn(e.existing);
     } catch (e) {
       if (mounted) setState(() => _error = '$e');
     } finally {
       if (mounted) setState(() => _busy = null);
     }
+  }
+
+  /// One email is one account: offers to sign in the way that account
+  /// already does, which adds the method just tried to it. Where that way
+  /// isn't offered (Apple on Android), explains how to do it on an iPhone.
+  Future<bool?> _confirmExisting(EmailHasAccount e) {
+    final methods = ref.read(socialBackendProvider)?.signInMethods ?? const [];
+    final canContinue = methods.contains(e.existing);
+    final who = e.email ?? 'This email';
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('You already have an account'),
+        content: Text(
+          canContinue
+              ? '$who already signs in with ${e.existing.label}. Continue with '
+                    '${e.existing.label} once, and ${e.attempted.label} will open the same '
+                    'account from then on.'
+              : '$who already signs in with ${e.existing.label}. On your iPhone, sign out and '
+                    'continue with ${e.attempted.label}; it asks for ${e.existing.label} once. '
+                    'After that, ${e.attempted.label} opens the same account here too.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(canContinue ? 'Cancel' : 'OK'),
+          ),
+          if (canContinue)
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text('Continue with ${e.existing.label}'),
+            ),
+        ],
+      ),
+    );
   }
 
   @override

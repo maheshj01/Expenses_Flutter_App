@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:developer' show log;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../../core/day.dart';
 import '../../../core/ids.dart';
@@ -79,49 +81,120 @@ class FirebaseSocialBackend implements SocialBackend {
   @override
   Stream<Account?> watchAccount() => _auth.userChanges().map(_toAccount).distinct();
 
-  AuthProvider _provider(SignInMethod method) => switch (method) {
-    SignInMethod.apple =>
-      AppleAuthProvider()
-        ..addScope('email')
-        ..addScope('name'),
-    SignInMethod.google => GoogleAuthProvider()..addScope('email'),
-  };
+  bool _googleReady = false;
+
+  /// What the person last signed in with when its email turned out to be on
+  /// an account that uses the other method. Added to that account when they
+  /// sign in to it, which makes it one account.
+  SignInMethod? _pendingMethod;
+  AuthCredential? _pendingCredential;
 
   @override
   Future<void> signIn(SignInMethod method) async {
-    final provider = _provider(method);
-    final user = _auth.currentUser;
+    AuthCredential? google;
     try {
-      if (user != null && user.isAnonymous) {
-        // Keeps the uid, so data backed up so far stays with the account.
-        await user.linkWithProvider(provider);
+      if (method == SignInMethod.google) {
+        google = await _googleCredential();
+        await _signInOrLink(credential: google);
       } else {
-        await _auth.signInWithProvider(provider);
+        await _signInOrLink(provider: _appleProvider());
       }
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'credential-already-in-use' || e.code == 'email-already-in-use') {
-        // This Apple / Google account was used before, e.g. on another
-        // phone. Switch to it; sync then merges this device's data into it.
-        final credential = e.credential;
+      if (_isCancel(e)) throw const SignInCancelled();
+      if (e.code == 'account-exists-with-different-credential') {
+        _pendingMethod = method;
+        _pendingCredential = e.credential ?? google;
+        throw EmailHasAccount(attempted: method, existing: method.other, email: e.email);
+      }
+      throw SocialError(e.message ?? 'Couldn’t sign in (${e.code})');
+    }
+    await _addPending(method);
+    await _auth.currentUser?.reload();
+  }
+
+  /// Links the sign-in to the anonymous user, which keeps the uid and the
+  /// data backed up so far. If that Apple / Google account was used before,
+  /// e.g. on another phone, switches to it; sync then merges this device's
+  /// data into it.
+  Future<void> _signInOrLink({AuthCredential? credential, AuthProvider? provider}) async {
+    final user = _auth.currentUser;
+    if (user != null && user.isAnonymous) {
+      try {
         if (credential != null) {
-          await _auth.signInWithCredential(credential);
+          await user.linkWithCredential(credential);
         } else {
-          await _auth.signInWithProvider(provider);
+          await user.linkWithProvider(provider!);
         }
-      } else if (_isCancel(e)) {
-        throw const SignInCancelled();
-      } else {
-        throw SocialError(e.message ?? 'Couldn’t sign in (${e.code})');
+        return;
+      } on FirebaseAuthException catch (e) {
+        if (e.code != 'credential-already-in-use' && e.code != 'email-already-in-use') rethrow;
+        credential ??= e.credential;
       }
     }
-    await _auth.currentUser?.reload();
+    if (credential != null) {
+      await _auth.signInWithCredential(credential);
+    } else {
+      await _auth.signInWithProvider(provider!);
+    }
+  }
+
+  /// Adds the method held since [EmailHasAccount] to the account just
+  /// signed in to with [method]. The person is signed in either way, so a
+  /// failure here only means being asked again next time.
+  Future<void> _addPending(SignInMethod method) async {
+    final pending = _pendingMethod;
+    final credential = _pendingCredential;
+    _pendingMethod = null;
+    _pendingCredential = null;
+    final user = _auth.currentUser;
+    if (pending == null || pending == method || user == null) return;
+    try {
+      if (credential != null) {
+        await user.linkWithCredential(credential);
+      } else if (pending == SignInMethod.google) {
+        await user.linkWithCredential(await _googleCredential());
+      } else {
+        await user.linkWithProvider(_appleProvider());
+      }
+    } on Object catch (e) {
+      log('Couldn’t add ${pending.label} to the account: $e', name: 'Auth');
+    }
+  }
+
+  /// Asks for the email and name: without the email Firebase can't tell the
+  /// person already has an account under it and would make a second one.
+  AuthProvider _appleProvider() => AppleAuthProvider()
+    ..addScope('email')
+    ..addScope('name');
+
+  /// The native Google account picker.
+  Future<AuthCredential> _googleCredential() async {
+    try {
+      if (!_googleReady) {
+        await GoogleSignIn.instance.initialize();
+        _googleReady = true;
+      }
+      final account = await GoogleSignIn.instance.authenticate(scopeHint: const ['email']);
+      final idToken = account.authentication.idToken;
+      if (idToken == null) throw const SocialError('Google didn’t return an ID token');
+      return GoogleAuthProvider.credential(idToken: idToken);
+    } on GoogleSignInException catch (e) {
+      if (e.code == GoogleSignInExceptionCode.canceled) throw const SignInCancelled();
+      throw SocialError(e.description ?? 'Couldn’t sign in with Google (${e.code.name})');
+    }
   }
 
   static bool _isCancel(FirebaseAuthException e) =>
       e.code.contains('cancel') || e.code == 'web-context-canceled' || e.code == '1001';
 
   @override
-  Future<void> signOut() => _auth.signOut();
+  Future<void> signOut() async {
+    _pendingMethod = null;
+    _pendingCredential = null;
+    // So the next Google sign-in shows the account picker again.
+    if (_googleReady) await GoogleSignIn.instance.signOut();
+    await _auth.signOut();
+  }
 
   // ---- profile ----
 

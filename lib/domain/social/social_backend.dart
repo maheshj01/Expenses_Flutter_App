@@ -32,6 +32,11 @@ abstract interface class SocialBackend {
   /// Signs in, keeping data made before signing in. Throws
   /// [SignInCancelled] if the user backs out.
   ///
+  /// One email is one account. If the email is already on an account that
+  /// signs in the other way, this throws [EmailHasAccount]; signing in with
+  /// [EmailHasAccount.existing] next adds [method] to that account, so both
+  /// open it from then on.
+  ///
   /// The account may be waiting to be deleted; see `AccountDeletion`.
   Future<void> signIn(SignInMethod method);
 
@@ -107,6 +112,21 @@ abstract interface class SocialBackend {
 
 class SignInCancelled implements Exception {
   const SignInCancelled();
+}
+
+/// The email the person just signed in with already has an account, made
+/// with [existing]. Signing in with [existing] once adds [attempted] to it.
+class EmailHasAccount implements Exception {
+  const EmailHasAccount({required this.attempted, required this.existing, this.email});
+
+  final SignInMethod attempted;
+  final SignInMethod existing;
+  final String? email;
+
+  @override
+  String toString() =>
+      '${email ?? 'This email'} already has an account with ${existing.label}. '
+      'Continue with ${existing.label} to add ${attempted.label} to it.';
 }
 
 class HandleTaken implements Exception {
