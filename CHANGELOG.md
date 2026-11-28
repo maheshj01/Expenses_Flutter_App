@@ -19,9 +19,12 @@
   back to the app.
 - **Saved means what you didn't spend.** Saved is now what you earned minus what you spent,
   the same number on Home, Activity, History and in the export. Investing no longer counts as
-  "saved" on its own: it shows as where your savings went, next to what's left in cash. A
-  month where you spent more than you earned shows a negative Saved. With no income logged,
-  Invested shows instead. The year screen gains a bar of where your income went.
+  "saved" on its own: it shows as where your savings went, next to what's left in cash (which
+  goes negative when you invested more than you saved that month). A month where you spent
+  more than you earned shows a negative Saved. With no income logged, Invested shows instead.
+  The year screen gains a bar of where your income went, and its months list shows what each
+  month kept in cash and invested (e.g. "$1,500 in cash · $500 invested", or "-$814 in cash ·
+  $6,109 invested") instead of a single total.
 
 **Fixed**
 

@@ -90,7 +90,8 @@ class _YearCard extends ConsumerWidget {
     );
 
     // Where the money went: spent, invested, and what's left in cash.
-    final total = s.livedCents + s.investedCents + s.cashCents;
+    final cash = s.cashCents < 0 ? 0 : s.cashCents;
+    final total = s.livedCents + s.investedCents + cash;
     return AppCard(
       onTap: () =>
           Navigator.of(context)
@@ -140,7 +141,7 @@ class _YearCard extends ConsumerWidget {
                   : [
                       (s.livedCents / total, c.lived),
                       (s.investedCents / total, c.invested),
-                      (s.cashCents / total, c.muted),
+                      (cash / total, c.muted),
                     ],
             ),
             const SizedBox(height: 12),

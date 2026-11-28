@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import '../entities/category.dart';
 import '../entities/ledger_entry.dart';
 
@@ -66,12 +64,10 @@ class PeriodSummary {
   double get savedShare =>
       !hasIncome || savedCents <= 0 ? 0 : (savedCents / earnedCents).clamp(0, 1).toDouble();
 
-  /// The part of [savedCents] that wasn't invested. Never negative.
-  int get cashCents => math.max(0, savedCents - investedCents);
-
-  /// How much of what you invested came from savings made before this
-  /// period, because you invested more than you saved in it.
-  int get fromEarlierSavingsCents => math.max(0, investedCents - math.max(0, savedCents));
+  /// What saving did to your cash: [savedCents] minus what was invested.
+  /// Negative when you invested more than you saved, so the difference came
+  /// out of cash you already had.
+  int get cashCents => savedCents - investedCents;
 
   /// Progress toward a savings goal: what you saved, or, with no income
   /// logged, what you invested.

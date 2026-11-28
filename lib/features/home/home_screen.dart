@@ -491,8 +491,8 @@ class _SavedCard extends ConsumerWidget {
     final amount = summary.towardGoalCents;
     final goal = settings.hasSavingsGoal ? settings.savingsGoalCents : 0;
     final reached = goal > 0 && amount >= goal;
-    final cash = income ? summary.cashCents : 0;
-    final earlier = income ? summary.fromEarlierSavingsCents : 0;
+    // Negative when more was invested than saved: it came out of cash.
+    final cash = income && amount >= 0 ? summary.cashCents : 0;
     final emojis = goal > 0 ? settings.goals.map((g) => g.emoji).take(3).join(' ') : '';
     final status = TextStyle(color: c.invested, fontWeight: FontWeight.w700);
 
@@ -500,7 +500,9 @@ class _SavedCard extends ConsumerWidget {
     // one, otherwise against everything set aside.
     final scale = goal > 0 ? goal : (invested + cash);
     final investedPart = scale <= 0 ? 0.0 : (invested / scale).clamp(0, 1).toDouble();
-    final cashPart = scale <= 0 ? 0.0 : (cash / scale).clamp(0, 1 - investedPart).toDouble();
+    final cashPart = scale <= 0 || cash <= 0
+        ? 0.0
+        : (cash / scale).clamp(0, 1 - investedPart).toDouble();
 
     return Padding(
       padding: const EdgeInsets.only(top: 10),
@@ -579,7 +581,7 @@ class _SavedCard extends ConsumerWidget {
                 ),
               const SizedBox(height: 10),
               SegmentBar(height: 8, segments: [(investedPart, c.invested), (cashPart, c.muted)]),
-              if (income && (invested > 0 || cash > 0)) ...[
+              if (income && (invested > 0 || cash != 0)) ...[
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 14,
@@ -587,9 +589,10 @@ class _SavedCard extends ConsumerWidget {
                   children: [
                     if (invested > 0) _Dot('Invested ${money.whole(invested)}', c.invested),
                     if (cash > 0) _Dot('Left in cash ${money.whole(cash)}', c.muted),
-                    if (earlier > 0)
+                    if (cash < 0) _Dot('Cash ${money.whole(cash)}', c.warn),
+                    if (cash < 0)
                       Text(
-                        '${money.whole(earlier)} of it from earlier savings',
+                        'invested more than you saved',
                         style: TextStyle(fontSize: 12, color: c.muted),
                       ),
                   ],

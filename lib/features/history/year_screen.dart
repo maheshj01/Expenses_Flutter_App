@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -21,14 +23,20 @@ class YearScreen extends ConsumerWidget {
 
   final int year;
 
-  /// Under each month: what was saved, or invested when there was no income.
-  static String _monthLine(PeriodSummary m, MoneyFormat money) {
-    if (!m.hasIncome) {
-      return m.investedCents > 0 ? '${money.whole(m.investedCents)} invested' : 'No income';
-    }
-    return m.savedCents < 0
+  /// Under each month, the two parts of what was saved, e.g. "$1,500 in cash
+  /// · $500 invested". A single "saved" total here read as saved plus
+  /// invested, so the parts are named instead.
+  @visibleForTesting
+  static String monthLine(PeriodSummary m, MoneyFormat money) {
+    final invested = m.investedCents > 0 ? '${money.whole(m.investedCents)} invested' : null;
+    if (!m.hasIncome) return invested ?? 'No income';
+    // Cash can be negative: invested more than was saved, so it came out
+    // of cash already there.
+    final first = m.savedCents < 0
         ? '${money.whole(-m.savedCents)} over income'
-        : '${money.whole(m.savedCents)} saved';
+        : (m.cashCents != 0 ? '${money.whole(m.cashCents)} in cash' : null);
+    final parts = [?first, ?invested];
+    return parts.isEmpty ? 'Nothing saved' : parts.join(' · ');
   }
 
   void _openMonth(BuildContext context, int month) {
@@ -102,7 +110,7 @@ class YearScreen extends ConsumerWidget {
                     segments: [
                       (year$.livedCents / year$.earnedCents, c.lived),
                       (year$.investedCents / year$.earnedCents, c.invested),
-                      (year$.cashCents / year$.earnedCents, c.muted),
+                      (math.max(0, year$.cashCents) / year$.earnedCents, c.muted),
                     ],
                   ),
                   const SizedBox(height: 14),
@@ -118,14 +126,13 @@ class YearScreen extends ConsumerWidget {
                     year$.savedCents < 0 ? c.warn : c.invested,
                   ),
                   _Row('Invested', money(year$.investedCents), null, indent: true),
-                  _Row('Left in cash', money(year$.cashCents), null, indent: true),
-                  if (year$.fromEarlierSavingsCents > 0)
-                    _Row(
-                      'Invested from earlier savings',
-                      money(year$.fromEarlierSavingsCents),
-                      null,
-                      indent: true,
-                    ),
+                  _Row(
+                    year$.cashCents < 0 ? 'Cash (invested more than saved)' : 'Left in cash',
+                    money(year$.cashCents),
+                    null,
+                    indent: true,
+                    negative: year$.cashCents < 0,
+                  ),
                 ] else
                   _Row('Invested', money(year$.investedCents), c.invested),
                 const Divider(height: 20),
@@ -169,7 +176,7 @@ class YearScreen extends ConsumerWidget {
                     subtitle: Text(
                       monthSummaries[m - 1].entryCount == 0
                           ? 'No entries'
-                          : _monthLine(monthSummaries[m - 1], money),
+                          : monthLine(monthSummaries[m - 1], money),
                       style: TextStyle(color: c.muted, fontSize: 12.5),
                     ),
                     trailing: Text(
@@ -215,7 +222,7 @@ class _Legend extends StatelessWidget {
 }
 
 class _Row extends StatelessWidget {
-  const _Row(this.label, this.value, this.color, {this.indent = false});
+  const _Row(this.label, this.value, this.color, {this.indent = false, this.negative = false});
 
   final String label;
   final String value;
@@ -223,6 +230,9 @@ class _Row extends StatelessWidget {
 
   /// A part of the row above it, e.g. what was invested out of savings.
   final bool indent;
+
+  /// Shows the value in the warning colour.
+  final bool negative;
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -244,7 +254,7 @@ class _Row extends StatelessWidget {
           value,
           style: TextStyle(
             fontWeight: indent ? FontWeight.w500 : FontWeight.w600,
-            color: indent ? context.colors.ink2 : null,
+            color: negative ? context.colors.warn : (indent ? context.colors.ink2 : null),
             fontFeatures: tabularFigures,
           ),
         ),

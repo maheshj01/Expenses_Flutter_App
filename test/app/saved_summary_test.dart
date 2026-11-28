@@ -9,6 +9,9 @@ import 'package:three_bucks/app/providers.dart';
 import 'package:three_bucks/core/day.dart';
 import 'package:three_bucks/data/local/app_database.dart';
 import 'package:three_bucks/domain/entities/ledger_entry.dart';
+import 'package:three_bucks/domain/services/period_summary.dart';
+import 'package:three_bucks/features/history/year_screen.dart';
+import 'package:three_bucks/shared/money_format.dart';
 
 import '../support/fake_connectivity.dart';
 
@@ -67,6 +70,20 @@ void main() {
     await tearDownDb(tester, db);
   });
 
+  testWidgets('investing more than you saved shows cash going negative', (tester) async {
+    final db = await pumpHome(tester, [
+      (721000, 'salary'),
+      (191460, 'housing'),
+      (610900, 'investment'),
+    ]);
+
+    expect(find.text('Invested \$6,109'), findsOneWidget);
+    expect(find.text('Cash -\$814'), findsOneWidget);
+    expect(find.text('invested more than you saved'), findsOneWidget);
+
+    await tearDownDb(tester, db);
+  });
+
   testWidgets('spending more than you earned shows a negative saved', (tester) async {
     final db = await pumpHome(tester, [(500000, 'salary'), (540000, 'housing')]);
 
@@ -85,5 +102,36 @@ void main() {
     expect(find.text('Earned'), findsNothing);
 
     await tearDownDb(tester, db);
+  });
+
+  test('the months list names the parts of what was saved', () {
+    final money = MoneyFormat('USD');
+    String line({int earned = 0, int spent = 0, int invested = 0}) => YearScreen.monthLine(
+      PeriodSummary(earnedCents: earned, livedCents: spent, investedCents: invested, entryCount: 1),
+      money,
+    );
+
+    expect(
+      line(earned: 500000, spent: 300000, invested: 50000),
+      '\$1,500 in cash · \$500 invested',
+    );
+    expect(line(earned: 500000, spent: 280000), '\$2,200 in cash');
+    expect(
+      line(earned: 500000, spent: 300000, invested: 250000),
+      '-\$500 in cash · \$2,500 invested',
+    );
+    // September: earned 7,210, spent 1,914.60, invested 6,109.
+    expect(
+      line(earned: 721000, spent: 191460, invested: 610900),
+      '-\$814 in cash · \$6,109 invested',
+    );
+    expect(line(earned: 500000, spent: 540000), '\$400 over income');
+    expect(
+      line(earned: 500000, spent: 540000, invested: 30000),
+      '\$400 over income · \$300 invested',
+    );
+    expect(line(earned: 500000, spent: 500000), 'Nothing saved');
+    expect(line(spent: 215000, invested: 30000), '\$300 invested');
+    expect(line(spent: 215000), 'No income');
   });
 }

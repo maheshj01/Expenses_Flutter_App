@@ -44,7 +44,6 @@ void main() {
     expect(s.earnedCents, 360500);
     expect(s.savedCents, 360500 - 68900, reason: 'investing is saved money, not spending');
     expect(s.cashCents, 360500 - 68900 - 125000);
-    expect(s.fromEarlierSavingsCents, 0);
     expect(s.byCategory['housing'], 66600);
     expect(s.ranked(cats, CategoryKind.spending).first.key, 'housing');
   });
@@ -58,24 +57,22 @@ void main() {
     expect(normal.savedCents, 200000);
     expect(normal.savedShare, closeTo(0.4, 1e-9));
     expect(normal.cashCents, 150000);
-    expect(normal.fromEarlierSavingsCents, 0);
     expect(normal.towardGoalCents, 200000);
 
-    // Invested more than was saved this month: the rest came from before.
+    // Invested more than was saved this month: cash went down.
     final dipped = PeriodSummary.of([
       e(380000, 'housing'),
       e(200000, 'invest'),
       e(500000, 'salary'),
     ], cats);
     expect(dipped.savedCents, 120000);
-    expect(dipped.cashCents, 0);
-    expect(dipped.fromEarlierSavingsCents, 80000);
+    expect(dipped.cashCents, -80000);
 
     // Spent more than was earned.
     final over = PeriodSummary.of([e(540000, 'housing'), e(500000, 'salary')], cats);
     expect(over.savedCents, -40000);
     expect(over.savedShare, 0);
-    expect(over.cashCents, 0);
+    expect(over.cashCents, -40000);
 
     // No income: saved means nothing, so goals track investing instead.
     final noIncome = PeriodSummary.of([e(215000, 'housing'), e(30000, 'invest')], cats);
