@@ -6,6 +6,7 @@
   <a href="https://play.google.com/store/apps/details?id=com.wml.threebucks"><img alt="Get it on Google Play" src="https://img.shields.io/badge/Google_Play-Get_it-1D7A52?logo=googleplay&logoColor=white"></a>
   <img alt="App Store: coming soon" src="https://img.shields.io/badge/App_Store-Coming_soon-73777C?logo=apple&logoColor=white">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-15171A"></a>
+  <a href="https://github.com/sponsors/maheshj01"><img alt="Sponsor on GitHub" src="https://img.shields.io/github/sponsors/maheshj01?label=Sponsor&logo=githubsponsors&logoColor=white&color=EA4AAA"></a>
 </p>
 
 # Three Bucks
