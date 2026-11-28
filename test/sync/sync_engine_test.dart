@@ -27,6 +27,7 @@ class Device {
       changes: changes,
       debounce: const Duration(milliseconds: 10),
       retryAfter: const Duration(hours: 1),
+      clock: clock,
     );
   }
 
@@ -85,6 +86,20 @@ void main() {
     expect((await tablet.categories.getAll()).any((c) => c.id == 'pets'), isTrue);
     expect(phone.engine.status.phase, SyncPhase.idle);
     expect(phone.engine.status.pendingCount, 0);
+  });
+
+  test('returning to the app syncs only if the last sync was a while ago', () async {
+    await phone.engine.syncNow();
+    await tablet.entries.save(entry('t', 100));
+    await tablet.engine.syncNow();
+
+    now = now.add(const Duration(minutes: 1));
+    await phone.engine.syncIfStale();
+    expect(await phone.all(), isEmpty, reason: 'synced a minute ago, so no round trip');
+
+    now = now.add(const Duration(minutes: 2));
+    await phone.engine.syncIfStale();
+    expect((await phone.all()).map((e) => e.id), ['t']);
   });
 
   test('edits and deletes propagate; the latest edit wins', () async {

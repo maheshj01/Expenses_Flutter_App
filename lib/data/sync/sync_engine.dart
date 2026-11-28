@@ -11,8 +11,8 @@ import 'sync_status.dart';
 /// Moves changes between the local database and a [RemoteStore].
 ///
 /// - Each run pulls remote changes, then pushes local ones.
-/// - Runs on start, shortly after local edits (debounced) and when the
-///   network returns.
+/// - Runs on start, shortly after local edits (debounced), when the
+///   network returns, and on returning to the app if it's been a while.
 /// - Conflicts are resolved per record: the most recent edit wins.
 /// - Without a network, changes stay queued in the local database.
 /// - Only a signed-in account syncs. Signed out, changes stay queued and
@@ -98,6 +98,16 @@ class SyncEngine {
     final run = _runLoop();
     _running = run;
     return run.whenComplete(() => _running = null);
+  }
+
+  /// [syncNow], unless the last sync succeeded within [maxAge]. For when
+  /// the app comes back to the foreground: picks up changes made on other
+  /// devices without a round trip on every switch.
+  Future<void> syncIfStale({Duration maxAge = const Duration(minutes: 2)}) {
+    final last = _status.lastSyncedAt;
+    final fresh =
+        _status.phase == SyncPhase.idle && last != null && _clock().difference(last) < maxAge;
+    return fresh ? Future.value() : syncNow();
   }
 
   Future<void> _runLoop() async {

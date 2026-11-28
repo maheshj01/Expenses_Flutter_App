@@ -14,6 +14,9 @@
 - **Google sign-in uses the phone's own account picker** instead of a browser page.
 - **Plainer wording.** Settings says "Backed up" instead of naming the service behind it, and
   sign-in problems explain what to do instead of showing technical error text.
+- **"Sync now" only when there's something to sync.** The button shows while changes are
+  waiting or the last sync failed. Changes from your other devices now arrive when you come
+  back to the app.
 
 **Fixed**
 

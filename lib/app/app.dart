@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -55,8 +57,40 @@ class AppRoot extends ConsumerWidget {
       child: frozen
           ? const DeletionPendingPage(key: ValueKey('pending-deletion'))
           : onboarded
-          ? const AppShell(key: ValueKey('app'))
+          ? const _SyncOnResume(key: ValueKey('app'), child: AppShell())
           : const OnboardingFlow(key: ValueKey('onboarding')),
     );
   }
+}
+
+/// Syncs when the app comes back to the foreground, if the last sync was a
+/// while ago, so changes made on other devices show up.
+class _SyncOnResume extends ConsumerStatefulWidget {
+  const _SyncOnResume({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  ConsumerState<_SyncOnResume> createState() => _SyncOnResumeState();
+}
+
+class _SyncOnResumeState extends ConsumerState<_SyncOnResume> {
+  late final AppLifecycleListener _lifecycle;
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycle = AppLifecycleListener(
+      onResume: () => unawaited(ref.read(syncEngineProvider).syncIfStale()),
+    );
+  }
+
+  @override
+  void dispose() {
+    _lifecycle.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

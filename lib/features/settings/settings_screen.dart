@@ -302,7 +302,13 @@ class _SyncCard extends ConsumerWidget {
               label: const Text('Sign in to back up'),
             ),
           ],
-          if (status.phase.backsUp) ...[
+          // Only when there's something to do: changes waiting, or a sync
+          // that failed or had no network. Otherwise everything is backed up
+          // and changes from other devices arrive on returning to the app.
+          if (status.phase.backsUp &&
+              (status.pendingCount > 0 ||
+                  status.phase == SyncPhase.error ||
+                  status.phase == SyncPhase.offline)) ...[
             const SizedBox(height: 12),
             OutlinedButton.icon(
               onPressed: status.phase == SyncPhase.syncing
