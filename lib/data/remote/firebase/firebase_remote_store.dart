@@ -81,7 +81,14 @@ class FirebaseRemoteStore implements RemoteStore {
         .orderBy(_serverUpdatedAt)
         .orderBy(FieldPath.documentId)
         .limit(pageSize);
-    if (after != null) query = query.startAfter([after.timestamp, after.docId]);
+    if (after != null) {
+      // Firestore refuses an empty document ID in a query (a native
+      // exception on iOS). An empty one means "everything from that time",
+      // which starting at the timestamp alone gives.
+      query = after.docId.isEmpty
+          ? query.startAt([after.timestamp])
+          : query.startAfter([after.timestamp, after.docId]);
+    }
 
     final snapshot = await query.get(const GetOptions(source: Source.server));
     final docs = snapshot.docs.where((d) => d.data()[_serverUpdatedAt] is Timestamp).toList();

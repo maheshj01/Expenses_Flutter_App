@@ -16,6 +16,7 @@
 **Fixed**
 
 - Setting or removing the monthly budget no longer shows an error as the dialog closes.
+- Backup no longer fails when the app opens after a sync that reached the end of your data.
 
 ### v0.1.0+3 Nov 25, 2026
 
