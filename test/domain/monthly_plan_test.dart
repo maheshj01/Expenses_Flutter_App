@@ -27,10 +27,4 @@ void main() {
     expect(MonthlyPlan.suggestSavings(500000, 0), 100000);
     expect(MonthlyPlan.suggestSavings(100000, 120000), 0);
   });
-
-  test('set aside counts investing, or the earnings gap if bigger', () {
-    expect(MonthlyPlan.setAside(earned: 360500, lived: 73967, invested: 641616), 641616);
-    expect(MonthlyPlan.setAside(earned: 700000, lived: 150000, invested: 100000), 550000);
-    expect(MonthlyPlan.setAside(earned: 0, lived: 50000, invested: 0), 0);
-  });
 }

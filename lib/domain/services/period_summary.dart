@@ -1,8 +1,11 @@
+import 'dart:math' as math;
+
 import '../entities/category.dart';
 import '../entities/ledger_entry.dart';
 
 /// Totals for any period (a month, a year), split into the three buckets
-/// the app is built around: what you spent, saved, and earned.
+/// the app is built around: what you spent, earned, and saved (earned minus
+/// spent), plus how much of it you invested.
 class PeriodSummary {
   const PeriodSummary({
     this.livedCents = 0,
@@ -47,9 +50,32 @@ class PeriodSummary {
   final Map<String, int> byCategory;
   final int entryCount;
 
-  /// Earned minus lived minus invested. Can be negative when you invest
-  /// from savings; that is not overspending.
-  int get keptCents => earnedCents - livedCents - investedCents;
+  /// Whether any income was logged. Without it, [savedCents] would just be
+  /// spending with a minus sign, so screens show [investedCents] instead.
+  bool get hasIncome => earnedCents > 0;
+
+  /// What you didn't spend: earned minus spent. Negative when you spent
+  /// more than you earned.
+  ///
+  /// Investing doesn't change it: money put into investments or a savings
+  /// account is saved money that went somewhere, not spending.
+  int get savedCents => earnedCents - livedCents;
+
+  /// Saved as a share of what you earned, 0 to 1 (0 without income or when
+  /// nothing was saved).
+  double get savedShare =>
+      !hasIncome || savedCents <= 0 ? 0 : (savedCents / earnedCents).clamp(0, 1).toDouble();
+
+  /// The part of [savedCents] that wasn't invested. Never negative.
+  int get cashCents => math.max(0, savedCents - investedCents);
+
+  /// How much of what you invested came from savings made before this
+  /// period, because you invested more than you saved in it.
+  int get fromEarlierSavingsCents => math.max(0, investedCents - math.max(0, savedCents));
+
+  /// Progress toward a savings goal: what you saved, or, with no income
+  /// logged, what you invested.
+  int get towardGoalCents => hasIncome ? savedCents : investedCents;
 
   /// Category ids of [kind], biggest first.
   List<MapEntry<String, int>> ranked(Map<String, Category> categories, CategoryKind kind) {

@@ -89,7 +89,8 @@ class _YearCard extends ConsumerWidget {
       ),
     );
 
-    final total = s.livedCents + s.investedCents + s.keptCents.clamp(0, 1 << 62);
+    // Where the money went: spent, invested, and what's left in cash.
+    final total = s.livedCents + s.investedCents + s.cashCents;
     return AppCard(
       onTap: () =>
           Navigator.of(context)
@@ -139,14 +140,17 @@ class _YearCard extends ConsumerWidget {
                   : [
                       (s.livedCents / total, c.lived),
                       (s.investedCents / total, c.invested),
-                      (s.keptCents.clamp(0, 1 << 62) / total, c.earned),
+                      (s.cashCents / total, c.muted),
                     ],
             ),
             const SizedBox(height: 12),
             Row(
               children: [
                 figure('Spent', s.livedCents, c.lived),
-                figure('Saved', s.investedCents, c.invested),
+                if (s.hasIncome)
+                  figure('Saved', s.savedCents, s.savedCents < 0 ? c.warn : c.invested)
+                else
+                  figure('Invested', s.investedCents, c.invested),
                 figure('Earned', s.earnedCents, c.earned),
               ],
             ),

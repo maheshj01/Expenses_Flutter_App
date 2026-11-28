@@ -85,7 +85,11 @@ void main() {
         summary.rows.firstWhere((r) => r.isNotEmpty && r.first == label);
     expect(row('Food')[4], 0.72, reason: 'April column');
     expect(row('Housing')[1], -500, reason: 'money back lowers January');
-    expect(row('Saved total').last, 2400);
+    expect(row('Invested total').last, 2400);
+    // Earned minus spent; investing doesn't lower it. No income here, and
+    // January's rent back counts as negative spending.
+    expect(row('Saved (earned − spent)')[1], 500);
+    expect(row('Saved (earned − spent)')[4], -0.72);
   });
 
   test('file names are safe', () {

@@ -39,11 +39,4 @@ class MonthlyPlan {
     final left = spendingCents > 0 ? monthlyIncomeCents - spendingCents : monthlyIncomeCents ~/ 5;
     return left <= 0 ? 0 : (left / 1000).floor() * 1000;
   }
-
-  /// How much was set aside in a month: whatever was invested, or the gap
-  /// between earnings and living costs if that is bigger.
-  static int setAside({required int earned, required int lived, required int invested}) {
-    final kept = earned - lived;
-    return kept > invested ? kept : invested;
-  }
 }

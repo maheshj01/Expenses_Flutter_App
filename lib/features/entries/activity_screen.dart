@@ -181,7 +181,14 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
                   Row(
                     children: [
                       _Total('Spent', money.whole(summary.livedCents), c.lived),
-                      _Total('Saved', money.whole(summary.investedCents), c.invested),
+                      if (summary.hasIncome)
+                        _Total(
+                          'Saved',
+                          money.whole(summary.savedCents),
+                          summary.savedCents < 0 ? c.warn : c.invested,
+                        )
+                      else
+                        _Total('Invested', money.whole(summary.investedCents), c.invested),
                       _Total('Earned', money.whole(summary.earnedCents), c.earned),
                     ],
                   ),

@@ -7,7 +7,6 @@ import '../../app/theme.dart';
 import '../../core/year_month.dart';
 import '../../data/sync/sync_status.dart';
 import '../../domain/entities/category.dart';
-import '../../domain/services/monthly_plan.dart';
 import '../../domain/services/period_summary.dart';
 import '../../shared/animations/animated_amount.dart';
 import '../../shared/animations/fade_slide_in.dart';
@@ -81,12 +80,16 @@ class HomeScreen extends ConsumerWidget {
             index: 1,
             child: KeyedSubtree(
               key: RegionKeys.monthTiles,
-              child: _FlowTiles(summary: summary, money: money),
+              child: _FlowTiles(
+                summary: summary,
+                money: money,
+                expectsIncome: ref.watch(settingsProvider.select((s) => s.hasIncome)),
+              ),
             ),
           ),
           KeyedSubtree(
             key: RegionKeys.goalCard,
-            child: _GoalCard(summary: summary, money: money),
+            child: _SavedCard(summary: summary, money: money),
           ),
           if (spending.isNotEmpty) ...[
             const SectionHeader('Where it went'),
@@ -301,17 +304,24 @@ class _Stat extends StatelessWidget {
   }
 }
 
+/// Spent, saved and earned this month. Saved is earned minus spent; with no
+/// income logged it can't be worked out, so investing shows instead.
 class _FlowTiles extends StatelessWidget {
-  const _FlowTiles({required this.summary, required this.money});
+  const _FlowTiles({required this.summary, required this.money, required this.expectsIncome});
 
   final PeriodSummary summary;
   final MoneyFormat money;
 
+  /// The user said they have an income, so a month without any logged yet
+  /// shows Saved as "not yet" rather than dropping it.
+  final bool expectsIncome;
+
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    Widget tile(String label, int cents, Color fg, Color bg) => Expanded(
-      child: Container(
+    Widget tile(String label, int? cents, Color fg, Color bg, {String? note}) => Expanded(
+      child: AnimatedContainer(
+        duration: Motion.of(context, Motion.medium),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(16)),
         child: Column(
@@ -323,29 +333,47 @@ class _FlowTiles extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             FittedBox(
-              child: AnimatedAmount(
-                cents: cents,
-                builder: (context, value) => Text(
-                  money.whole(value),
-                  style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w600,
-                    fontFeatures: tabularFigures,
-                  ),
-                ),
-              ),
+              child: cents == null
+                  ? Text('—', style: TextStyle(fontSize: 17, color: c.muted))
+                  : AnimatedAmount(
+                      cents: cents,
+                      builder: (context, value) => Text(
+                        money.whole(value),
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
+                          color: cents < 0 ? c.warn : null,
+                          fontFeatures: tabularFigures,
+                        ),
+                      ),
+                    ),
             ),
+            if (note != null) Text(note, style: TextStyle(color: fg, fontSize: 11), maxLines: 1),
           ],
         ),
       ),
     );
+
+    final saved = summary.savedCents;
+    final Widget middle;
+    if (summary.hasIncome) {
+      middle = saved < 0
+          ? tile('Saved', saved, c.warn, c.warnSoft, note: 'over income')
+          : tile('Saved', saved, c.invested, c.investedSoft);
+    } else if (expectsIncome) {
+      middle = tile('Saved', null, c.muted, c.sunk, note: 'no income yet');
+    } else {
+      middle = tile('Invested', summary.investedCents, c.invested, c.investedSoft);
+    }
     return Row(
       children: [
         tile('Spent', summary.livedCents, c.lived, c.livedSoft),
         const SizedBox(width: 8),
-        tile('Saved', summary.investedCents, c.invested, c.investedSoft),
-        const SizedBox(width: 8),
-        tile('Earned', summary.earnedCents, c.earned, c.earnedSoft),
+        middle,
+        if (summary.hasIncome || expectsIncome) ...[
+          const SizedBox(width: 8),
+          tile('Earned', summary.earnedCents, c.earned, c.earnedSoft),
+        ],
       ],
     );
   }
@@ -442,9 +470,10 @@ class _SyncBanner extends ConsumerWidget {
   }
 }
 
-/// Progress toward the monthly savings target set during onboarding.
-class _GoalCard extends ConsumerWidget {
-  const _GoalCard({required this.summary, required this.money});
+/// What you saved this month (earned minus spent), where it went
+/// (invested or left in cash), and progress toward the savings goal.
+class _SavedCard extends ConsumerWidget {
+  const _SavedCard({required this.summary, required this.money});
 
   final PeriodSummary summary;
   final MoneyFormat money;
@@ -453,17 +482,25 @@ class _GoalCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.colors;
     final settings = ref.watch(settingsProvider);
-    if (!settings.hasSavingsGoal) return const SizedBox.shrink();
-    final goal = settings.savingsGoalCents;
-    final saved = MonthlyPlan.setAside(
-      earned: summary.earnedCents,
-      lived: summary.livedCents,
-      invested: summary.investedCents,
-    );
-    final fraction = (saved / goal).clamp(0, 1).toDouble();
-    final reached = saved >= goal;
-    final emojis = settings.goals.map((g) => g.emoji).take(3).join(' ');
+    final income = summary.hasIncome;
+    // Has an income but none logged yet this month: still about saving.
+    final waitingForIncome = !income && settings.hasIncome;
+    final invested = summary.investedCents;
+    if (!income && invested == 0 && !settings.hasSavingsGoal) return const SizedBox.shrink();
+
+    final amount = summary.towardGoalCents;
+    final goal = settings.hasSavingsGoal ? settings.savingsGoalCents : 0;
+    final reached = goal > 0 && amount >= goal;
+    final cash = income ? summary.cashCents : 0;
+    final earlier = income ? summary.fromEarlierSavingsCents : 0;
+    final emojis = goal > 0 ? settings.goals.map((g) => g.emoji).take(3).join(' ') : '';
     final status = TextStyle(color: c.invested, fontWeight: FontWeight.w700);
+
+    // One bar: invested, then cash, measured against the goal if there is
+    // one, otherwise against everything set aside.
+    final scale = goal > 0 ? goal : (invested + cash);
+    final investedPart = scale <= 0 ? 0.0 : (invested / scale).clamp(0, 1).toDouble();
+    final cashPart = scale <= 0 ? 0.0 : (cash / scale).clamp(0, 1 - investedPart).toDouble();
 
     return Padding(
       padding: const EdgeInsets.only(top: 10),
@@ -476,8 +513,17 @@ class _GoalCard extends ConsumerWidget {
             children: [
               Row(
                 children: [
-                  const Expanded(child: Label('Saved this month')),
-                  if (emojis.isNotEmpty) Text(emojis, style: const TextStyle(fontSize: 14)),
+                  Expanded(
+                    child: Label(
+                      income || waitingForIncome ? 'Saved this month' : 'Invested this month',
+                    ),
+                  ),
+                  if (income && summary.savedShare > 0)
+                    _Pill('${(summary.savedShare * 100).round()}% of income'),
+                  if (emojis.isNotEmpty) ...[
+                    const SizedBox(width: 6),
+                    Text(emojis, style: const TextStyle(fontSize: 14)),
+                  ],
                 ],
               ),
               const SizedBox(height: 4),
@@ -486,37 +532,113 @@ class _GoalCard extends ConsumerWidget {
                 textBaseline: TextBaseline.alphabetic,
                 children: [
                   AnimatedAmount(
-                    cents: saved,
+                    cents: amount,
                     builder: (context, v) => Text(
                       money.whole(v),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
+                        color: amount < 0 ? c.warn : null,
                         fontFeatures: tabularFigures,
                       ),
                     ),
                   ),
-                  Text(' of ${money.whole(goal)}', style: TextStyle(color: c.muted)),
+                  if (goal > 0) Text(' of ${money.whole(goal)}', style: TextStyle(color: c.muted)),
                   const Spacer(),
-                  AnimatedSwitcher(
-                    duration: Motion.of(context, Motion.medium),
-                    transitionBuilder: (child, a) => ScaleTransition(scale: a, child: child),
-                    child: reached
-                        ? Text('Goal reached 🎉', key: const ValueKey('done'), style: status)
-                        : Text(
-                            '${(fraction * 100).round()}%',
-                            key: const ValueKey('pct'),
-                            style: status,
-                          ),
-                  ),
+                  if (goal > 0)
+                    AnimatedSwitcher(
+                      duration: Motion.of(context, Motion.medium),
+                      transitionBuilder: (child, a) => ScaleTransition(scale: a, child: child),
+                      child: reached
+                          ? Text('Goal reached 🎉', key: const ValueKey('done'), style: status)
+                          : Text(
+                              '${(amount.clamp(0, goal) * 100 ~/ goal)}%',
+                              key: const ValueKey('pct'),
+                              style: status,
+                            ),
+                    ),
                 ],
               ),
+              if (waitingForIncome)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(
+                    invested > 0
+                        ? 'What you invested so far. Add this month’s income to see all you saved.'
+                        : 'Add this month’s income to see what you saved.',
+                    style: TextStyle(color: c.muted, fontSize: 12.5),
+                  ),
+                ),
+              if (amount < 0)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(
+                    'You spent ${money.whole(-amount)} more than you earned',
+                    style: TextStyle(color: c.warn, fontSize: 12.5),
+                  ),
+                ),
               const SizedBox(height: 10),
-              SegmentBar(height: 8, segments: [(fraction, c.invested)]),
+              SegmentBar(height: 8, segments: [(investedPart, c.invested), (cashPart, c.muted)]),
+              if (income && (invested > 0 || cash > 0)) ...[
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 14,
+                  runSpacing: 4,
+                  children: [
+                    if (invested > 0) _Dot('Invested ${money.whole(invested)}', c.invested),
+                    if (cash > 0) _Dot('Left in cash ${money.whole(cash)}', c.muted),
+                    if (earlier > 0)
+                      Text(
+                        '${money.whole(earlier)} of it from earlier savings',
+                        style: TextStyle(fontSize: 12, color: c.muted),
+                      ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),
       ),
     );
   }
+}
+
+class _Pill extends StatelessWidget {
+  const _Pill(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(color: c.investedSoft, borderRadius: BorderRadius.circular(99)),
+      child: Text(
+        text,
+        style: TextStyle(fontSize: 11.5, color: c.invested, fontWeight: FontWeight.w700),
+      ),
+    );
+  }
+}
+
+class _Dot extends StatelessWidget {
+  const _Dot(this.label, this.color);
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Container(
+        width: 8,
+        height: 8,
+        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      ),
+      const SizedBox(width: 5),
+      Text(label, style: TextStyle(fontSize: 12, color: context.colors.ink2)),
+    ],
+  );
 }

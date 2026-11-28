@@ -17,6 +17,11 @@
 - **"Sync now" only when there's something to sync.** The button shows while changes are
   waiting or the last sync failed. Changes from your other devices now arrive when you come
   back to the app.
+- **Saved means what you didn't spend.** Saved is now what you earned minus what you spent,
+  the same number on Home, Activity, History and in the export. Investing no longer counts as
+  "saved" on its own: it shows as where your savings went, next to what's left in cash. A
+  month where you spent more than you earned shows a negative Saved. With no income logged,
+  Invested shows instead. The year screen gains a bar of where your income went.
 
 **Fixed**
 

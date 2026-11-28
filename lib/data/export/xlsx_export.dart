@@ -145,6 +145,29 @@ Uint8List buildExportWorkbook(ExportData data) {
       );
       row += 2;
     }
+
+    // Saved: what was earned minus what was spent, whatever was invested.
+    final saved = List.filled(12, 0);
+    for (final e in entries) {
+      if (e.date.year != year) continue;
+      switch (byId[e.categoryId]?.kind ?? CategoryKind.spending) {
+        case CategoryKind.income:
+          saved[e.date.month - 1] += e.shareCents;
+        case CategoryKind.spending:
+          saved[e.date.month - 1] -= e.shareCents;
+        case CategoryKind.investing:
+          break;
+      }
+    }
+    s.updateCell(_at(0, row), TextCellValue('Saved (earned − spent)'), cellStyle: bold);
+    for (var m = 0; m < 12; m++) {
+      s.updateCell(_at(m + 1, row), DoubleCellValue(saved[m] / 100), cellStyle: moneyBold);
+    }
+    s.updateCell(
+      _at(13, row),
+      DoubleCellValue(saved.fold(0, (a, b) => a + b) / 100),
+      cellStyle: moneyBold,
+    );
     s.setColumnWidth(0, 20);
     for (var c = 1; c <= 13; c++) {
       s.setColumnWidth(c, 11);
@@ -158,7 +181,7 @@ Uint8List buildExportWorkbook(ExportData data) {
 
 String _kindLabel(CategoryKind kind) => switch (kind) {
   CategoryKind.spending => 'Spent',
-  CategoryKind.investing => 'Saved',
+  CategoryKind.investing => 'Invested',
   CategoryKind.income => 'Earned',
 };
 
