@@ -12,6 +12,8 @@
   Google using the same email (or the other way round), the app asks you to confirm with the
   first one once. After that, both open the same account.
 - **Google sign-in uses the phone's own account picker** instead of a browser page.
+- **Plainer wording.** Settings says "Backed up" instead of naming the service behind it, and
+  sign-in problems explain what to do instead of showing technical error text.
 
 **Fixed**
 

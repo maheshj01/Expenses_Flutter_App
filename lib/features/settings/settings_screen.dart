@@ -229,7 +229,7 @@ class _SyncCard extends ConsumerWidget {
         Icons.phone_iphone_rounded,
         c.ink2,
         'On this device only',
-        'Everything works offline. Set up Firebase to back up and sync across devices.',
+        'Everything stays on this phone. Backup isn’t available in this version.',
       ),
       SyncPhase.signedOut => (
         Icons.cloud_off_rounded,
@@ -255,10 +255,10 @@ class _SyncCard extends ConsumerWidget {
       SyncPhase.idle => (
         Icons.cloud_done_rounded,
         c.lived,
-        'Backed up to ${status.backendName}',
+        'Backed up',
         status.lastSyncedAt == null
             ? null
-            : 'Last synced ${DateFormat.jm().format(status.lastSyncedAt!)}',
+            : 'Last backed up at ${DateFormat.jm().format(status.lastSyncedAt!)}',
       ),
     };
 

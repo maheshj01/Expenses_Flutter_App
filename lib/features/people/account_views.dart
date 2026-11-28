@@ -37,7 +37,11 @@ class _SignInViewState extends ConsumerState<SignInView> {
       if (mounted) setState(() => _busy = null);
       if (mounted && await _confirmExisting(e) == true) await _signIn(e.existing);
     } catch (e) {
-      if (mounted) setState(() => _error = '$e');
+      debugPrint('Sign-in failed: $e');
+      // Only our own messages are worded for people; anything else is
+      // too technical to show.
+      final message = e is SocialError ? e.message : 'Couldn’t sign in. Please try again.';
+      if (mounted) setState(() => _error = message);
     } finally {
       if (mounted) setState(() => _busy = null);
     }

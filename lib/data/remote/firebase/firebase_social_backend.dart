@@ -106,7 +106,8 @@ class FirebaseSocialBackend implements SocialBackend {
         _pendingCredential = e.credential ?? google;
         throw EmailHasAccount(attempted: method, existing: method.other, email: e.email);
       }
-      throw SocialError(e.message ?? 'Couldn’t sign in (${e.code})');
+      log('Sign-in failed: ${e.code} ${e.message}', name: 'Auth');
+      throw SocialError(_signInError(e.code));
     }
     await _addPending(method);
     await _auth.currentUser?.reload();
@@ -176,13 +177,27 @@ class FirebaseSocialBackend implements SocialBackend {
       }
       final account = await GoogleSignIn.instance.authenticate(scopeHint: const ['email']);
       final idToken = account.authentication.idToken;
-      if (idToken == null) throw const SocialError('Google didn’t return an ID token');
+      if (idToken == null) {
+        throw const SocialError('Couldn’t sign in with Google. Please try again.');
+      }
       return GoogleAuthProvider.credential(idToken: idToken);
     } on GoogleSignInException catch (e) {
       if (e.code == GoogleSignInExceptionCode.canceled) throw const SignInCancelled();
-      throw SocialError(e.description ?? 'Couldn’t sign in with Google (${e.code.name})');
+      log('Google sign-in failed: ${e.code.name} ${e.description}', name: 'Auth');
+      throw const SocialError('Couldn’t sign in with Google. Please try again.');
     }
   }
+
+  /// Plain words for the sign-in screen; the code and the provider's own
+  /// message go to the log.
+  static String _signInError(String code) => switch (code) {
+    'network-request-failed' => 'Can’t connect. Check your internet and try again.',
+    'too-many-requests' => 'Too many tries. Wait a moment and try again.',
+    'user-disabled' => 'This account has been turned off.',
+    'operation-not-allowed' ||
+    'admin-restricted-operation' => 'Signing in isn’t available right now. Try again later.',
+    _ => 'Couldn’t sign in. Please try again.',
+  };
 
   static bool _isCancel(FirebaseAuthException e) =>
       e.code.contains('cancel') || e.code == 'web-context-canceled' || e.code == '1001';
