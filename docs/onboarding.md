@@ -143,4 +143,4 @@ income, or "Set up" if neither is set. Tapping it opens `OnboardingFlow(editing:
   salaried path, the no-income path, and skipping from Welcome.
 - [`integration_test/onboarding_flow_test.dart`](../integration_test/onboarding_flow_test.dart)
   drives the same flow on a simulator and captures the store screenshots `01_welcome` to
-  `07_plan` (see [Store screenshots](../README.md#store-screenshots)).
+  `07_plan` (see [Store screenshots](development.md#store-screenshots)).
