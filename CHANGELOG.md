@@ -20,6 +20,9 @@
 
 **Fixed**
 
+- Adding a category with a name you already have now says so right on the name field (it
+  was hidden behind the sheet), including when that category is archived.
+- A custom category icon is one character: typing another replaces it.
 - Setting or removing the monthly budget no longer shows an error as the dialog closes.
 - Backup no longer fails when the app opens after a sync that reached the end of your data.
 

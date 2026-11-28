@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/providers.dart';
@@ -80,6 +81,7 @@ class CategoryEditorSheet extends ConsumerStatefulWidget {
 
 class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
   late final TextEditingController _name = TextEditingController(text: widget.category?.name);
+  final _otherIcon = TextEditingController();
   late String _emoji = widget.category?.emoji ?? '📦';
   late int _color = widget.category?.color ?? categoryColors.first;
   late CategoryKind _kind = widget.category?.kind ?? CategoryKind.spending;
@@ -89,6 +91,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
   @override
   void dispose() {
     _name.dispose();
+    _otherIcon.dispose();
     super.dispose();
   }
 
@@ -102,18 +105,19 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
     archived: widget.category?.archived ?? false,
   );
 
+  /// Another category with the same name, ignoring case and spaces at the
+  /// ends. Archived ones count too: restoring beats making a second one.
+  Category? _duplicateIn(List<Category>? categories) {
+    final name = _name.text.trim().toLowerCase();
+    if (name.isEmpty) return null;
+    return categories
+        ?.where((c) => c.id != widget.category?.id && c.name.trim().toLowerCase() == name)
+        .firstOrNull;
+  }
+
   Future<void> _save() async {
     final category = _draft;
-    if (category.name.isEmpty) return;
-    final duplicate = ref
-        .read(categoriesProvider)
-        .value
-        ?.any((c) => c.id != category.id && c.name.toLowerCase() == category.name.toLowerCase());
-    if (duplicate ?? false) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('“${category.name}” already exists')));
-      return;
-    }
+    if (category.name.isEmpty || _duplicateIn(ref.read(categoriesProvider).value) != null) return;
     await ref.read(categoryRepositoryProvider).save(category);
     if (mounted) Navigator.pop(context, category);
   }
@@ -127,6 +131,8 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
+    // Shown on the field as you type: a snack bar would sit behind this sheet.
+    final duplicate = _duplicateIn(ref.watch(categoriesProvider).value);
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: SingleChildScrollView(
@@ -149,7 +155,15 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
                     controller: _name,
                     autofocus: !_isEditing,
                     textCapitalization: TextCapitalization.sentences,
-                    decoration: const InputDecoration(hintText: 'Name, e.g. Groceries'),
+                    decoration: InputDecoration(
+                      hintText: 'Name, e.g. Groceries',
+                      errorText: duplicate == null
+                          ? null
+                          : duplicate.archived
+                          ? '“${duplicate.name}” already exists but is archived. Restore it instead.'
+                          : '“${duplicate.name}” already exists',
+                      errorMaxLines: 2,
+                    ),
                     onChanged: (_) => setState(() {}),
                   ),
                 ),
@@ -182,19 +196,24 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
               runSpacing: 4,
               children: [
                 for (final e in _emojiChoices)
-                  _EmojiButton(e, e == _emoji, () => setState(() => _emoji = e)),
+                  _EmojiButton(e, e == _emoji, () {
+                    _otherIcon.clear();
+                    setState(() => _emoji = e);
+                  }),
                 SizedBox(
                   width: 92,
                   height: 40,
                   child: TextField(
+                    key: const ValueKey('other-icon'),
+                    controller: _otherIcon,
                     textAlign: TextAlign.center,
+                    inputFormatters: [_OneCharacter()],
                     decoration: const InputDecoration(
                       hintText: 'Other',
                       contentPadding: EdgeInsets.zero,
                     ),
                     onChanged: (v) {
-                      final first = v.characters.firstOrNull;
-                      if (first != null) setState(() => _emoji = first);
+                      if (v.isNotEmpty) setState(() => _emoji = v);
                     },
                   ),
                 ),
@@ -227,7 +246,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
             ),
             const SizedBox(height: 20),
             FilledButton(
-              onPressed: _name.text.trim().isEmpty ? null : _save,
+              onPressed: _name.text.trim().isEmpty || duplicate != null ? null : _save,
               child: Text(_isEditing ? 'Save changes' : 'Add category'),
             ),
             if (_isEditing) ...[
@@ -277,6 +296,23 @@ class _EmojiButton extends StatelessWidget {
         ),
         child: Text(emoji, style: const TextStyle(fontSize: 20)),
       ),
+    );
+  }
+}
+
+/// Keeps the icon field to one character, as people see it: an emoji made of
+/// several code points (👩‍🍳, 🇮🇳) counts as one. A new one replaces the old.
+class _OneCharacter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    final characters = newValue.text.characters;
+    if (characters.length <= 1) return newValue;
+    // The character just typed: the one ending at the cursor, else the last.
+    final end = newValue.selection.isValid ? newValue.selection.end : newValue.text.length;
+    final typed = newValue.text.substring(0, end).characters.lastOrNull ?? characters.last;
+    return TextEditingValue(
+      text: typed,
+      selection: TextSelection.collapsed(offset: typed.length),
     );
   }
 }
