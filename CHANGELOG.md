@@ -13,6 +13,10 @@
   first one once. After that, both open the same account.
 - **Google sign-in uses the phone's own account picker** instead of a browser page.
 
+**Fixed**
+
+- Setting or removing the monthly budget no longer shows an error as the dialog closes.
+
 ### v0.1.0+3 Nov 25, 2026
 
 - **Two-tap entry.** Type something like `costco 46 split` and the app fills in the amount, the
