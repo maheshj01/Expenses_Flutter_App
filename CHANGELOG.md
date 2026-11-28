@@ -17,6 +17,8 @@
 - **"Sync now" only when there's something to sync.** The button shows while changes are
   waiting or the last sync failed. Changes from your other devices now arrive when you come
   back to the app.
+- **Your last category comes first.** When adding an entry, the category you used last is at
+  the front of the list, followed by the ones you use most.
 - **Saved means what you didn't spend.** Saved is now what you earned minus what you spent,
   the same number on Home, Activity, History and in the export. Investing no longer counts as
   "saved" on its own: it shows as where your savings went, next to what's left in cash (which

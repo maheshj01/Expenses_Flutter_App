@@ -19,6 +19,7 @@ import '../domain/history/edit.dart';
 import '../domain/repositories/category_repository.dart';
 import '../domain/repositories/entry_repository.dart';
 import '../domain/repositories/settings_repository.dart';
+import '../domain/services/category_usage.dart';
 import '../domain/services/period_summary.dart';
 import '../domain/services/quick_entry_parser.dart';
 import '../shared/money_format.dart';
@@ -182,13 +183,9 @@ final categorySuggesterProvider = FutureProvider.autoDispose<CategorySuggester>(
 );
 
 /// How often each category was used recently, to order pickers.
-final categoryUsageProvider = FutureProvider.autoDispose<Map<String, int>>((ref) async {
-  final counts = <String, int>{};
-  for (final e in await ref.watch(entryRepositoryProvider).recent()) {
-    counts.update(e.categoryId, (v) => v + 1, ifAbsent: () => 1);
-  }
-  return counts;
-});
+final categoryUsageProvider = FutureProvider.autoDispose<CategoryUsage>(
+  (ref) async => CategoryUsage.of(await ref.watch(entryRepositoryProvider).recent()),
+);
 
 /// Selected bottom navigation tab.
 class ShellTabNotifier extends Notifier<int> {

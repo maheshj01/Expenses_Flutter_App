@@ -10,6 +10,7 @@ import '../../core/day.dart';
 import '../../core/ids.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/entities/ledger_entry.dart';
+import '../../domain/services/category_usage.dart';
 import '../../domain/services/quick_entry_parser.dart';
 import '../../domain/social/account.dart';
 import '../../domain/social/shared_bill.dart';
@@ -270,13 +271,10 @@ class _EntryEditorSheetState extends ConsumerState<EntryEditorSheet> {
         : 'kroger 18';
     final canSave = cents > 0 && _categoryId != null;
 
-    // Most used first; keep the selected one even if it was archived since.
-    final usage = ref.watch(categoryUsageProvider).value ?? const {};
-    final shown = [...categories, if (selected != null && selected.archived) selected]
-      ..sort((a, b) {
-        final byUse = (usage[b.id] ?? 0).compareTo(usage[a.id] ?? 0);
-        return byUse != 0 ? byUse : a.sortOrder.compareTo(b.sortOrder);
-      });
+    // Last used first, then most used; keep the selected one even if it was
+    // archived since.
+    final usage = ref.watch(categoryUsageProvider).value ?? CategoryUsage.none;
+    final shown = usage.order([...categories, if (selected != null && selected.archived) selected]);
 
     Widget chip(Category cat) => Padding(
       padding: const EdgeInsets.only(right: 6),
